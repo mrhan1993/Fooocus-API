@@ -1,0 +1,7 @@
+einops==0.4.1
+transformers==4.30.2
+safetensors==0.3.1
+numpy==1.23.5
+pygit2==1.12.2
+fastapi==0.103.1
+uvicorn[standard]==0.23.2
