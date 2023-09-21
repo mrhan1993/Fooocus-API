@@ -55,7 +55,7 @@ def download_repositories():
     print(f"Fooscus-API version: {version}")
 
     # Check and download ComfyUI
-    comfy_repo = os.environ.get('COMFY_REPO', "https://github.com/comfyanonymous/ComfyUI")
+    comfy_repo = os.environ.get('COMFY_REPO', "https://github.com/lllyasviel/ComfyUI_2bc12d.git")
     git_clone(comfy_repo, repo_dir(comfyui_name), "Inference Engine", comfy_commit_hash)
 
     # Check and download Fooocus
