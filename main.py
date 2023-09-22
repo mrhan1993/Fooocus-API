@@ -2,7 +2,6 @@ import argparse
 import os
 import shutil
 
-from fooocusapi.api import start_app
 os.environ["PYTORCH_ENABLE_MPS_FALLBACK"] = "1"
 
 import sys
@@ -127,6 +126,16 @@ def prepare_environments(args):
 
     download_models()
 
+def clear_comfy_args():
+    """
+    This function was copied from [Fooocus](https://github.com/lllyasviel/Fooocus) Repository.
+    """
+    argv = sys.argv
+    sys.argv = [sys.argv[0]]
+    from comfy.cli_args import args as comfy_args
+    comfy_args.disable_cuda_malloc = True
+    sys.argv = argv
+
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("--port", type=int, default=8888, help="Set the listen port")
@@ -135,7 +144,10 @@ if __name__ == "__main__":
     parser.add_argument("--sync-repo", default=None, help="Sync dependent git repositories to local, 'skip' for skip sync action, 'only' for only do the sync action and not launch app")
 
     args = parser.parse_args()
+
     prepare_environments(args)
+    clear_comfy_args()
 
     # Start api server
+    from fooocusapi.api import start_app
     start_app(args)

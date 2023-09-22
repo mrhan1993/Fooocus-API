@@ -18,15 +18,16 @@ After run successful, you can see the terminal print where to put the model file
 Then you can put the model files to target directories manually, or let it auto downloads when start app.
 
 ### Start app
+Run
 ```
 python main.py
 ```
-or
-```
-python main.py --host 0.0.0.0 --port 3333
-```
+On default, server is listening on 'http://127.0.0.1:8888'
 
-For more pragram arguments, see
+For pragram arguments, see
 ```
 python main.py -h
 ```
+
+### Test API
+You can open the Swagger Document in "http://127.0.0.1:8888/docs", then click "Try it out" to send a request.
