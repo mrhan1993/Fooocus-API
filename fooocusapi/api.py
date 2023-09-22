@@ -26,7 +26,7 @@ class Text2ImgRequest(BaseModel):
     refiner_model_name: str = 'sd_xl_refiner_1.0_0.9vae.safetensors'
     loras: List[Lora] = [Lora(model_name='sd_xl_offset_example-lora_1.0.safetensors', weight=0.5)]
 
-@app.post("/v1generation/text2img")
+@app.post("/v1/generation/text-to-image")
 def text2img_generation(req: Text2ImgRequest):
     import modules.default_pipeline as pipeline
     import modules.patch as patch
