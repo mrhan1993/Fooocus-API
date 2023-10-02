@@ -1,0 +1,461 @@
+{
+    "openapi": "3.1.0",
+    "info": {
+        "title": "FastAPI",
+        "version": "0.1.0"
+    },
+    "paths": {
+        "/v1/generation/text-to-image": {
+            "post": {
+                "summary": "Text2Img Generation",
+                "operationId": "text2img_generation_v1_generation_text_to_image_post",
+                "parameters": [
+                    {
+                        "name": "accept",
+                        "in": "query",
+                        "required": false,
+                        "schema": {
+                            "anyOf": [
+                                {
+                                    "type": "string"
+                                },
+                                {
+                                    "type": "null"
+                                }
+                            ],
+                            "title": "Accept"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/Text2ImgRequest"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "PNG bytes if request's 'Accept' header is 'image/png', otherwise JSON",
+                        "content": {
+                            "application/json": {
+                                "schema": {},
+                                "example": {
+                                    "base64": [
+                                        "...very long string..."
+                                    ],
+                                    "seed": 1050625087,
+                                    "finishReason": "SUCCESS"
+                                }
+                            },
+                            "image/png": {
+                                "example": "PNG bytes, what did you expect?"
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Validation Error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/HTTPValidationError"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    },
+    "components": {
+        "schemas": {
+            "AspectRatio": {
+                "type": "string",
+                "enum": [
+                    "704×1408",
+                    "704×1344",
+                    "768×1344",
+                    "768×1280",
+                    "832×1216",
+                    "832×1152",
+                    "896×1152",
+                    "896×1088",
+                    "960×1088",
+                    "960×1024",
+                    "1024×1024",
+                    "1024×960",
+                    "1088×960",
+                    "1088×896",
+                    "1152×896",
+                    "1152×832",
+                    "1216×832",
+                    "1280×768",
+                    "1344×768",
+                    "1344×704",
+                    "1408×704",
+                    "1472×704",
+                    "1536×640",
+                    "1600×640",
+                    "1664×576",
+                    "1728×576"
+                ],
+                "title": "AspectRatio"
+            },
+            "FooocusStyle": {
+                "type": "string",
+                "enum": [
+                    "Fooocus V2",
+                    "Default (Slightly Cinematic)",
+                    "sai-3d-model",
+                    "sai-analog film",
+                    "sai-anime",
+                    "sai-cinematic",
+                    "sai-comic book",
+                    "sai-craft clay",
+                    "sai-digital art",
+                    "sai-enhance",
+                    "sai-fantasy art",
+                    "sai-isometric",
+                    "sai-line art",
+                    "sai-lowpoly",
+                    "sai-neonpunk",
+                    "sai-origami",
+                    "sai-photographic",
+                    "sai-pixel art",
+                    "sai-texture",
+                    "ads-advertising",
+                    "ads-automotive",
+                    "ads-corporate",
+                    "ads-fashion editorial",
+                    "ads-food photography",
+                    "ads-luxury",
+                    "ads-real estate",
+                    "ads-retail",
+                    "artstyle-abstract",
+                    "artstyle-abstract expressionism",
+                    "artstyle-art deco",
+                    "artstyle-art nouveau",
+                    "artstyle-constructivist",
+                    "artstyle-cubist",
+                    "artstyle-expressionist",
+                    "artstyle-graffiti",
+                    "artstyle-hyperrealism",
+                    "artstyle-impressionist",
+                    "artstyle-pointillism",
+                    "artstyle-pop art",
+                    "artstyle-psychedelic",
+                    "artstyle-renaissance",
+                    "artstyle-steampunk",
+                    "artstyle-surrealist",
+                    "artstyle-typography",
+                    "artstyle-watercolor",
+                    "futuristic-biomechanical",
+                    "futuristic-biomechanical cyberpunk",
+                    "futuristic-cybernetic",
+                    "futuristic-cybernetic robot",
+                    "futuristic-cyberpunk cityscape",
+                    "futuristic-futuristic",
+                    "futuristic-retro cyberpunk",
+                    "futuristic-retro futurism",
+                    "futuristic-sci-fi",
+                    "futuristic-vaporwave",
+                    "game-bubble bobble",
+                    "game-cyberpunk game",
+                    "game-fighting game",
+                    "game-gta",
+                    "game-mario",
+                    "game-minecraft",
+                    "game-pokemon",
+                    "game-retro arcade",
+                    "game-retro game",
+                    "game-rpg fantasy game",
+                    "game-strategy game",
+                    "game-streetfighter",
+                    "game-zelda",
+                    "misc-architectural",
+                    "misc-disco",
+                    "misc-dreamscape",
+                    "misc-dystopian",
+                    "misc-fairy tale",
+                    "misc-gothic",
+                    "misc-grunge",
+                    "misc-horror",
+                    "misc-kawaii",
+                    "misc-lovecraftian",
+                    "misc-macabre",
+                    "misc-manga",
+                    "misc-metropolis",
+                    "misc-minimalist",
+                    "misc-monochrome",
+                    "misc-nautical",
+                    "misc-space",
+                    "misc-stained glass",
+                    "misc-techwear fashion",
+                    "misc-tribal",
+                    "misc-zentangle",
+                    "papercraft-collage",
+                    "papercraft-flat papercut",
+                    "papercraft-kirigami",
+                    "papercraft-paper mache",
+                    "papercraft-paper quilling",
+                    "papercraft-papercut collage",
+                    "papercraft-papercut shadow box",
+                    "papercraft-stacked papercut",
+                    "papercraft-thick layered papercut",
+                    "photo-alien",
+                    "photo-film noir",
+                    "photo-hdr",
+                    "photo-long exposure",
+                    "photo-neon noir",
+                    "photo-silhouette",
+                    "photo-tilt-shift",
+                    "cinematic-diva",
+                    "Abstract Expressionism",
+                    "Academia",
+                    "Action Figure",
+                    "Adorable 3D Character",
+                    "Adorable Kawaii",
+                    "Art Deco",
+                    "Art Nouveau",
+                    "Astral Aura",
+                    "Avant-garde",
+                    "Baroque",
+                    "Bauhaus-Style Poster",
+                    "Blueprint Schematic Drawing",
+                    "Caricature",
+                    "Cel Shaded Art",
+                    "Character Design Sheet",
+                    "Classicism Art",
+                    "Color Field Painting",
+                    "Colored Pencil Art",
+                    "Conceptual Art",
+                    "Constructivism",
+                    "Cubism",
+                    "Dadaism",
+                    "Dark Fantasy",
+                    "Dark Moody Atmosphere",
+                    "DMT Art Style",
+                    "Doodle Art",
+                    "Double Exposure",
+                    "Dripping Paint Splatter Art",
+                    "Expressionism",
+                    "Faded Polaroid Photo",
+                    "Fauvism",
+                    "Flat 2D Art",
+                    "Fortnite Art Style",
+                    "Futurism",
+                    "Glitchcore",
+                    "Glo-fi",
+                    "Googie Art Style",
+                    "Graffiti Art",
+                    "Harlem Renaissance Art",
+                    "High Fashion",
+                    "Idyllic",
+                    "Impressionism",
+                    "Infographic Drawing",
+                    "Ink Dripping Drawing",
+                    "Japanese Ink Drawing",
+                    "Knolling Photography",
+                    "Light Cheery Atmosphere",
+                    "Logo Design",
+                    "Luxurious Elegance",
+                    "Macro Photography",
+                    "Mandola Art",
+                    "Marker Drawing",
+                    "Medievalism",
+                    "Minimalism",
+                    "Neo-Baroque",
+                    "Neo-Byzantine",
+                    "Neo-Futurism",
+                    "Neo-Impressionism",
+                    "Neo-Rococo",
+                    "Neoclassicism",
+                    "Op Art",
+                    "Ornate and Intricate",
+                    "Pencil Sketch Drawing",
+                    "Pop Art 2",
+                    "Rococo",
+                    "Silhouette Art",
+                    "Simple Vector Art",
+                    "Sketchup",
+                    "Steampunk 2",
+                    "Surrealism",
+                    "Suprematism",
+                    "Terragen",
+                    "Tranquil Relaxing Atmosphere",
+                    "Sticker Designs",
+                    "Vibrant Rim Light",
+                    "Volumetric Lighting",
+                    "Watercolor 2",
+                    "Whimsical and Playful"
+                ],
+                "title": "FooocusStyle"
+            },
+            "HTTPValidationError": {
+                "properties": {
+                    "detail": {
+                        "items": {
+                            "$ref": "#/components/schemas/ValidationError"
+                        },
+                        "type": "array",
+                        "title": "Detail"
+                    }
+                },
+                "type": "object",
+                "title": "HTTPValidationError"
+            },
+            "Lora": {
+                "properties": {
+                    "model_name": {
+                        "type": "string",
+                        "title": "Model Name"
+                    },
+                    "weight": {
+                        "type": "number",
+                        "title": "Weight"
+                    }
+                },
+                "type": "object",
+                "required": [
+                    "model_name",
+                    "weight"
+                ],
+                "title": "Lora"
+            },
+            "PerfomanceSelection": {
+                "type": "string",
+                "enum": [
+                    "Speed",
+                    "Quality"
+                ],
+                "title": "PerfomanceSelection"
+            },
+            "Text2ImgRequest": {
+                "properties": {
+                    "prompt": {
+                        "type": "string",
+                        "title": "Prompt",
+                        "default": ""
+                    },
+                    "negative_promit": {
+                        "type": "string",
+                        "title": "Negative Promit",
+                        "default": ""
+                    },
+                    "style_selections": {
+                        "items": {
+                            "$ref": "#/components/schemas/FooocusStyle"
+                        },
+                        "type": "array",
+                        "title": "Style Selections",
+                        "default": [
+                            "Default (Slightly Cinematic)"
+                        ]
+                    },
+                    "performance_selection": {
+                        "allOf": [
+                            {
+                                "$ref": "#/components/schemas/PerfomanceSelection"
+                            }
+                        ],
+                        "default": "Speed"
+                    },
+                    "aspect_ratios_selection": {
+                        "allOf": [
+                            {
+                                "$ref": "#/components/schemas/AspectRatio"
+                            }
+                        ],
+                        "default": "1152×896"
+                    },
+                    "image_number": {
+                        "type": "integer",
+                        "title": "Image Number",
+                        "description": "Image number",
+                        "default": 2,
+                        "min": 1
+                    },
+                    "image_seed": {
+                        "anyOf": [
+                            {
+                                "type": "integer"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Image Seed"
+                    },
+                    "sharpness": {
+                        "type": "number",
+                        "title": "Sharpness",
+                        "default": 2,
+                        "max": 30,
+                        "min": 0
+                    },
+                    "base_model_name": {
+                        "type": "string",
+                        "title": "Base Model Name",
+                        "default": "sd_xl_base_1.0_0.9vae.safetensors"
+                    },
+                    "refiner_model_name": {
+                        "type": "string",
+                        "title": "Refiner Model Name",
+                        "default": "sd_xl_refiner_1.0_0.9vae.safetensors"
+                    },
+                    "loras": {
+                        "items": {
+                            "$ref": "#/components/schemas/Lora"
+                        },
+                        "type": "array",
+                        "title": "Loras",
+                        "default": [
+                            {
+                                "model_name": "sd_xl_offset_example-lora_1.0.safetensors",
+                                "weight": 0.5
+                            }
+                        ]
+                    }
+                },
+                "type": "object",
+                "title": "Text2ImgRequest"
+            },
+            "ValidationError": {
+                "properties": {
+                    "loc": {
+                        "items": {
+                            "anyOf": [
+                                {
+                                    "type": "string"
+                                },
+                                {
+                                    "type": "integer"
+                                }
+                            ]
+                        },
+                        "type": "array",
+                        "title": "Location"
+                    },
+                    "msg": {
+                        "type": "string",
+                        "title": "Message"
+                    },
+                    "type": {
+                        "type": "string",
+                        "title": "Error Type"
+                    }
+                },
+                "type": "object",
+                "required": [
+                    "loc",
+                    "msg",
+                    "type"
+                ],
+                "title": "ValidationError"
+            }
+        }
+    }
+}

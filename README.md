@@ -31,3 +31,11 @@ python main.py -h
 
 ### Test API
 You can open the Swagger Document in "http://127.0.0.1:8888/docs", then click "Try it out" to send a request.
+
+### Open api defination
+See [openapi.json](docs/openapi.json).
+
+#### Text to Image
+A completely alternative operation for the normal image generation of Fooocus Gradio interface.
+
+Add support for response in PNG bytes directly when request's 'Accept' header is 'image/png'.
