@@ -235,8 +235,18 @@ class Text2ImgRequest(BaseModel):
     performance_selection: PerfomanceSelection = PerfomanceSelection.speed
     aspect_ratios_selection: AspectRatio = AspectRatio.a_1_29
     image_number: int = Field(default=2, description="Image number", min=1)
-    image_seed: int  | None = None
+    image_seed: int | None = None
     sharpness: float = Field(default=2.0, min=0.0, max=30.0)
     base_model_name: str = 'sd_xl_base_1.0_0.9vae.safetensors'
     refiner_model_name: str = 'sd_xl_refiner_1.0_0.9vae.safetensors'
     loras: List[Lora] = [Lora(model_name='sd_xl_offset_example-lora_1.0.safetensors', weight=0.5)]
+
+class GenerationFinishReason(str, Enum):
+    success = 'SUCCESS'
+    user_cancel = 'USER_CANCEL'
+    error = 'ERROR'
+
+class GeneratedImageItem(BaseModel):
+    base64: str | None = Field(description="Image encoded in base64, or null if finishReasen is not 'SUCCESS'")
+    seed: int = Field(description="The seed associated with this image")
+    finish_reason: GenerationFinishReason

@@ -1,25 +1,25 @@
 import copy
 import random
-from typing import Annotated
+from typing import Annotated, List
 from fastapi import FastAPI, Header, Response
 import uvicorn
 from fooocusapi.api_utils import narray_to_bytesimg
-from fooocusapi.models import PerfomanceSelection, Text2ImgRequest
+from fooocusapi.models import GeneratedImageItem, GenerationFinishReason, PerfomanceSelection, Text2ImgRequest
 from modules.expansion import safe_str
 from modules.sdxl_styles import apply_style, fooocus_expansion, aspect_ratios
 
 app = FastAPI()
 
-@app.post("/v1/generation/text-to-image", responses = {
+@app.post("/v1/generation/text-to-image", response_model=List[GeneratedImageItem], responses = {
     200: {
         "description": "PNG bytes if request's 'Accept' header is 'image/png', otherwise JSON",
         "content": {
             "application/json": {
-                "example": {
-                    "base64": ["...very long string..."],
+                "example": [{
+                    "base64": "...very long string...",
                     "seed": 1050625087,
-                    "finishReason": "SUCCESS"
-                }
+                    "finish_reason": "SUCCESS"
+                }]
             },
             "image/png": {
                 "example": "PNG bytes, what did you expect?"
@@ -198,18 +198,22 @@ def text2img_generation(req: Text2ImgRequest, accept: Annotated[str | None,  Hea
                         d.append((f'LoRA [{n}] weight', w))
                 log(x, d, single_line_number=3)
 
-            results += imgs
+            results.append({'im': imgs[0], 'seed': task['task_seed'], 'finish_reason': GenerationFinishReason.success})
         except model_management.InterruptProcessingException as e:
             print('User stopped')
+            for i in range(current_task_id + 1, len(tasks)):
+                results.append({'im': None, 'seed': task['task_seed'], 'finish_reason': GenerationFinishReason.user_cancel})
             break
-
+        except Exception as e:
+            print('Process failed:', e)
+            results.append({'im': None, 'seed': task['task_seed'], 'finish_reason': GenerationFinishReason.error})
 
     if streaming_output:
-        bytes = narray_to_bytesimg(results[0])
+        bytes = narray_to_bytesimg(results[0]['im'])
         return Response(bytes, media_type='image/png')
     else:
-        results = [narray_to_base64img(narr) for narr in results]
-        return {"base64": results, "seed": task['task_seed'], "finishReason": "SUCCESS"}
+        results = [GeneratedImageItem(base64=narray_to_base64img(item['im']), seed=item['seed'], finish_reason=item['finish_reason']) for item in results]
+        return results
 
 def start_app(args):
     uvicorn.run("fooocusapi.api:app", host=args.host, port=args.port, log_level=args.log_level)

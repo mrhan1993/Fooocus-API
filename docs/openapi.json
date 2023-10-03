@@ -42,14 +42,20 @@
                         "description": "PNG bytes if request's 'Accept' header is 'image/png', otherwise JSON",
                         "content": {
                             "application/json": {
-                                "schema": {},
-                                "example": {
-                                    "base64": [
-                                        "...very long string..."
-                                    ],
-                                    "seed": 1050625087,
-                                    "finishReason": "SUCCESS"
-                                }
+                                "schema": {
+                                    "type": "array",
+                                    "items": {
+                                        "$ref": "#/components/schemas/GeneratedImageItem"
+                                    },
+                                    "title": "Response Text2Img Generation V1 Generation Text To Image Post"
+                                },
+                                "example": [
+                                    {
+                                        "base64": "...very long string...",
+                                        "seed": 1050625087,
+                                        "finish_reason": "SUCCESS"
+                                    }
+                                ]
                             },
                             "image/png": {
                                 "example": "PNG bytes, what did you expect?"
@@ -293,6 +299,46 @@
                     "Whimsical and Playful"
                 ],
                 "title": "FooocusStyle"
+            },
+            "GeneratedImageItem": {
+                "properties": {
+                    "base64": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Base64",
+                        "description": "Image encoded in base64, or null if finishReasen is not 'SUCCESS'"
+                    },
+                    "seed": {
+                        "type": "integer",
+                        "title": "Seed",
+                        "description": "The seed associated with this image"
+                    },
+                    "finish_reason": {
+                        "$ref": "#/components/schemas/GenerationFinishReason"
+                    }
+                },
+                "type": "object",
+                "required": [
+                    "base64",
+                    "seed",
+                    "finish_reason"
+                ],
+                "title": "GeneratedImageItem"
+            },
+            "GenerationFinishReason": {
+                "type": "string",
+                "enum": [
+                    "SUCCESS",
+                    "USER_CANCEL",
+                    "ERROR"
+                ],
+                "title": "GenerationFinishReason"
             },
             "HTTPValidationError": {
                 "properties": {

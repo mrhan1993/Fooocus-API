@@ -3,6 +3,9 @@ from io import BytesIO
 from PIL import Image as im
 
 def narray_to_base64img(narray):
+    if narray is None:
+        return None
+    
     img = im.fromarray(narray)
     output_buffer = BytesIO()
     img.save(output_buffer, format='PNG')
