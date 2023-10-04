@@ -2,6 +2,7 @@ from pydantic import BaseModel, ConfigDict, Field
 from typing import List
 from enum import Enum
 
+
 class Lora(BaseModel):
     model_name: str
     weight: float
@@ -10,9 +11,11 @@ class Lora(BaseModel):
         protected_namespaces=('protect_me_', 'also_protect_')
     )
 
+
 class PerfomanceSelection(str, Enum):
     speed = 'Speed'
     quality = 'Quality'
+
 
 class FooocusStyle(str, Enum):
     fooocus_expansion = 'Fooocus V2'
@@ -200,6 +203,7 @@ class FooocusStyle(str, Enum):
     watercolor_2 = 'Watercolor 2'
     whimsical_and_playful = 'Whimsical and Playful'
 
+
 class AspectRatio(str, Enum):
     a_0_5 = '704×1408'
     a_0_52 = '704×1344'
@@ -228,6 +232,7 @@ class AspectRatio(str, Enum):
     a_2_89 = '1664×576'
     a_3_0 = '1728×576'
 
+
 class Text2ImgRequest(BaseModel):
     prompt: str = ''
     negative_promit: str = ''
@@ -239,14 +244,37 @@ class Text2ImgRequest(BaseModel):
     sharpness: float = Field(default=2.0, min=0.0, max=30.0)
     base_model_name: str = 'sd_xl_base_1.0_0.9vae.safetensors'
     refiner_model_name: str = 'sd_xl_refiner_1.0_0.9vae.safetensors'
-    loras: List[Lora] = [Lora(model_name='sd_xl_offset_example-lora_1.0.safetensors', weight=0.5)]
+    loras: List[Lora] = [
+        Lora(model_name='sd_xl_offset_example-lora_1.0.safetensors', weight=0.5)]
+
 
 class GenerationFinishReason(str, Enum):
     success = 'SUCCESS'
+    queue_is_full = 'QUEUE_IS_FULL'
     user_cancel = 'USER_CANCEL'
     error = 'ERROR'
 
+
 class GeneratedImageItem(BaseModel):
-    base64: str | None = Field(description="Image encoded in base64, or null if finishReasen is not 'SUCCESS'")
+    base64: str | None = Field(
+        description="Image encoded in base64, or null if finishReasen is not 'SUCCESS'")
     seed: int = Field(description="The seed associated with this image")
     finish_reason: GenerationFinishReason
+
+
+class TaskType(str, Enum):
+    text2img = 'text2img'
+
+
+class QueueTask(object):
+    is_finished: bool = False
+    start_millis: int = 0
+    finish_millis: int = 0
+    finish_with_error: bool = False
+    task_result: any = None
+
+    def __init__(self, seq: int, type: TaskType, req_param: dict, in_queue_millis: int):
+        self.seq = seq
+        self.type = type
+        self.req_param = req_param
+        self.in_queue_millis = in_queue_millis
