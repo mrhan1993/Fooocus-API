@@ -1,6 +1,7 @@
 from fooocusapi.repositories_versions import fooocus_version, fooocus_commit_hash, comfy_commit_hash
 from fooocus_api_version import version
 import pygit2
+from pygit2 import Remote
 import sys
 import argparse
 import os
@@ -16,37 +17,50 @@ modules_path = os.path.dirname(os.path.realpath(__file__))
 script_path = modules_path
 dir_repos = "repositories"
 
+pygit2.option(pygit2.GIT_OPT_SET_OWNER_VALIDATION, 0)
 
+# This function was copied from [Fooocus](https://github.com/lllyasviel/Fooocus) repository.
+def onerror(func, path, exc_info):
+    import stat
+    if not os.access(path, os.W_OK):
+        os.chmod(path, stat.S_IWUSR)
+        func(path)
+    else:
+        raise 'Failed to invoke "shutil.rmtree", git management failed.'
+
+
+# This function was copied from [Fooocus](https://github.com/lllyasviel/Fooocus) repository.
 def git_clone(url, dir, name, hash=None):
-    """
-    This function was copied from [Fooocus](https://github.com/lllyasviel/Fooocus) Repository.
-    """
     try:
         try:
             repo = pygit2.Repository(dir)
-            print(f'{name} exists.')
+            remote_url = repo.remotes['origin'].url
+            if remote_url != url:
+                print(f'{name} exists but remote URL will be updated.')
+                del repo
+                raise url
+            else:
+                print(f'{name} exists and URL is correct.')
         except:
-            if os.path.exists(dir):
-                shutil.rmtree(dir, ignore_errors=True)
+            if os.path.isdir(dir) or os.path.exists(dir):
+                shutil.rmtree(dir, onerror=onerror)
             os.makedirs(dir, exist_ok=True)
             repo = pygit2.clone_repository(url, dir)
-            print(f'{name} cloned.')
+            print(f'{name} cloned from {url}.')
 
         remote = repo.remotes['origin']
         remote.fetch()
 
-        commit = repo.get(hash)
+        commit = repo.revparse_single(hash)
 
-        repo.checkout_tree(commit, strategy=pygit2.GIT_CHECKOUT_FORCE)
-        print(f'{name} checkout finished.')
+        repo.reset(commit.id, pygit2.GIT_CHECKOUT_FORCE)
+        print(f'{name} checkout finished for {hash}.')
     except Exception as e:
         print(f'Git clone failed for {name}: {str(e)}')
 
 
+# This function was copied from [Fooocus](https://github.com/lllyasviel/Fooocus) repository.
 def repo_dir(name):
-    """
-    This function was copied from [Fooocus](https://github.com/lllyasviel/Fooocus) Repository.
-    """
     return os.path.join(script_path, dir_repos, name)
 
 
@@ -55,12 +69,23 @@ def download_repositories():
     print(f"Fooocus version: {fooocus_version}")
     print(f"Fooscus-API version: {version}")
 
+    http_proxy = os.environ.get('HTTP_PROXY')
+    https_proxy = os.environ.get('HTTPS_PROXY')
+    
+    if http_proxy != None:
+        print(f"Using http proxy for git clone: {http_proxy}")
+        os.environ['http_proxy'] = http_proxy
+
+    if https_proxy != None:
+        print(f"Using https proxy for git clone: {https_proxy}")
+        os.environ['https_proxy'] = https_proxy
+
     # Check and download ComfyUI
     comfy_repo = os.environ.get(
-        'COMFY_REPO', "https://github.com/lllyasviel/ComfyUI_2bc12d.git")
+        'COMFY_REPO', "https://github.com/comfyanonymous/ComfyUI")
     git_clone(comfy_repo, repo_dir(comfyui_name),
               "Inference Engine", comfy_commit_hash)
-
+    
     # Check and download Fooocus
     fooocus_repo = os.environ.get(
         'FOOOCUS_REPO', 'https://github.com/lllyasviel/Fooocus')
@@ -114,7 +139,7 @@ def download_models():
     )
 
 
-def prepare_environments(args):
+def prepare_environments(args) -> bool:
     skip_sync_repo = False
     if args.sync_repo is not None:
         if args.sync_repo == 'only':
@@ -124,7 +149,7 @@ def prepare_environments(args):
                 script_path, dir_repos, fooocus_name, "models")
             print(
                 f"Sync repositories successful. Now you can put model files in subdirectories of '{models_path}'")
-            return
+            return False
         elif args.sync_repo == 'skip':
             skip_sync_repo = True
         else:
@@ -140,16 +165,19 @@ def prepare_environments(args):
     sys.path.append(os.path.join(script_path, dir_repos, fooocus_name))
 
     download_models()
+    return True
 
 
-def clear_comfy_args():
-    """
-    This function was copied from [Fooocus](https://github.com/lllyasviel/Fooocus) Repository.
-    """
+# This function was copied from [Fooocus](https://github.com/lllyasviel/Fooocus) repository.
+def ini_comfy_args():
     argv = sys.argv
     sys.argv = [sys.argv[0]]
+
     from comfy.cli_args import args as comfy_args
     comfy_args.disable_cuda_malloc = True
+    comfy_args.disable_smart_memory = True
+    comfy_args.auto_launch = False
+
     sys.argv = argv
 
 
@@ -166,9 +194,9 @@ if __name__ == "__main__":
 
     args = parser.parse_args()
 
-    prepare_environments(args)
-    clear_comfy_args()
+    if prepare_environments(args):
+        ini_comfy_args()
 
-    # Start api server
-    from fooocusapi.api import start_app
-    start_app(args)
+        # Start api server
+        from fooocusapi.api import start_app
+        start_app(args)

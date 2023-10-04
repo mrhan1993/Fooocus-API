@@ -242,6 +242,7 @@ class Text2ImgRequest(BaseModel):
     image_number: int = Field(default=2, description="Image number", min=1)
     image_seed: int | None = None
     sharpness: float = Field(default=2.0, min=0.0, max=30.0)
+    guidance_scale: float = Field(default=7.0, min=1.0, max=30.0)
     base_model_name: str = 'sd_xl_base_1.0_0.9vae.safetensors'
     refiner_model_name: str = 'sd_xl_refiner_1.0_0.9vae.safetensors'
     loras: List[Lora] = [

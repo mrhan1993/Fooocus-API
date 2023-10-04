@@ -1,7 +1,7 @@
 import os
 
-fooocus_version = '2.0.78'
+fooocus_version = '2.0.85'
 comfy_commit_hash = os.environ.get(
-    'COMFY_COMMIT_HASH', "2bc12d3d22efb5c63ae3a7fc342bb2dd16b31735")
+    'COMFY_COMMIT_HASH', "2ef459b1d4d627929c84d11e5e0cbe3ded9c9f48")
 fooocus_commit_hash = os.environ.get(
-    'COMFY_COMMIT_HASH', "225947ac1a603124b0274da3e94d2c6cba65f732")
+    'COMFY_COMMIT_HASH', "ba58dbc8bcda4f16e9b264ef5715da5256319001")

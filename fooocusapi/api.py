@@ -33,16 +33,13 @@ task_queue = TaskQueue()
     }
 })
 def text2img_generation(req: Text2ImgRequest, accept: Annotated[str | None,  Header] = None):
-    print("text2img_generation")
     import modules.default_pipeline as pipeline
     import modules.patch as patch
-    import modules.virtual_memory as virtual_memory
+    import modules.flags as flags
     import comfy.model_management as model_management
     from modules.util import join_prompts, remove_empty_str
     from modules.private_logger import log
     from fooocusapi.api_utils import narray_to_base64img
-
-    print("text2img_generation start")
 
     if accept == 'image/png':
         streaming_output = True
@@ -64,15 +61,17 @@ def text2img_generation(req: Text2ImgRequest, accept: Annotated[str | None,  Hea
     while not task_queue.is_task_ready_to_start(task_seq):
         if sleep_seconds == 0:
             print(f"[Task Queue] Waiting for task queue become free, seq={task_seq}")
-
-        time.sleep(1)
-        sleep_seconds += 1
+        delay = 0.1
+        time.sleep(delay)
+        sleep_seconds += delay
         if sleep_seconds % 10 == 0:
             print(f"[Task Queue] Already waiting for {sleep_seconds}S, seq={task_seq}")
 
     print(f"[Task Queue] Task queue is free, start task, seq={task_seq}")
 
     task_queue.start_task(task_seq)
+
+    execution_start_time = time.perf_counter()
 
     loras = [(l.model_name, l.weight) for l in req.loras]
     loras_user_raw_input = copy.deepcopy(loras)
@@ -86,8 +85,23 @@ def text2img_generation(req: Text2ImgRequest, accept: Annotated[str | None,  Hea
         use_expansion = False
 
     use_style = len(req. style_selections) > 0
+
+    adaptive_cfg = 7
+    patch.adaptive_cfg = adaptive_cfg
+    print(f'[Parameters] Adaptive CFG = {patch.adaptive_cfg}')
+
     patch.sharpness = req.sharpness
-    patch.negative_adm = True
+    print(f'[Parameters] Sharpness = {patch.sharpness}')
+
+    adm_scaler_positive = 1.5
+    adm_scaler_negative = 0.8
+    patch.positive_adm_scale = adm_scaler_positive
+    patch.negative_adm_scale = adm_scaler_negative
+    print(f'[Parameters] ADM Scale = {patch.positive_adm_scale} / {patch.negative_adm_scale}')
+
+    cfg_scale = req.guidance_scale
+    print(f'[Parameters] CFG = {cfg_scale}')
+
     initial_latent = None
     denoising_strength = 1.0
     tiled = False
@@ -101,6 +115,10 @@ def text2img_generation(req: Text2ImgRequest, accept: Annotated[str | None,  Hea
 
     pipeline.clear_all_caches()
     width, height = aspect_ratios[req.aspect_ratios_selection.value]
+
+    sampler_name = flags.default_sampler
+    scheduler_name = flags.default_scheduler
+    print(f'[Parameters] Sampler = {sampler_name} - {scheduler_name}')
 
     raw_prompt = req.prompt
     raw_negative_prompt = req.negative_promit
@@ -130,6 +148,7 @@ def text2img_generation(req: Text2ImgRequest, accept: Annotated[str | None,  Hea
         base_model_name=req.base_model_name,
         loras=loras
     )
+    pipeline.prepare_text_encoder(async_call=False)
 
     positive_basic_workloads = []
     negative_basic_workloads = []
@@ -180,19 +199,11 @@ def text2img_generation(req: Text2ImgRequest, accept: Annotated[str | None,  Hea
                                           pool_top_k=negative_top_k)
 
     if pipeline.xl_refiner is not None:
-        virtual_memory.load_from_virtual_memory(
-            pipeline.xl_refiner.clip.cond_stage_model)
+        for i, t in enumerate(tasks):
+            t['c'][1] = pipeline.clip_separate(t['c'][0])
 
         for i, t in enumerate(tasks):
-            t['c'][1] = pipeline.clip_encode(sd=pipeline.xl_refiner, texts=t['positive'],
-                                             pool_top_k=positive_top_k)
-
-        for i, t in enumerate(tasks):
-            t['uc'][1] = pipeline.clip_encode(sd=pipeline.xl_refiner, texts=t['negative'],
-                                              pool_top_k=negative_top_k)
-
-        virtual_memory.try_move_to_virtual_memory(
-            pipeline.xl_refiner.clip.cond_stage_model)
+            t['uc'][1] = pipeline.clip_separate(t['uc'][0])
 
     results = []
     all_steps = steps * req.image_number
@@ -201,10 +212,13 @@ def text2img_generation(req: Text2ImgRequest, accept: Annotated[str | None,  Hea
         done_steps = current_task_id * steps + step
         print(f"Finished {done_steps}/{all_steps}")
 
-    print(f'[ADM] Negative ADM = {patch.negative_adm}')
+    preparation_time = time.perf_counter() - execution_start_time
+    print(f'Preparation time: {preparation_time:.2f} seconds')
 
     process_with_error = False
     for current_task_id, task in enumerate(tasks):
+        execution_start_time = time.perf_counter()
+
         try:
             imgs = pipeline.process_diffusion(
                 positive_cond=task['c'],
@@ -215,9 +229,12 @@ def text2img_generation(req: Text2ImgRequest, accept: Annotated[str | None,  Hea
                 height=height,
                 image_seed=task['task_seed'],
                 callback=callback,
+                sampler_name=sampler_name,
+                scheduler_name=scheduler_name,
                 latent=initial_latent,
                 denoise=denoising_strength,
-                tiled=tiled
+                tiled=tiled,
+                cfg_scale=cfg_scale
             )
 
             for x in imgs:
@@ -229,8 +246,12 @@ def text2img_generation(req: Text2ImgRequest, accept: Annotated[str | None,  Hea
                     ('Performance', req.performance_selection),
                     ('Resolution', str((width, height))),
                     ('Sharpness', req.sharpness),
+                    ('Guidance Scale', req.guidance_scale),
+                    ('ADM Guidance', str((adm_scaler_positive, adm_scaler_negative))),
                     ('Base Model', req.base_model_name),
                     ('Refiner Model', req.refiner_model_name),
+                    ('Sampler', sampler_name),
+                    ('Scheduler', scheduler_name),
                     ('Seed', task['task_seed'])
                 ]
                 for n, w in loras_user_raw_input:
@@ -252,6 +273,11 @@ def text2img_generation(req: Text2ImgRequest, accept: Annotated[str | None,  Hea
             results.append(
                 {'im': None, 'seed': task['task_seed'], 'finish_reason': GenerationFinishReason.error})
             
+        execution_time = time.perf_counter() - execution_start_time
+        print(f'Generating and saving time: {execution_time:.2f} seconds')
+    
+    pipeline.prepare_text_encoder(async_call=True)
+
     print(f"[Task Queue] Finish task, seq={task_seq}")
     task_queue.finish_task(task_seq, results, process_with_error)
 
