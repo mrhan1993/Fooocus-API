@@ -43,6 +43,6 @@ Alternative api for the normal image generation of Fooocus Gradio interface.
 Add support for response in PNG bytes directly when request's 'Accept' header is 'image/png'.
 
 #### Image Upscale or Variation
-> POST /v1/generation/text-to-image
+> POST /v1/generation/image-uov
 
 Alternative api for 'Upscale or Variation' tab of Fooocus Gradio interface.
