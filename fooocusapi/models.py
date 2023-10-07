@@ -254,7 +254,7 @@ class Text2ImgRequest(BaseModel):
         FooocusStyle.fooocus_expansion, FooocusStyle.default]
     performance_selection: PerfomanceSelection = PerfomanceSelection.speed
     aspect_ratios_selection: AspectRatio = AspectRatio.a_1_29
-    image_number: int = Field(default=2, description="Image number", min=1)
+    image_number: int = Field(default=1, description="Image number", min=1, max=32)
     image_seed: int | None = None
     sharpness: float = Field(default=2.0, min=0.0, max=30.0)
     guidance_scale: float = Field(default=7.0, min=1.0, max=30.0)
@@ -265,10 +265,12 @@ class Text2ImgRequest(BaseModel):
 
 
 class ImgUpscaleOrVaryRequest(Text2ImgRequest):
+    input_image: UploadFile
     uov_method: UpscaleOrVaryMethod
 
     @classmethod
-    def as_form(cls, uov_method: UpscaleOrVaryMethod = Form(),
+    def as_form(cls, input_image: UploadFile,
+                uov_method: UpscaleOrVaryMethod = Form(),
                 prompt: str = Form(''),
                 negative_promit: str = Form(''),
                 style_selections: List[str] = Form([
@@ -278,7 +280,8 @@ class ImgUpscaleOrVaryRequest(Text2ImgRequest):
                 aspect_ratios_selection: AspectRatio = Form(
                     AspectRatio.a_1_29),
                 image_number: int = Form(
-                    default=2, description="Image number", ge=1),
+                    default=1, description="Image number", ge=1, le=32),
+                image_seed: int | None = Form(None),
                 sharpness: float = Form(default=2.0, ge=0.0, le=30.0),
                 guidance_scale: float = Form(default=7.0, ge=1.0, le=30.0),
                 base_model_name: str = Form(
@@ -315,9 +318,9 @@ class ImgUpscaleOrVaryRequest(Text2ImgRequest):
             if lora_model is not None and len(lora_model) > 0:
                 loras.append(Lora(model_name=lora_model, weight=lora_weight))
 
-        return cls(uov_method=uov_method, prompt=prompt, negative_promit=negative_promit, style_selections=style_selection_arr,
+        return cls(input_image=input_image, uov_method=uov_method, prompt=prompt, negative_promit=negative_promit, style_selections=style_selection_arr,
                    performance_selection=performance_selection, aspect_ratios_selection=aspect_ratios_selection,
-                   image_number=image_number, sharpness=sharpness, guidance_scale=guidance_scale,
+                   image_number=image_number, image_seed=image_seed, sharpness=sharpness, guidance_scale=guidance_scale,
                    base_model_name=base_model_name, refiner_model_name=refiner_model_name,
                    loras=loras)
 

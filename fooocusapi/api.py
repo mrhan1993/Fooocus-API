@@ -45,10 +45,42 @@ def text2img_generation(req: Text2ImgRequest, accept: Annotated[str | None,  Hea
         results = [GeneratedImageBase64(base64=narray_to_base64img(
             item.im), seed=item.seed, finish_reason=item.finish_reason) for item in results]
         return results
-    
-@app.post("/v1/generation/image-uov")
-def img_upscale_or_vary(input_image: UploadFile, req: ImgUpscaleOrVaryRequest = Depends(ImgUpscaleOrVaryRequest.as_form)):
-    pass
+
+
+@app.post("/v1/generation/image-uov", response_model=List[GeneratedImageBase64], responses={
+    200: {
+        "description": "PNG bytes if request's 'Accept' header is 'image/png', otherwise JSON",
+        "content": {
+            "application/json": {
+                "example": [{
+                    "base64": "...very long string...",
+                    "seed": 1050625087,
+                    "finish_reason": "SUCCESS"
+                }]
+            },
+            "image/png": {
+                "example": "PNG bytes, what did you expect?"
+            }
+        }
+    }
+})
+def img_upscale_or_vary(input_image: UploadFile, req: ImgUpscaleOrVaryRequest = Depends(ImgUpscaleOrVaryRequest.as_form), accept: Annotated[str | None,  Header] = None):
+    if accept == 'image/png':
+        streaming_output = True
+        # image_number auto set to 1 in streaming mode
+        req.image_number = 1
+    else:
+        streaming_output = False
+
+    results = process_generate(req)
+
+    if streaming_output:
+        bytes = narray_to_bytesimg(results[0].im)
+        return Response(bytes, media_type='image/png')
+    else:
+        results = [GeneratedImageBase64(base64=narray_to_base64img(
+            item.im), seed=item.seed, finish_reason=item.finish_reason) for item in results]
+        return results
 
 
 def start_app(args):
