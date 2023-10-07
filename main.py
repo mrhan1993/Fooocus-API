@@ -51,9 +51,11 @@ def git_clone(url, dir, name, hash=None):
         remote = repo.remotes['origin']
         remote.fetch()
 
-        commit = repo.revparse_single(hash)
+        commit = repo.get(hash)
 
-        repo.reset(commit.id, pygit2.GIT_CHECKOUT_FORCE)
+        repo.checkout_tree(commit, strategy=pygit2.GIT_CHECKOUT_FORCE)
+        repo.set_head(commit.id)
+
         print(f'{name} checkout finished for {hash}.')
     except Exception as e:
         print(f'Git clone failed for {name}: {str(e)}')
@@ -175,7 +177,6 @@ def ini_comfy_args():
 
     from comfy.cli_args import args as comfy_args
     comfy_args.disable_cuda_malloc = True
-    comfy_args.disable_smart_memory = True
     comfy_args.auto_launch = False
 
     sys.argv = argv

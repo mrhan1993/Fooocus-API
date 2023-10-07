@@ -95,9 +95,11 @@ def text2img_generation(req: Text2ImgRequest, accept: Annotated[str | None,  Hea
 
     adm_scaler_positive = 1.5
     adm_scaler_negative = 0.8
+    adm_scaler_end = 0.3
     patch.positive_adm_scale = adm_scaler_positive
     patch.negative_adm_scale = adm_scaler_negative
-    print(f'[Parameters] ADM Scale = {patch.positive_adm_scale} / {patch.negative_adm_scale}')
+    patch.adm_scaler_end = adm_scaler_end
+    print(f'[Parameters] ADM Scale = {patch.positive_adm_scale} : {patch.negative_adm_scale} : {patch.adm_scaler_end}')
 
     cfg_scale = req.guidance_scale
     print(f'[Parameters] CFG = {cfg_scale}')
