@@ -1,5 +1,5 @@
 from typing import Annotated, List
-from fastapi import Depends, FastAPI, Header, Response, UploadFile
+from fastapi import Depends, FastAPI, Header, Query, Response, UploadFile
 import uvicorn
 from fooocusapi.api_utils import narray_to_base64img, narray_to_bytesimg
 from fooocusapi.models import GeneratedImageBase64, ImgUpscaleOrVaryRequest, Text2ImgRequest
@@ -28,7 +28,11 @@ task_queue = TaskQueue()
         }
     }
 })
-def text2img_generation(req: Text2ImgRequest, accept: Annotated[str | None,  Header] = None):
+def text2img_generation(req: Text2ImgRequest, accept: str = Header(None),
+                        accept_query: str | None = Query(None, alias='accept', description="Parameter to overvide 'Accept' header")):
+    if accept_query is not None and len(accept_query) > 0:
+        accept = accept_query
+
     if accept == 'image/png':
         streaming_output = True
         # image_number auto set to 1 in streaming mode
@@ -64,7 +68,12 @@ def text2img_generation(req: Text2ImgRequest, accept: Annotated[str | None,  Hea
         }
     }
 })
-def img_upscale_or_vary(input_image: UploadFile, req: ImgUpscaleOrVaryRequest = Depends(ImgUpscaleOrVaryRequest.as_form), accept: Annotated[str | None,  Header] = None):
+def img_upscale_or_vary(input_image: UploadFile, req: ImgUpscaleOrVaryRequest = Depends(ImgUpscaleOrVaryRequest.as_form),
+                        accept: str = Header(None),
+                        accept_query: str | None = Query(None, alias='accept', description="Parameter to overvide 'Accept' header")):
+    if accept_query is not None and len(accept_query) > 0:
+        accept = accept_query
+
     if accept == 'image/png':
         streaming_output = True
         # image_number auto set to 1 in streaming mode

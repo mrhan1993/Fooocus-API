@@ -79,6 +79,7 @@ def process_generate(req: Text2ImgRequest) -> List[GeneratedImage]:
     initial_latent = None
     denoising_strength = 1.0
     tiled = False
+    results: List[GeneratedImage] = []
 
     if req.performance_selection == PerfomanceSelection.speed:
         steps = 30
@@ -155,6 +156,8 @@ def process_generate(req: Text2ImgRequest) -> List[GeneratedImage]:
                 log(uov_input_image, d, single_line_number=1)
                 for i in range(0, req.image_number):
                     results.append(GeneratedImage(im=uov_input_image, seed=0, finish_reason=GenerationFinishReason.success))
+                print(f"[Task Queue] Finish task, seq={task_seq}")
+                task_queue.finish_task(task_seq, results, False)
                 return results
 
             tiled = True
@@ -257,7 +260,6 @@ def process_generate(req: Text2ImgRequest) -> List[GeneratedImage]:
         for i, t in enumerate(tasks):
             t['uc'][1] = pipeline.clip_separate(t['uc'][0])
 
-    results: List[GeneratedImage] = []
     all_steps = steps * req.image_number
 
     def callback(step, x0, x, total_steps, y):

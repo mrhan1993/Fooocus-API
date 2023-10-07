@@ -302,14 +302,15 @@ class ImgUpscaleOrVaryRequest(Text2ImgRequest):
                 ):
         style_selection_arr: List[FooocusStyle] = []
         for part in style_selections:
-            for s in part.split(','):
-                try:
-                    style = FooocusStyle(s)
-                    style_selection_arr.append(style)
-                except ValueError as ve:
-                    err = InitErrorDetails(type='enum', loc=['style_selections'], input=style_selections, ctx={
-                                           'expected': 'Valid fooocus styles seperated by comma'})
-                    raise RequestValidationError(errors=[err])
+            if len(part) > 0:
+                for s in part.split(','):
+                    try:
+                        style = FooocusStyle(s)
+                        style_selection_arr.append(style)
+                    except ValueError as ve:
+                        err = InitErrorDetails(type='enum', loc=['style_selections'], input=style_selections, ctx={
+                                            'expected': 'Valid fooocus styles seperated by comma'})
+                        raise RequestValidationError(errors=[err])
                 
         loras: List[Lora] = []
         lora_config = [(l1, w1), (l2, w2), (l3, w3), (l4, w4), (l5, w5)]
