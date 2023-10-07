@@ -1,11 +1,17 @@
+from fastapi import Form, UploadFile
+from fastapi.exceptions import RequestValidationError
 from pydantic import BaseModel, ConfigDict, Field
 from typing import List
 from enum import Enum
 
+from pydantic_core import InitErrorDetails
+
+from fooocusapi.api_utils import as_form
+
 
 class Lora(BaseModel):
     model_name: str
-    weight: float
+    weight: float = Field(default=0.5, min=-2, max=2)
 
     model_config = ConfigDict(
         protected_namespaces=('protect_me_', 'also_protect_')
@@ -233,22 +239,6 @@ class AspectRatio(str, Enum):
     a_3_0 = '1728×576'
 
 
-class Text2ImgRequest(BaseModel):
-    prompt: str = ''
-    negative_promit: str = ''
-    style_selections: List[FooocusStyle] = [FooocusStyle.default]
-    performance_selection: PerfomanceSelection = PerfomanceSelection.speed
-    aspect_ratios_selection: AspectRatio = AspectRatio.a_1_29
-    image_number: int = Field(default=2, description="Image number", min=1)
-    image_seed: int | None = None
-    sharpness: float = Field(default=2.0, min=0.0, max=30.0)
-    guidance_scale: float = Field(default=7.0, min=1.0, max=30.0)
-    base_model_name: str = 'sd_xl_base_1.0_0.9vae.safetensors'
-    refiner_model_name: str = 'sd_xl_refiner_1.0_0.9vae.safetensors'
-    loras: List[Lora] = [
-        Lora(model_name='sd_xl_offset_example-lora_1.0.safetensors', weight=0.5)]
-
-
 class UpscaleOrVaryMethod(str, Enum):
     subtle_variation = 'Vary (Subtle)'
     strong_variation = 'Vary (Strong)'
@@ -257,8 +247,79 @@ class UpscaleOrVaryMethod(str, Enum):
     upscale_fast = 'Upscale (Fast 2x)'
 
 
+class Text2ImgRequest(BaseModel):
+    prompt: str = ''
+    negative_promit: str = ''
+    style_selections: List[FooocusStyle] = [
+        FooocusStyle.fooocus_expansion, FooocusStyle.default]
+    performance_selection: PerfomanceSelection = PerfomanceSelection.speed
+    aspect_ratios_selection: AspectRatio = AspectRatio.a_1_29
+    image_number: int = Field(default=2, description="Image number", min=1)
+    image_seed: int | None = None
+    sharpness: float = Field(default=2.0, min=0.0, max=30.0)
+    guidance_scale: float = Field(default=7.0, min=1.0, max=30.0)
+    base_model_name: str = 'sd_xl_base_1.0_0.9vae.safetensors'
+    refiner_model_name: str = 'sd_xl_refiner_1.0_0.9vae.safetensors'
+    loras: List[Lora] = Field(default=[
+        Lora(model_name='sd_xl_offset_example-lora_1.0.safetensors', weight=0.5)], max_length=5)
+
+
 class ImgUpscaleOrVaryRequest(Text2ImgRequest):
-    uov_method: UpscaleOrVaryMethod = UpscaleOrVaryMethod.subtle_variation
+    uov_method: UpscaleOrVaryMethod
+
+    @classmethod
+    def as_form(cls, uov_method: UpscaleOrVaryMethod = Form(),
+                prompt: str = Form(''),
+                negative_promit: str = Form(''),
+                style_selections: List[str] = Form([
+                    FooocusStyle.fooocus_expansion, FooocusStyle.default]),
+                performance_selection: PerfomanceSelection = Form(
+                    PerfomanceSelection.speed),
+                aspect_ratios_selection: AspectRatio = Form(
+                    AspectRatio.a_1_29),
+                image_number: int = Form(
+                    default=2, description="Image number", ge=1),
+                sharpness: float = Form(default=2.0, ge=0.0, le=30.0),
+                guidance_scale: float = Form(default=7.0, ge=1.0, le=30.0),
+                base_model_name: str = Form(
+                    'sd_xl_base_1.0_0.9vae.safetensors'),
+                refiner_model_name: str = Form(
+                    'sd_xl_refiner_1.0_0.9vae.safetensors'),
+                l1: str | None = Form(
+                    'sd_xl_offset_example-lora_1.0.safetensors'),
+                w1: float = Form(default=0.5, ge=-2, le=2),
+                l2: str | None = Form(None),
+                w2: float = Form(default=0.5, ge=-2, le=2),
+                l3: str | None = Form(None),
+                w3: float = Form(default=0.5, ge=-2, le=2),
+                l4: str | None = Form(None),
+                w4: float = Form(default=0.5, ge=-2, le=2),
+                l5: str | None = Form(None),
+                w5: float = Form(default=0.5, ge=-2, le=2),
+                ):
+        style_selection_arr: List[FooocusStyle] = []
+        for part in style_selections:
+            for s in part.split(','):
+                try:
+                    style = FooocusStyle(s)
+                    style_selection_arr.append(style)
+                except ValueError as ve:
+                    err = InitErrorDetails(type='enum', loc=['style_selections'], input=style_selections, ctx={
+                                           'expected': 'Valid fooocus styles seperated by comma'})
+                    raise RequestValidationError(errors=[err])
+                
+        loras: List[Lora] = []
+        lora_config = [(l1, w1), (l2, w2), (l3, w3), (l4, w4), (l5, w5)]
+        for config in lora_config:
+            lora_model, lora_weight = config
+            if lora_model is not None and len(lora_model) > 0:
+                loras.append(Lora(model_name=lora_model, weight=lora_weight))
+
+        return cls(uov_method=uov_method, prompt=prompt, negative_promit=negative_promit, style_selections=style_selection_arr,
+                   performance_selection=performance_selection, aspect_ratios_selection=aspect_ratios_selection,
+                   image_number=image_number, sharpness=sharpness, guidance_scale=guidance_scale,
+                   base_model_name=base_model_name, refiner_model_name=refiner_model_name,
+                   loras=loras)
 
 
 class GenerationFinishReason(str, Enum):

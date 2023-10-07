@@ -3,7 +3,7 @@ import random
 import time
 from typing import List
 from fooocusapi.api_utils import QueueReachLimitException
-from fooocusapi.models import GeneratedImage, GenerationFinishReason, PerfomanceSelection, TaskType, Text2ImgRequest
+from fooocusapi.models import GeneratedImage, GenerationFinishReason, ImgUpscaleOrVaryRequest, PerfomanceSelection, TaskType, Text2ImgRequest
 from fooocusapi.task_queue import TaskQueue
 from modules.expansion import safe_str
 from modules.sdxl_styles import apply_style, fooocus_expansion, aspect_ratios
@@ -22,7 +22,10 @@ def process_generate(req: Text2ImgRequest) -> List[GeneratedImage]:
                         'body': req.__dict__})
     if task_seq is None:
         print("[Task Queue] The task queue has reached limit")
-        raise QueueReachLimitException()
+        results: List[GeneratedImage] = []
+        for i in range(0, req.image_number):
+            results.append(GeneratedImage(im=None, seed=task['task_seed'], finish_reason=GenerationFinishReason.queue_is_full))
+        return results
     
     sleep_seconds = 0
     while not task_queue.is_task_ready_to_start(task_seq):
@@ -87,6 +90,10 @@ def process_generate(req: Text2ImgRequest) -> List[GeneratedImage]:
 
     sampler_name = flags.default_sampler
     scheduler_name = flags.default_scheduler
+
+    if isinstance(req, ImgUpscaleOrVaryRequest):
+        pass
+
     print(f'[Parameters] Sampler = {sampler_name} - {scheduler_name}')
 
     raw_prompt = req.prompt

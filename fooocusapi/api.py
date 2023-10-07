@@ -1,8 +1,8 @@
 from typing import Annotated, List
-from fastapi import FastAPI, Header, Response
+from fastapi import Depends, FastAPI, Header, Response, UploadFile
 import uvicorn
 from fooocusapi.api_utils import narray_to_base64img, narray_to_bytesimg
-from fooocusapi.models import GeneratedImageBase64, Text2ImgRequest
+from fooocusapi.models import GeneratedImageBase64, ImgUpscaleOrVaryRequest, Text2ImgRequest
 from fooocusapi.task_queue import TaskQueue
 from fooocusapi.worker import process_generate
 
@@ -45,6 +45,10 @@ def text2img_generation(req: Text2ImgRequest, accept: Annotated[str | None,  Hea
         results = [GeneratedImageBase64(base64=narray_to_base64img(
             item.im), seed=item.seed, finish_reason=item.finish_reason) for item in results]
         return results
+    
+@app.post("/v1/generation/image-uov")
+def img_upscale_or_vary(input_image: UploadFile, req: ImgUpscaleOrVaryRequest = Depends(ImgUpscaleOrVaryRequest.as_form)):
+    pass
 
 
 def start_app(args):
