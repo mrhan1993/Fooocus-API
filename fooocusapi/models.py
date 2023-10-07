@@ -249,6 +249,18 @@ class Text2ImgRequest(BaseModel):
         Lora(model_name='sd_xl_offset_example-lora_1.0.safetensors', weight=0.5)]
 
 
+class UpscaleOrVaryMethod(str, Enum):
+    subtle_variation = 'Vary (Subtle)'
+    strong_variation = 'Vary (Strong)'
+    upscale_15 = 'Upscale (1.5x)'
+    upscale_2 = 'Upscale (2x)'
+    upscale_fast = 'Upscale (Fast 2x)'
+
+
+class ImgUpscaleOrVaryRequest(Text2ImgRequest):
+    uov_method: UpscaleOrVaryMethod = UpscaleOrVaryMethod.subtle_variation
+
+
 class GenerationFinishReason(str, Enum):
     success = 'SUCCESS'
     queue_is_full = 'QUEUE_IS_FULL'
@@ -256,7 +268,13 @@ class GenerationFinishReason(str, Enum):
     error = 'ERROR'
 
 
-class GeneratedImageItem(BaseModel):
+class GeneratedImage(BaseModel):
+    im: object | None
+    seed: int
+    finish_reason: GenerationFinishReason
+
+
+class GeneratedImageBase64(BaseModel):
     base64: str | None = Field(
         description="Image encoded in base64, or null if finishReasen is not 'SUCCESS'")
     seed: int = Field(description="The seed associated with this image")

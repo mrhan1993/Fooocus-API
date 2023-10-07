@@ -16,8 +16,15 @@ def narray_to_base64img(narray):
 
 
 def narray_to_bytesimg(narray):
+    if narray is None:
+        return None
+
     img = im.fromarray(narray)
     output_buffer = BytesIO()
     img.save(output_buffer, format='PNG')
     byte_data = output_buffer.getvalue()
     return byte_data
+
+
+class QueueReachLimitException(Exception):
+    pass
