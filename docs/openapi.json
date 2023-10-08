@@ -288,12 +288,14 @@
                     "input_image": {
                         "type": "string",
                         "format": "binary",
-                        "title": "Input Image"
+                        "title": "Input Image",
+                        "description": "Init image for inpaint or outpaint"
                     },
                     "input_mask": {
                         "type": "string",
                         "format": "binary",
-                        "title": "Input Mask"
+                        "title": "Input Mask",
+                        "description": "Inpaint or outpaint mask"
                     },
                     "outpaint_selections": {
                         "items": {
@@ -301,6 +303,7 @@
                         },
                         "type": "array",
                         "title": "Outpaint Selections",
+                        "description": "Outpaint expansion selections, literal 'Left', 'Right', 'Top', 'Bottom' seperated by comma",
                         "default": []
                     },
                     "prompt": {
@@ -319,6 +322,7 @@
                         },
                         "type": "array",
                         "title": "Style Selections",
+                        "description": "Fooocus style selections, seperated by comma",
                         "default": [
                             "Fooocus V2",
                             "Default (Slightly Cinematic)"
@@ -486,7 +490,8 @@
                     "input_image": {
                         "type": "string",
                         "format": "binary",
-                        "title": "Input Image"
+                        "title": "Input Image",
+                        "description": "Init image for upsacale or outpaint"
                     },
                     "uov_method": {
                         "$ref": "#/components/schemas/UpscaleOrVaryMethod"
@@ -507,6 +512,7 @@
                         },
                         "type": "array",
                         "title": "Style Selections",
+                        "description": "Fooocus style selections, seperated by comma",
                         "default": [
                             "Fooocus V2",
                             "Default (Slightly Cinematic)"

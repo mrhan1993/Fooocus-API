@@ -275,12 +275,12 @@ class ImgUpscaleOrVaryRequest(Text2ImgRequest):
     uov_method: UpscaleOrVaryMethod
 
     @classmethod
-    def as_form(cls, input_image: UploadFile,
+    def as_form(cls, input_image: UploadFile = Form(description="Init image for upsacale or outpaint"),
                 uov_method: UpscaleOrVaryMethod = Form(),
                 prompt: str = Form(''),
                 negative_promit: str = Form(''),
                 style_selections: List[str] = Form([
-                    FooocusStyle.fooocus_expansion, FooocusStyle.default]),
+                    FooocusStyle.fooocus_expansion, FooocusStyle.default], description="Fooocus style selections, seperated by comma"),
                 performance_selection: PerfomanceSelection = Form(
                     PerfomanceSelection.speed),
                 aspect_ratios_selection: AspectRatio = Form(
@@ -338,13 +338,13 @@ class ImgInpaintOrOutpaintRequest(Text2ImgRequest):
     outpaint_selections: List[OutpaintExpansion]
 
     @classmethod
-    def as_form(cls, input_image: UploadFile,
-                input_mask: UploadFile = File(None),
-                outpaint_selections: List[str] = Form([]),
+    def as_form(cls, input_image: UploadFile = Form(description="Init image for inpaint or outpaint"),
+                input_mask: UploadFile = Form(File(None), description="Inpaint or outpaint mask"),
+                outpaint_selections: List[str] = Form([], description="Outpaint expansion selections, literal 'Left', 'Right', 'Top', 'Bottom' seperated by comma"),
                 prompt: str = Form(''),
                 negative_promit: str = Form(''),
                 style_selections: List[str] = Form([
-                    FooocusStyle.fooocus_expansion, FooocusStyle.default]),
+                    FooocusStyle.fooocus_expansion, FooocusStyle.default], description="Fooocus style selections, seperated by comma"),
                 performance_selection: PerfomanceSelection = Form(
                     PerfomanceSelection.speed),
                 aspect_ratios_selection: AspectRatio = Form(
