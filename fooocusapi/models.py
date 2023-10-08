@@ -1,12 +1,10 @@
-from fastapi import Form, UploadFile
+from fastapi import File, Form, UploadFile
 from fastapi.exceptions import RequestValidationError
 from pydantic import BaseModel, ConfigDict, Field
 from typing import List
 from enum import Enum
 
 from pydantic_core import InitErrorDetails
-
-from fooocusapi.api_utils import as_form
 
 
 class Lora(BaseModel):
@@ -247,6 +245,13 @@ class UpscaleOrVaryMethod(str, Enum):
     upscale_fast = 'Upscale (Fast 2x)'
 
 
+class OutpaintExpansion(str, Enum):
+    left = 'Left'
+    right = 'Right'
+    top = 'Top'
+    bottom = 'Bottom'
+
+
 class Text2ImgRequest(BaseModel):
     prompt: str = ''
     negative_promit: str = ''
@@ -254,7 +259,8 @@ class Text2ImgRequest(BaseModel):
         FooocusStyle.fooocus_expansion, FooocusStyle.default]
     performance_selection: PerfomanceSelection = PerfomanceSelection.speed
     aspect_ratios_selection: AspectRatio = AspectRatio.a_1_29
-    image_number: int = Field(default=1, description="Image number", min=1, max=32)
+    image_number: int = Field(
+        default=1, description="Image number", min=1, max=32)
     image_seed: int | None = None
     sharpness: float = Field(default=2.0, min=0.0, max=30.0)
     guidance_scale: float = Field(default=7.0, min=1.0, max=30.0)
@@ -309,9 +315,9 @@ class ImgUpscaleOrVaryRequest(Text2ImgRequest):
                         style_selection_arr.append(style)
                     except ValueError as ve:
                         err = InitErrorDetails(type='enum', loc=['style_selections'], input=style_selections, ctx={
-                                            'expected': 'Valid fooocus styles seperated by comma'})
+                            'expected': 'Valid fooocus styles seperated by comma'})
                         raise RequestValidationError(errors=[err])
-                
+
         loras: List[Lora] = []
         lora_config = [(l1, w1), (l2, w2), (l3, w3), (l4, w4), (l5, w5)]
         for config in lora_config:
@@ -320,6 +326,83 @@ class ImgUpscaleOrVaryRequest(Text2ImgRequest):
                 loras.append(Lora(model_name=lora_model, weight=lora_weight))
 
         return cls(input_image=input_image, uov_method=uov_method, prompt=prompt, negative_promit=negative_promit, style_selections=style_selection_arr,
+                   performance_selection=performance_selection, aspect_ratios_selection=aspect_ratios_selection,
+                   image_number=image_number, image_seed=image_seed, sharpness=sharpness, guidance_scale=guidance_scale,
+                   base_model_name=base_model_name, refiner_model_name=refiner_model_name,
+                   loras=loras)
+
+
+class ImgInpaintOrOutpaintRequest(Text2ImgRequest):
+    input_image: UploadFile
+    input_mask: UploadFile | None
+    outpaint_selections: List[OutpaintExpansion]
+
+    @classmethod
+    def as_form(cls, input_image: UploadFile,
+                input_mask: UploadFile = File(None),
+                outpaint_selections: List[str] = Form([]),
+                prompt: str = Form(''),
+                negative_promit: str = Form(''),
+                style_selections: List[str] = Form([
+                    FooocusStyle.fooocus_expansion, FooocusStyle.default]),
+                performance_selection: PerfomanceSelection = Form(
+                    PerfomanceSelection.speed),
+                aspect_ratios_selection: AspectRatio = Form(
+                    AspectRatio.a_1_29),
+                image_number: int = Form(
+                    default=1, description="Image number", ge=1, le=32),
+                image_seed: int | None = Form(None),
+                sharpness: float = Form(default=2.0, ge=0.0, le=30.0),
+                guidance_scale: float = Form(default=7.0, ge=1.0, le=30.0),
+                base_model_name: str = Form(
+                    'sd_xl_base_1.0_0.9vae.safetensors'),
+                refiner_model_name: str = Form(
+                    'sd_xl_refiner_1.0_0.9vae.safetensors'),
+                l1: str | None = Form(
+                    'sd_xl_offset_example-lora_1.0.safetensors'),
+                w1: float = Form(default=0.5, ge=-2, le=2),
+                l2: str | None = Form(None),
+                w2: float = Form(default=0.5, ge=-2, le=2),
+                l3: str | None = Form(None),
+                w3: float = Form(default=0.5, ge=-2, le=2),
+                l4: str | None = Form(None),
+                w4: float = Form(default=0.5, ge=-2, le=2),
+                l5: str | None = Form(None),
+                w5: float = Form(default=0.5, ge=-2, le=2),
+                ):
+
+        outpaint_selections_arr: List[OutpaintExpansion] = []
+        for part in outpaint_selections:
+            if len(part) > 0:
+                for s in part.split(','):
+                    try:
+                        expansion = OutpaintExpansion(s)
+                        outpaint_selections_arr.append(expansion)
+                    except ValueError as ve:
+                        err = InitErrorDetails(type='enum', loc=['outpaint_selections'], input=outpaint_selections, ctx={
+                            'expected': "Literal 'Left', 'Right', 'Top', 'Bottom' seperated by comma"})
+                        raise RequestValidationError(errors=[err]) 
+
+        style_selection_arr: List[FooocusStyle] = []
+        for part in style_selections:
+            if len(part) > 0:
+                for s in part.split(','):
+                    try:
+                        expansion = FooocusStyle(s)
+                        style_selection_arr.append(expansion)
+                    except ValueError as ve:
+                        err = InitErrorDetails(type='enum', loc=['style_selections'], input=style_selections, ctx={
+                            'expected': 'Valid fooocus styles seperated by comma'})
+                        raise RequestValidationError(errors=[err])        
+
+        loras: List[Lora] = []
+        lora_config = [(l1, w1), (l2, w2), (l3, w3), (l4, w4), (l5, w5)]
+        for config in lora_config:
+            lora_model, lora_weight = config
+            if lora_model is not None and len(lora_model) > 0:
+                loras.append(Lora(model_name=lora_model, weight=lora_weight))
+
+        return cls(input_image=input_image, input_mask=input_mask, outpaint_selections=outpaint_selections_arr, prompt=prompt, negative_promit=negative_promit, style_selections=style_selection_arr,
                    performance_selection=performance_selection, aspect_ratios_selection=aspect_ratios_selection,
                    image_number=image_number, image_seed=image_seed, sharpness=sharpness, guidance_scale=guidance_scale,
                    base_model_name=base_model_name, refiner_model_name=refiner_model_name,

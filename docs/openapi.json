@@ -23,10 +23,10 @@
                                     "type": "null"
                                 }
                             ],
-                            "description": "Parameter to overvide 'Accept' header",
+                            "description": "Parameter to overvide 'Accept' header, 'image/png' for output bytes",
                             "title": "Accept"
                         },
-                        "description": "Parameter to overvide 'Accept' header"
+                        "description": "Parameter to overvide 'Accept' header, 'image/png' for output bytes"
                     },
                     {
                         "name": "accept",
@@ -86,10 +86,10 @@
                 }
             }
         },
-        "/v1/generation/image-uov": {
+        "/v1/generation/image-upscale-vary": {
             "post": {
                 "summary": "Img Upscale Or Vary",
-                "operationId": "img_upscale_or_vary_v1_generation_image_uov_post",
+                "operationId": "img_upscale_or_vary_v1_generation_image_upscale_vary_post",
                 "parameters": [
                     {
                         "name": "accept",
@@ -104,10 +104,10 @@
                                     "type": "null"
                                 }
                             ],
-                            "description": "Parameter to overvide 'Accept' header",
+                            "description": "Parameter to overvide 'Accept' header, 'image/png' for output bytes",
                             "title": "Accept"
                         },
-                        "description": "Parameter to overvide 'Accept' header"
+                        "description": "Parameter to overvide 'Accept' header, 'image/png' for output bytes"
                     },
                     {
                         "name": "accept",
@@ -124,7 +124,7 @@
                     "content": {
                         "multipart/form-data": {
                             "schema": {
-                                "$ref": "#/components/schemas/Body_img_upscale_or_vary_v1_generation_image_uov_post"
+                                "$ref": "#/components/schemas/Body_img_upscale_or_vary_v1_generation_image_upscale_vary_post"
                             }
                         }
                     }
@@ -139,7 +139,88 @@
                                     "items": {
                                         "$ref": "#/components/schemas/GeneratedImageBase64"
                                     },
-                                    "title": "Response Img Upscale Or Vary V1 Generation Image Uov Post"
+                                    "title": "Response Img Upscale Or Vary V1 Generation Image Upscale Vary Post"
+                                },
+                                "example": [
+                                    {
+                                        "base64": "...very long string...",
+                                        "seed": 1050625087,
+                                        "finish_reason": "SUCCESS"
+                                    }
+                                ]
+                            },
+                            "image/png": {
+                                "example": "PNG bytes, what did you expect?"
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Validation Error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/HTTPValidationError"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/v1/generation/image-inpait-outpaint": {
+            "post": {
+                "summary": "Img Inpaint Or Outpaint",
+                "operationId": "img_inpaint_or_outpaint_v1_generation_image_inpait_outpaint_post",
+                "parameters": [
+                    {
+                        "name": "accept",
+                        "in": "query",
+                        "required": false,
+                        "schema": {
+                            "anyOf": [
+                                {
+                                    "type": "string"
+                                },
+                                {
+                                    "type": "null"
+                                }
+                            ],
+                            "description": "Parameter to overvide 'Accept' header, 'image/png' for output bytes",
+                            "title": "Accept"
+                        },
+                        "description": "Parameter to overvide 'Accept' header, 'image/png' for output bytes"
+                    },
+                    {
+                        "name": "accept",
+                        "in": "header",
+                        "required": false,
+                        "schema": {
+                            "type": "string",
+                            "title": "Accept"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "multipart/form-data": {
+                            "schema": {
+                                "$ref": "#/components/schemas/Body_img_inpaint_or_outpaint_v1_generation_image_inpait_outpaint_post"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "PNG bytes if request's 'Accept' header is 'image/png', otherwise JSON",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "array",
+                                    "items": {
+                                        "$ref": "#/components/schemas/GeneratedImageBase64"
+                                    },
+                                    "title": "Response Img Inpaint Or Outpaint V1 Generation Image Inpait Outpaint Post"
                                 },
                                 "example": [
                                     {
@@ -202,7 +283,205 @@
                 ],
                 "title": "AspectRatio"
             },
-            "Body_img_upscale_or_vary_v1_generation_image_uov_post": {
+            "Body_img_inpaint_or_outpaint_v1_generation_image_inpait_outpaint_post": {
+                "properties": {
+                    "input_image": {
+                        "type": "string",
+                        "format": "binary",
+                        "title": "Input Image"
+                    },
+                    "input_mask": {
+                        "type": "string",
+                        "format": "binary",
+                        "title": "Input Mask"
+                    },
+                    "outpaint_selections": {
+                        "items": {
+                            "type": "string"
+                        },
+                        "type": "array",
+                        "title": "Outpaint Selections",
+                        "default": []
+                    },
+                    "prompt": {
+                        "type": "string",
+                        "title": "Prompt",
+                        "default": ""
+                    },
+                    "negative_promit": {
+                        "type": "string",
+                        "title": "Negative Promit",
+                        "default": ""
+                    },
+                    "style_selections": {
+                        "items": {
+                            "type": "string"
+                        },
+                        "type": "array",
+                        "title": "Style Selections",
+                        "default": [
+                            "Fooocus V2",
+                            "Default (Slightly Cinematic)"
+                        ]
+                    },
+                    "performance_selection": {
+                        "allOf": [
+                            {
+                                "$ref": "#/components/schemas/PerfomanceSelection"
+                            }
+                        ],
+                        "default": "Speed"
+                    },
+                    "aspect_ratios_selection": {
+                        "allOf": [
+                            {
+                                "$ref": "#/components/schemas/AspectRatio"
+                            }
+                        ],
+                        "default": "1152×896"
+                    },
+                    "image_number": {
+                        "type": "integer",
+                        "maximum": 32,
+                        "minimum": 1,
+                        "title": "Image Number",
+                        "description": "Image number",
+                        "default": 1
+                    },
+                    "image_seed": {
+                        "anyOf": [
+                            {
+                                "type": "integer"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Image Seed"
+                    },
+                    "sharpness": {
+                        "type": "number",
+                        "maximum": 30,
+                        "minimum": 0,
+                        "title": "Sharpness",
+                        "default": 2
+                    },
+                    "guidance_scale": {
+                        "type": "number",
+                        "maximum": 30,
+                        "minimum": 1,
+                        "title": "Guidance Scale",
+                        "default": 7
+                    },
+                    "base_model_name": {
+                        "type": "string",
+                        "title": "Base Model Name",
+                        "default": "sd_xl_base_1.0_0.9vae.safetensors"
+                    },
+                    "refiner_model_name": {
+                        "type": "string",
+                        "title": "Refiner Model Name",
+                        "default": "sd_xl_refiner_1.0_0.9vae.safetensors"
+                    },
+                    "l1": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "L1",
+                        "default": "sd_xl_offset_example-lora_1.0.safetensors"
+                    },
+                    "w1": {
+                        "type": "number",
+                        "maximum": 2,
+                        "minimum": -2,
+                        "title": "W1",
+                        "default": 0.5
+                    },
+                    "l2": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "L2"
+                    },
+                    "w2": {
+                        "type": "number",
+                        "maximum": 2,
+                        "minimum": -2,
+                        "title": "W2",
+                        "default": 0.5
+                    },
+                    "l3": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "L3"
+                    },
+                    "w3": {
+                        "type": "number",
+                        "maximum": 2,
+                        "minimum": -2,
+                        "title": "W3",
+                        "default": 0.5
+                    },
+                    "l4": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "L4"
+                    },
+                    "w4": {
+                        "type": "number",
+                        "maximum": 2,
+                        "minimum": -2,
+                        "title": "W4",
+                        "default": 0.5
+                    },
+                    "l5": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "L5"
+                    },
+                    "w5": {
+                        "type": "number",
+                        "maximum": 2,
+                        "minimum": -2,
+                        "title": "W5",
+                        "default": 0.5
+                    }
+                },
+                "type": "object",
+                "required": [
+                    "input_image"
+                ],
+                "title": "Body_img_inpaint_or_outpaint_v1_generation_image_inpait_outpaint_post"
+            },
+            "Body_img_upscale_or_vary_v1_generation_image_upscale_vary_post": {
                 "properties": {
                     "input_image": {
                         "type": "string",
@@ -389,7 +668,7 @@
                     "input_image",
                     "uov_method"
                 ],
-                "title": "Body_img_upscale_or_vary_v1_generation_image_uov_post"
+                "title": "Body_img_upscale_or_vary_v1_generation_image_upscale_vary_post"
             },
             "FooocusStyle": {
                 "type": "string",

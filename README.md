@@ -1,5 +1,7 @@
-# Fooocus-API (Under development)
+# Fooocus-API
 FastAPI powered API for [Fooocus](https://github.com/lllyasviel/Fooocus)
+
+Currently loaded Fooocus version: 2.0.93
 
 ### Install dependencies.
 Need python version >= 3.10
@@ -43,6 +45,11 @@ Alternative api for the normal image generation of Fooocus Gradio interface.
 Add support for response in PNG bytes directly when request's 'Accept' header is 'image/png'.
 
 #### Image Upscale or Variation
-> POST /v1/generation/image-uov
+> POST /v1/generation/image-upscale-vary
 
 Alternative api for 'Upscale or Variation' tab of Fooocus Gradio interface.
+
+#### Image Inpaint or Outpaint
+> POST /v1/generation/image-inpait-outpaint
+
+Alternative api for 'Inpaint or Outpaint' tab of Fooocus Gradio interface.
