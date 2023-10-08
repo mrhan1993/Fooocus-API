@@ -1,14 +1,20 @@
-from fooocusapi.repositories_versions import fooocus_version, fooocus_commit_hash, comfy_commit_hash
-from fooocus_api_version import version
-import pygit2
-from pygit2 import Remote
-import sys
 import argparse
 import os
 import shutil
+import subprocess
+import sys
+from importlib.util import find_spec
+
+from fooocus_api_version import version
+from fooocusapi.repositories_versions import (comfy_commit_hash,
+                                              fooocus_commit_hash,
+                                              fooocus_version)
 
 os.environ["PYTORCH_ENABLE_MPS_FALLBACK"] = "1"
 
+python = sys.executable
+default_command_live = True
+index_url = os.environ.get('INDEX_URL', "")
 
 comfyui_name = 'ComfyUI-from-StabilityAI-Official'
 fooocus_name = 'Fooocus'
@@ -17,7 +23,6 @@ modules_path = os.path.dirname(os.path.realpath(__file__))
 script_path = modules_path
 dir_repos = "repositories"
 
-pygit2.option(pygit2.GIT_OPT_SET_OWNER_VALIDATION, 0)
 
 # This function was copied from [Fooocus](https://github.com/lllyasviel/Fooocus) repository.
 def onerror(func, path, exc_info):
@@ -31,6 +36,8 @@ def onerror(func, path, exc_info):
 
 # This function was copied from [Fooocus](https://github.com/lllyasviel/Fooocus) repository.
 def git_clone(url, dir, name, hash=None):
+    import pygit2
+
     try:
         try:
             repo = pygit2.Repository(dir)
@@ -66,9 +73,55 @@ def repo_dir(name):
     return os.path.join(script_path, dir_repos, name)
 
 
+# This function was copied from [Fooocus](https://github.com/lllyasviel/Fooocus) repository.
+def run(command, desc=None, errdesc=None, custom_env=None, live: bool = default_command_live) -> str:
+    if desc is not None:
+        print(desc)
+
+    run_kwargs = {
+        "args": command,
+        "shell": True,
+        "env": os.environ if custom_env is None else custom_env,
+        "encoding": 'utf8',
+        "errors": 'ignore',
+    }
+
+    if not live:
+        run_kwargs["stdout"] = run_kwargs["stderr"] = subprocess.PIPE
+
+    result = subprocess.run(**run_kwargs)
+
+    if result.returncode != 0:
+        error_bits = [
+            f"{errdesc or 'Error running command'}.",
+            f"Command: {command}",
+            f"Error code: {result.returncode}",
+        ]
+        if result.stdout:
+            error_bits.append(f"stdout: {result.stdout}")
+        if result.stderr:
+            error_bits.append(f"stderr: {result.stderr}")
+        raise RuntimeError("\n".join(error_bits))
+
+    return (result.stdout or "")
+
+
+# This function was copied from [Fooocus](https://github.com/lllyasviel/Fooocus) repository.
+def run_pip(command, desc=None, live=default_command_live):
+    try:
+        index_url_line = f' --index-url {index_url}' if index_url != '' else ''
+        return run(f'"{python}" -m pip {command} --prefer-binary{index_url_line}', desc=f"Installing {desc}",
+                   errdesc=f"Couldn't install {desc}", live=live)
+    except Exception as e:
+        print(e)
+        print(f'CMD Failed {desc}: {command}')
+        return None
+
+
 def download_repositories():
-    print(f"Python {sys.version}")
-    print(f"Fooocus version: {fooocus_version}")
+    import pygit2
+
+    pygit2.option(pygit2.GIT_OPT_SET_OWNER_VALIDATION, 0)
 
     http_proxy = os.environ.get('HTTP_PROXY')
     https_proxy = os.environ.get('HTTPS_PROXY')
@@ -92,6 +145,15 @@ def download_repositories():
         'FOOOCUS_REPO', 'https://github.com/lllyasviel/Fooocus')
     git_clone(fooocus_repo, repo_dir(fooocus_name),
               "Fooocus", fooocus_commit_hash)
+    
+
+def is_installed(package):
+    try:
+        spec = find_spec(package)
+    except ModuleNotFoundError:
+        return False
+
+    return spec is not None
 
 
 def download_models():
@@ -118,7 +180,9 @@ def download_models():
     ]
 
     from modules.model_loader import load_file_from_url
-    from modules.path import modelfile_path, lorafile_path, vae_approx_path, upscale_models_path, fooocus_expansion_path
+    from modules.path import (fooocus_expansion_path, lorafile_path,
+                              modelfile_path, upscale_models_path,
+                              vae_approx_path)
 
     for file_name, url in model_filenames:
         load_file_from_url(url=url, model_dir=modelfile_path,
@@ -140,7 +204,18 @@ def download_models():
     )
 
 
+def run_pip_install():
+    print("Run pip install")
+    run_pip("install -r requirements.txt", "requirements")
+    run_pip("install torch torchvision --extra-index-url https://download.pytorch.org/whl/cu118", "torch")
+    run_pip("install xformers", "xformers")
+
+
 def prepare_environments(args) -> bool:
+    # Check if need pip install
+    if not is_installed('xformers'):
+        run_pip_install()
+
     skip_sync_repo = False
     if args.sync_repo is not None:
         if args.sync_repo == 'only':
@@ -182,6 +257,9 @@ def ini_comfy_args():
 
 
 if __name__ == "__main__":
+    print(f"Python {sys.version}")
+    print(f"Fooocus-API version: {version}")
+
     parser = argparse.ArgumentParser()
     parser.add_argument("--port", type=int, default=8888,
                         help="Set the listen port")

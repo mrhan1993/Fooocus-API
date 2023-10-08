@@ -19,6 +19,8 @@ After run successful, you can see the terminal print where to put the model file
 
 Then you can put the model files to target directories manually, or let it auto downloads when start app.
 
+It will also apply user_path_config.txt config file as Fooocus. See [Changing Model Path](https://github.com/lllyasviel/Fooocus#changing-model-path).
+
 ### Start app
 Run
 ```
@@ -30,6 +32,25 @@ For pragram arguments, see
 ```
 python main.py -h
 ```
+
+### Start with docker
+Run
+```
+docker run --gpus=all -e NVIDIA_DRIVER_CAPABILITIES=compute,utility -e NVIDIA_VISIBLE_DEVICES=all -p 8888:8888 konieshadow/fooocus-api
+```
+
+For a more complex usage:
+```
+mkdir ~/repositories
+mkdir -p ~/.cache/pip
+
+docker run --gpus=all -e NVIDIA_DRIVER_CAPABILITIES=compute,utility -e NVIDIA_VISIBLE_DEVICES=all \
+    -v ~/repositories:/app/repositories \
+    -v ~/.cache/pip:/root/.cache/pip \
+    -p 8888:8888 konieshadow/fooocus-api
+```
+It will persistent the dependent repositories and pip cache.
+
 
 ### Test API
 You can open the Swagger Document in "http://127.0.0.1:8888/docs", then click "Try it out" to send a request.

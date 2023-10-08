@@ -83,7 +83,5 @@ def img_inpaint_or_outpaint(input_image: UploadFile, req: ImgInpaintOrOutpaintRe
 
 
 def start_app(args):
-    from fooocus_api_version import version
-    print(f"Fooocus-API version: {version}")
     uvicorn.run("fooocusapi.api:app", host=args.host,
                 port=args.port, log_level=args.log_level)
