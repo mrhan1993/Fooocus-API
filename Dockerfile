@@ -6,7 +6,7 @@ RUN apt-get update && \
 
 ARG REGISTER https://pypi.org/simple
 
-RUN --mount=type=cache,target=/root/.cache/pip pip3 install virtualenv
+RUN pip3 install -i $REGISTER virtualenv
 RUN mkdir /app
 
 WORKDIR /app
@@ -20,12 +20,11 @@ RUN . /venv/bin/activate && \
     pip3 install -i $REGISTER -r requirements.txt
 
 RUN . /venv/bin/activate && \
-    pip3 install torch torchvision --extra-index-url https://download.pytorch.org/whl/cu118 xformers
+    pip3 install -i $REGISTER torch torchvision --extra-index-url https://download.pytorch.org/whl/cu118
+
+RUN . /venv/bin/activate && \
+    pip3 install -i $REGISTER xformers
 
 COPY . /app/
 
-ENV LISTEN_HOST 127.0.0.1
-ENV LISTEN_PORT 8888
-
-ENTRYPOINT [ "bash", "-c", ". /venv/bin/activate && exec \"$@\"", "--" ]
-CMD [ "python3", "main.py", "--host", "$LISTEN_HOST", "--port", "$LISTEN_PORT" ]
+CMD . /venv/bin/activate && exec python3 main.py --host 0.0.0.0 --port 8888
