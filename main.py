@@ -69,7 +69,6 @@ def repo_dir(name):
 def download_repositories():
     print(f"Python {sys.version}")
     print(f"Fooocus version: {fooocus_version}")
-    print(f"Fooscus-API version: {version}")
 
     http_proxy = os.environ.get('HTTP_PROXY')
     https_proxy = os.environ.get('HTTPS_PROXY')
