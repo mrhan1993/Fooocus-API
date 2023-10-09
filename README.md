@@ -74,3 +74,8 @@ Alternative api for 'Upscale or Variation' tab of Fooocus Gradio interface.
 > POST /v1/generation/image-inpait-outpaint
 
 Alternative api for 'Inpaint or Outpaint' tab of Fooocus Gradio interface.
+
+#### Image Prompt
+> POST /v1/generation/image-prompt
+
+Alternative api for 'Image Prompt' tab of Fooocus Gradio interface.
