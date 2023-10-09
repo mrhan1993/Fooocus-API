@@ -58,6 +58,8 @@ You can open the Swagger Document in "http://127.0.0.1:8888/docs", then click "T
 ### Completed Apis
 Swagger openapi defination see [openapi.json](docs/openapi.json).
 
+You can import it in [Swagger-UI](https://swagger.io/tools/swagger-ui/) editor.
+
 #### Text to Image
 > POST /v1/generation/text-to-image
 
