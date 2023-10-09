@@ -12,6 +12,7 @@ numpy==1.23.5
 pytorch_lightning==1.9.4
 omegaconf==2.2.3
 pygit2==1.12.2
+opencv-contrib-python==4.8.0.74
 fastapi==0.103.1
 python-multipart==0.0.6
 uvicorn[standard]==0.23.2

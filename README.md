@@ -1,7 +1,7 @@
 # Fooocus-API
 FastAPI powered API for [Fooocus](https://github.com/lllyasviel/Fooocus)
 
-Currently loaded Fooocus version: 2.0.93
+Currently loaded Fooocus version: 2.1.25
 
 ### Install dependencies.
 Need python version >= 3.10

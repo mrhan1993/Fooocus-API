@@ -174,11 +174,6 @@ def download_models():
          'https://huggingface.co/lllyasviel/misc/resolve/main/xlvaeapp.pth')
     ]
 
-    upscaler_filenames = [
-        ('fooocus_upscaler_s409985e5.bin',
-         'https://huggingface.co/lllyasviel/misc/resolve/main/fooocus_upscaler_s409985e5.bin')
-    ]
-
     from modules.model_loader import load_file_from_url
     from modules.path import (fooocus_expansion_path, lorafile_path,
                               modelfile_path, upscale_models_path,
@@ -193,9 +188,6 @@ def download_models():
     for file_name, url in vae_approx_filenames:
         load_file_from_url(
             url=url, model_dir=vae_approx_path, file_name=file_name)
-    for file_name, url in upscaler_filenames:
-        load_file_from_url(
-            url=url, model_dir=upscale_models_path, file_name=file_name)
 
     load_file_from_url(
         url='https://huggingface.co/lllyasviel/misc/resolve/main/fooocus_expansion.bin',

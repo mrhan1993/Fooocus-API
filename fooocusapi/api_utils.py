@@ -39,7 +39,7 @@ def read_input_image(input_image: UploadFile) -> np.ndarray:
     input_image_bytes = input_image.file.read()
     pil_image = Image.open(io.BytesIO(input_image_bytes))
     image = np.array(pil_image)
-    return HWC3(image)
+    return image
 
 
 def generation_output(results: List[GeneratedImage], streaming_output: bool) -> Response | List[GeneratedImageBase64]:

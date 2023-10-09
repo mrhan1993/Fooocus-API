@@ -1,10 +1,12 @@
-from fastapi import File, Form, UploadFile
+from fastapi import Form, UploadFile
+from fastapi.params import File
 from fastapi.exceptions import RequestValidationError
 from pydantic import BaseModel, ConfigDict, Field
 from typing import List
 from enum import Enum
 
 from pydantic_core import InitErrorDetails
+import modules.flags as flags
 
 
 class Lora(BaseModel):
@@ -24,110 +26,110 @@ class PerfomanceSelection(str, Enum):
 class FooocusStyle(str, Enum):
     fooocus_expansion = 'Fooocus V2'
     default = 'Default (Slightly Cinematic)',
-    sai_3d_model = 'sai-3d-model'
-    sai_analog_film = 'sai-analog film'
-    sai_anime = 'sai-anime'
-    sai_cinematic = 'sai-cinematic'
-    sai_comic_book = 'sai-comic book'
-    sai_ccraft_clay = 'sai-craft clay'
-    sai_digital_art = 'sai-digital art'
-    sai_enhance = 'sai-enhance'
-    sai_fantasy_art = 'sai-fantasy art'
-    sai_isometric = 'sai-isometric'
-    sai_line_art = 'sai-line art'
-    sai_lowpoly = 'sai-lowpoly'
-    sai_neonpunk = 'sai-neonpunk'
-    sai_origami = 'sai-origami'
-    sai_photographic = 'sai-photographic'
-    sai_pixel_art = 'sai-pixel art'
-    sai_texture = 'sai-texture'
-    ads_advertising = 'ads-advertising'
-    ads_automotive = 'ads-automotive'
-    ads_corporate = 'ads-corporate'
-    ads_fashion_editorial = 'ads-fashion editorial'
-    adsfood_photography = 'ads-food photography'
-    ads_luxury = 'ads-luxury'
-    ads_real_estate = 'ads-real estate'
-    ads_retail = 'ads-retail'
-    artstyle_abstract = 'artstyle-abstract'
-    artstyle_abstract_expressionism = 'artstyle-abstract expressionism'
-    artstyle_art_deco = 'artstyle-art deco'
-    artstyle_art_nouveau = 'artstyle-art nouveau'
-    artstyle_constructivist = 'artstyle-constructivist'
-    artstyle_cubist = 'artstyle-cubist'
-    artstyle_expressionist = 'artstyle-expressionist'
-    artstyle_graffiti = 'artstyle-graffiti'
-    artstyle_hyperrealism = 'artstyle-hyperrealism'
-    artstyle_impressionist = 'artstyle-impressionist'
-    artstyle_pointillism = 'artstyle-pointillism'
-    artstyle_pop_art = 'artstyle-pop art'
-    artstyle_psychedelic = 'artstyle-psychedelic'
-    artstyle_renaissance = 'artstyle-renaissance'
-    artstyle_steampunk = 'artstyle-steampunk'
-    artstyle_surrealist = 'artstyle-surrealist'
-    artstyle_typography = 'artstyle-typography'
-    artstyle_watercolor = 'artstyle-watercolor'
-    futuristic_biomechanical = 'futuristic-biomechanical'
-    futuristic_biomechanical_cyberpunk = 'futuristic-biomechanical cyberpunk'
-    futuristic_cybernetic = 'futuristic-cybernetic'
-    futuristic_cybernetic_robot = 'futuristic-cybernetic robot'
-    futuristic_cyberpunk_cityscape = 'futuristic-cyberpunk cityscape'
-    futuristic_futuristic = 'futuristic-futuristic'
-    futuristic_retro_cyberpunk = 'futuristic-retro cyberpunk'
-    futuristic_retro_futurism = 'futuristic-retro futurism'
-    futuristic_sci_fi = 'futuristic-sci-fi'
-    futuristic_vaporwave = 'futuristic-vaporwave'
-    game_bubble_bobble = 'game-bubble bobble'
-    game_cyberpunk_game = 'game-cyberpunk game'
-    game_fighting_game = 'game-fighting game'
-    game_gta = 'game-gta'
-    game_mario = 'game-mario'
-    game_minecraft = 'game-minecraft'
-    game_pokemon = 'game-pokemon'
-    game_retro_arcade = 'game-retro arcade'
-    game_retro_game = 'game-retro game'
-    game_rpg_fantasy_game = 'game-rpg fantasy game'
-    game_strategy_game = 'game-strategy game'
-    game_streetfighter = 'game-streetfighter'
-    game_zelda = 'game-zelda'
-    misc_architectural = 'misc-architectural'
-    misc_disco = 'misc-disco'
-    misc_dreamscape = 'misc-dreamscape'
-    misc_dystopian = 'misc-dystopian'
-    misc_fairy_tale = 'misc-fairy tale'
-    misc_gothic = 'misc-gothic'
-    misc_grunge = 'misc-grunge'
-    misc_horror = 'misc-horror'
-    misc_kawaii = 'misc-kawaii'
-    misc_lovecraftian = 'misc-lovecraftian'
-    misc_macabre = 'misc-macabre'
-    misc_manga = 'misc-manga'
-    misc_metropolis = 'misc-metropolis'
-    misc_minimalist = 'misc-minimalist'
-    misc_monochrome = 'misc-monochrome'
-    misc_nautical = 'misc-nautical'
-    misc_space = 'misc-space'
-    misc_stained_glass = 'misc-stained glass'
-    misc_techwear_fashion = 'misc-techwear fashion'
-    misc_tribal = 'misc-tribal'
-    misc_zentangle = 'misc-zentangle'
-    papercraft_collage = 'papercraft-collage'
-    papercraft_flat_papercut = 'papercraft-flat papercut'
-    papercraft_kirigami = 'papercraft-kirigami'
-    papercraft_paper_mache = 'papercraft-paper mache'
-    papercraft_paper_quilling = 'papercraft-paper quilling'
-    papercraft_papercut_collage = 'papercraft-papercut collage'
-    papercraft_papercut_shadow_box = 'papercraft-papercut shadow box'
-    papercraft_stacked_papercut = 'papercraft-stacked papercut'
-    papercraft_thick_layered_papercut = 'papercraft-thick layered papercut'
-    photo_alien = 'photo-alien'
-    photo_film_noir = 'photo-film noir'
-    photo_hdr = 'photo-hdr'
-    photo_long_exposure = 'photo-long exposure'
-    photo_neon_noir = 'photo-neon noir'
-    photo_silhouette = 'photo-silhouette'
-    photo_tilt_shift = 'photo-tilt-shift'
-    cinematic_diva = 'cinematic-diva'
+    sai_3d_model = 'SAI 3D Model'
+    sai_analog_film = 'SAI Analog Film'
+    sai_anime = 'SAI Anime'
+    sai_cinematic = 'SAI Cinematic'
+    sai_comic_book = 'SAI Comic Book'
+    sai_ccraft_clay = 'SAI Craft Clay'
+    sai_digital_art = 'SAI Digital Art'
+    sai_enhance = 'SAI Enhance'
+    sai_fantasy_art = 'SAI Fantasy Art'
+    sai_isometric = 'SAI Isometric'
+    sai_line_art = 'SAI Line Art'
+    sai_lowpoly = 'SAI Lowpoly'
+    sai_neonpunk = 'SAI Neonpunk'
+    sai_origami = 'SAI Prigami'
+    sai_photographic = 'SAI Photographic'
+    sai_pixel_art = 'SAI Pixel Art'
+    sai_texture = 'SAI Texture'
+    ads_advertising = 'Ads Advertising'
+    ads_automotive = 'Ads Automotive'
+    ads_corporate = 'Ads Corporate'
+    ads_fashion_editorial = 'Ads Fashion Editorial'
+    adsfood_photography = 'Ads Food Photography'
+    ads_luxury = 'Ads Luxury'
+    ads_real_estate = 'Ads Real Estate'
+    ads_retail = 'Ads Retail'
+    artstyle_abstract = 'Artstyle Abstract'
+    artstyle_abstract_expressionism = 'Artstyle Abstract Expressionism'
+    artstyle_art_deco = 'Artstyle Art Deco'
+    artstyle_art_nouveau = 'Artstyle Art Nouveau'
+    artstyle_constructivist = 'Artstyle Constructivist'
+    artstyle_cubist = 'Artstyle Cubist'
+    artstyle_expressionist = 'Artstyle Expressionist'
+    artstyle_graffiti = 'Artstyle Graffiti'
+    artstyle_hyperrealism = 'Artstyle Hyperrealism'
+    artstyle_impressionist = 'Artstyle Impressionist'
+    artstyle_pointillism = 'Artstyle Pointillism'
+    artstyle_pop_art = 'Artstyle Pop Art'
+    artstyle_psychedelic = 'Artstyle Psychedelic'
+    artstyle_renaissance = 'Artstyle Renaissance'
+    artstyle_steampunk = 'Artstyle Steampunk'
+    artstyle_surrealist = 'Artstyle Surrealist'
+    artstyle_typography = 'Artstyle Typography'
+    artstyle_watercolor = 'Artstyle Watercolor'
+    futuristic_biomechanical = 'Futuristic Biomechanical'
+    futuristic_biomechanical_cyberpunk = 'Futuristic Biomechanical Cyberpunk'
+    futuristic_cybernetic = 'Futuristic Cybernetic'
+    futuristic_cybernetic_robot = 'Futuristic Cybernetic Robot'
+    futuristic_cyberpunk_cityscape = 'Futuristic Cyberpunk Cityscape'
+    futuristic_futuristic = 'Futuristic Futuristic'
+    futuristic_retro_cyberpunk = 'Futuristic Retro Cyberpunk'
+    futuristic_retro_futurism = 'Futuristic Retro Futurism'
+    futuristic_sci_fi = 'Futuristic Sci Fi'
+    futuristic_vaporwave = 'Futuristic Vaporwave'
+    game_bubble_bobble = 'Game Bubble Bobble'
+    game_cyberpunk_game = 'Game Cyberpunk Game'
+    game_fighting_game = 'Game Fighting Game'
+    game_gta = 'Game Gta'
+    game_mario = 'Game Mario'
+    game_minecraft = 'Game Minecraft'
+    game_pokemon = 'Game Pokemon'
+    game_retro_arcade = 'Game Retro Arcade'
+    game_retro_game = 'Game Retro Game'
+    game_rpg_fantasy_game = 'Game Rpg Fantasy Game'
+    game_strategy_game = 'Game Strategy Game'
+    game_streetfighter = 'Game Streetfighter'
+    game_zelda = 'Game Zelda'
+    misc_architectural = 'Misc Architectural'
+    misc_disco = 'Misc Disco'
+    misc_dreamscape = 'Misc Dreamscape'
+    misc_dystopian = 'Misc Dystopian'
+    misc_fairy_tale = 'Misc Fairy Tale'
+    misc_gothic = 'Misc Gothic'
+    misc_grunge = 'Misc Grunge'
+    misc_horror = 'Misc Horror'
+    misc_kawaii = 'Misc Kawaii'
+    misc_lovecraftian = 'Misc Lovecraftian'
+    misc_macabre = 'Misc Macabre'
+    misc_manga = 'Misc Manga'
+    misc_metropolis = 'Misc Metropolis'
+    misc_minimalist = 'Misc Minimalist'
+    misc_monochrome = 'Misc Monochrome'
+    misc_nautical = 'Misc Nautical'
+    misc_space = 'Misc Space'
+    misc_stained_glass = 'Misc Stained Glass'
+    misc_techwear_fashion = 'Misc Techwear Fashion'
+    misc_tribal = 'Misc Tribal'
+    misc_zentangle = 'Misc Zentangle'
+    papercraft_collage = 'Papercraft Collage'
+    papercraft_flat_papercut = 'Papercraft Flat Papercut'
+    papercraft_kirigami = 'Papercraft Kirigami'
+    papercraft_paper_mache = 'Papercraft Paper Mache'
+    papercraft_paper_quilling = 'Papercraft Paper Quilling'
+    papercraft_papercut_collage = 'Papercraft Papercut Collage'
+    papercraft_papercut_shadow_box = 'Papercraft Papercut Shadow Box'
+    papercraft_stacked_papercut = 'Papercraft Stacked Papercut'
+    papercraft_thick_layered_papercut = 'Papercraft Thick Layered Papercut'
+    photo_alien = 'Photo Alien'
+    photo_film_noir = 'Photo Film Noir'
+    photo_hdr = 'Photo Hdr'
+    photo_long_exposure = 'Photo Long Exposure'
+    photo_neon_noir = 'Photo Neon Noir'
+    photo_silhouette = 'Photo Silhouette'
+    photo_tilt_shift = 'Photo Tilt Shift'
+    cinematic_diva = 'Cinematic Diva'
     abstract_expressionism = 'Abstract Expressionism'
     academia = 'Academia'
     action_figure = 'Action Figure'
@@ -136,9 +138,9 @@ class FooocusStyle(str, Enum):
     art_deco = 'Art Deco'
     art_nouveau = 'Art Nouveau'
     astral_aura = 'Astral Aura'
-    avant_garde = 'Avant-garde'
+    avant_garde = 'Avant Garde'
     baroque = 'Baroque'
-    bauhaus_style_poster = 'Bauhaus-Style Poster'
+    bauhaus_style_poster = 'Bauhaus Style Poster'
     blueprint_schematic_drawing = 'Blueprint Schematic Drawing'
     caricature = 'Caricature'
     cel_shaded_art = 'Cel Shaded Art'
@@ -157,13 +159,13 @@ class FooocusStyle(str, Enum):
     double_exposure = 'Double Exposure'
     dripping_paint_splatter_art = 'Dripping Paint Splatter Art'
     expressionism = 'Expressionism'
-    faded_polaroid_photo = 'Faded Polaroid Photo'
+    faded_polaroid_Photo = 'Faded Polaroid Photo'
     fauvism = 'Fauvism'
     flat_2d_art = 'Flat 2D Art'
     fortnite_art_style = 'Fortnite Art Style'
     futurism = 'Futurism'
     glitchcore = 'Glitchcore'
-    glo_fi = 'Glo-fi'
+    glo_fi = 'Glo Fi'
     googie_art_style = 'Googie Art Style'
     graffiti_art = 'Graffiti Art'
     harlem_renaissance_art = 'Harlem Renaissance Art'
@@ -182,14 +184,14 @@ class FooocusStyle(str, Enum):
     marker_drawing = 'Marker Drawing'
     medievalism = 'Medievalism'
     minimalism = 'Minimalism'
-    neo_baroque = 'Neo-Baroque'
-    neo_byzantine = 'Neo-Byzantine'
-    neo_futurism = 'Neo-Futurism'
-    neo_impressionism = 'Neo-Impressionism'
-    neo_rococo = 'Neo-Rococo'
+    neo_baroque = 'Neo Baroque'
+    neo_byzantine = 'Neo Byzantine'
+    neo_futurism = 'Neo Futurism'
+    neo_impressionism = 'Neo Impressionism'
+    neo_rococo = 'Neo Rococo'
     neoclassicism = 'Neoclassicism'
     op_art = 'Op Art'
-    ornate_and_intricate = 'Ornate and Intricate'
+    ornate_and_intricate = 'Ornate And Intricate'
     pencil_sketch_drawing = 'Pencil Sketch Drawing'
     pop_art_2 = 'Pop Art 2'
     rococo = 'Rococo'
@@ -205,7 +207,7 @@ class FooocusStyle(str, Enum):
     vibrant_rim_light = 'Vibrant Rim Light'
     volumetric_lighting = 'Volumetric Lighting'
     watercolor_2 = 'Watercolor 2'
-    whimsical_and_playful = 'Whimsical and Playful'
+    whimsical_and_playful = 'Whimsical And Playful'
 
 
 class AspectRatio(str, Enum):
@@ -252,6 +254,20 @@ class OutpaintExpansion(str, Enum):
     bottom = 'Bottom'
 
 
+class ControlNetType(str, Enum):
+    cn_ip = 'Image Prompt'
+    cn_canny = 'PyraCanny'
+    cn_cpds = 'CPDS'
+
+
+class ImagePrompt(BaseModel):
+    cn_img: UploadFile | None = Field(default=None)
+    cn_stop: float = Field(default=0.4, min=0, max=1)
+    cn_weight: float | None = Field(
+        default=None, min=0, max=2, description="None for default value")
+    cn_type: ControlNetType = Field(default=ControlNetType.cn_ip)
+
+
 class Text2ImgRequest(BaseModel):
     prompt: str = ''
     negative_promit: str = ''
@@ -261,7 +277,7 @@ class Text2ImgRequest(BaseModel):
     aspect_ratios_selection: AspectRatio = AspectRatio.a_1_29
     image_number: int = Field(
         default=1, description="Image number", min=1, max=32)
-    image_seed: int | None = None
+    image_seed: int = Field(default=-1, description="Seed to generate image, -1 for random")
     sharpness: float = Field(default=2.0, min=0.0, max=30.0)
     guidance_scale: float = Field(default=7.0, min=1.0, max=30.0)
     base_model_name: str = 'sd_xl_base_1.0_0.9vae.safetensors'
@@ -287,7 +303,7 @@ class ImgUpscaleOrVaryRequest(Text2ImgRequest):
                     AspectRatio.a_1_29),
                 image_number: int = Form(
                     default=1, description="Image number", ge=1, le=32),
-                image_seed: int | None = Form(None),
+                image_seed: int = Form(default=-1, description="Seed to generate image, -1 for random"),
                 sharpness: float = Form(default=2.0, ge=0.0, le=30.0),
                 guidance_scale: float = Form(default=7.0, ge=1.0, le=30.0),
                 base_model_name: str = Form(
@@ -339,8 +355,10 @@ class ImgInpaintOrOutpaintRequest(Text2ImgRequest):
 
     @classmethod
     def as_form(cls, input_image: UploadFile = Form(description="Init image for inpaint or outpaint"),
-                input_mask: UploadFile = Form(File(None), description="Inpaint or outpaint mask"),
-                outpaint_selections: List[str] = Form([], description="Outpaint expansion selections, literal 'Left', 'Right', 'Top', 'Bottom' seperated by comma"),
+                input_mask: UploadFile = Form(
+                    File(None), description="Inpaint or outpaint mask"),
+                outpaint_selections: List[str] = Form(
+                    [], description="Outpaint expansion selections, literal 'Left', 'Right', 'Top', 'Bottom' seperated by comma"),
                 prompt: str = Form(''),
                 negative_promit: str = Form(''),
                 style_selections: List[str] = Form([
@@ -351,7 +369,7 @@ class ImgInpaintOrOutpaintRequest(Text2ImgRequest):
                     AspectRatio.a_1_29),
                 image_number: int = Form(
                     default=1, description="Image number", ge=1, le=32),
-                image_seed: int | None = Form(None),
+                image_seed: int = Form(default=-1, description="Seed to generate image, -1 for random"),
                 sharpness: float = Form(default=2.0, ge=0.0, le=30.0),
                 guidance_scale: float = Form(default=7.0, ge=1.0, le=30.0),
                 base_model_name: str = Form(
@@ -371,6 +389,9 @@ class ImgInpaintOrOutpaintRequest(Text2ImgRequest):
                 w5: float = Form(default=0.5, ge=-2, le=2),
                 ):
 
+        if isinstance(input_mask, File):
+            input_mask = None
+        
         outpaint_selections_arr: List[OutpaintExpansion] = []
         for part in outpaint_selections:
             if len(part) > 0:
@@ -381,7 +402,7 @@ class ImgInpaintOrOutpaintRequest(Text2ImgRequest):
                     except ValueError as ve:
                         err = InitErrorDetails(type='enum', loc=['outpaint_selections'], input=outpaint_selections, ctx={
                             'expected': "Literal 'Left', 'Right', 'Top', 'Bottom' seperated by comma"})
-                        raise RequestValidationError(errors=[err]) 
+                        raise RequestValidationError(errors=[err])
 
         style_selection_arr: List[FooocusStyle] = []
         for part in style_selections:
@@ -393,7 +414,7 @@ class ImgInpaintOrOutpaintRequest(Text2ImgRequest):
                     except ValueError as ve:
                         err = InitErrorDetails(type='enum', loc=['style_selections'], input=style_selections, ctx={
                             'expected': 'Valid fooocus styles seperated by comma'})
-                        raise RequestValidationError(errors=[err])        
+                        raise RequestValidationError(errors=[err])
 
         loras: List[Lora] = []
         lora_config = [(l1, w1), (l2, w2), (l3, w3), (l4, w4), (l5, w5)]
@@ -403,6 +424,115 @@ class ImgInpaintOrOutpaintRequest(Text2ImgRequest):
                 loras.append(Lora(model_name=lora_model, weight=lora_weight))
 
         return cls(input_image=input_image, input_mask=input_mask, outpaint_selections=outpaint_selections_arr, prompt=prompt, negative_promit=negative_promit, style_selections=style_selection_arr,
+                   performance_selection=performance_selection, aspect_ratios_selection=aspect_ratios_selection,
+                   image_number=image_number, image_seed=image_seed, sharpness=sharpness, guidance_scale=guidance_scale,
+                   base_model_name=base_model_name, refiner_model_name=refiner_model_name,
+                   loras=loras)
+
+
+class ImgPromptRequest(Text2ImgRequest):
+    image_prompts: List[ImagePrompt]
+
+    @classmethod
+    def as_form(cls, cn_img1: UploadFile = Form(File(None), description="Input image for image prompt"),
+                cn_stop1: float = Form(
+                    default=0.4, ge=0, le=1, description="Stop at for image prompt"),
+                cn_weight1: float | None = Form(
+                    default=None, ge=0, le=2, description="Weight for image prompt, None for default value"),
+                cn_type1: ControlNetType = Form(
+                    default=ControlNetType.cn_ip, description="ControlNet type for image prompt"),
+                cn_img2: UploadFile = Form(
+                    File(None), description="Input image for image prompt"),
+                cn_stop2: float = Form(
+                    default=0.4, ge=0, le=1, description="Stop at for image prompt"),
+                cn_weight2: float | None = Form(
+                    default=None, ge=0, le=2, description="Weight for image prompt, None for default value"),
+                cn_type2: ControlNetType = Form(
+                    default=ControlNetType.cn_ip, description="ControlNet type for image prompt"),
+                cn_img3: UploadFile = Form(
+                    File(None), description="Input image for image prompt"),
+                cn_stop3: float = Form(
+                    default=0.4, ge=0, le=1, description="Stop at for image prompt"),
+                cn_weight3: float | None = Form(
+                    default=None, ge=0, le=2, description="Weight for image prompt, None for default value"),
+                cn_type3: ControlNetType = Form(
+                    default=ControlNetType.cn_ip, description="ControlNet type for image prompt"),
+                cn_img4: UploadFile = Form(
+                    File(None), description="Input image for image prompt"),
+                cn_stop4: float = Form(
+                    default=0.4, ge=0, le=1, description="Stop at for image prompt"),
+                cn_weight4: float | None = Form(
+                    default=None, ge=0, le=2, description="Weight for image prompt, None for default value"),
+                cn_type4: ControlNetType = Form(
+                    default=ControlNetType.cn_ip, description="ControlNet type for image prompt"),
+                prompt: str = Form(''),
+                negative_promit: str = Form(''),
+                style_selections: List[str] = Form([
+                    FooocusStyle.fooocus_expansion, FooocusStyle.default], description="Fooocus style selections, seperated by comma"),
+                performance_selection: PerfomanceSelection = Form(
+                    PerfomanceSelection.speed),
+                aspect_ratios_selection: AspectRatio = Form(
+                    AspectRatio.a_1_29),
+                image_number: int = Form(
+                    default=1, description="Image number", ge=1, le=32),
+                image_seed: int = Form(default=-1, description="Seed to generate image, -1 for random"),
+                sharpness: float = Form(default=2.0, ge=0.0, le=30.0),
+                guidance_scale: float = Form(default=7.0, ge=1.0, le=30.0),
+                base_model_name: str = Form(
+                    'sd_xl_base_1.0_0.9vae.safetensors'),
+                refiner_model_name: str = Form(
+                    'sd_xl_refiner_1.0_0.9vae.safetensors'),
+                l1: str | None = Form(
+                    'sd_xl_offset_example-lora_1.0.safetensors'),
+                w1: float = Form(default=0.5, ge=-2, le=2),
+                l2: str | None = Form(None),
+                w2: float = Form(default=0.5, ge=-2, le=2),
+                l3: str | None = Form(None),
+                w3: float = Form(default=0.5, ge=-2, le=2),
+                l4: str | None = Form(None),
+                w4: float = Form(default=0.5, ge=-2, le=2),
+                l5: str | None = Form(None),
+                w5: float = Form(default=0.5, ge=-2, le=2),
+                ):
+        if isinstance(cn_img1, File):
+            cn_img1 = None
+        if isinstance(cn_img2, File):
+            cn_img2 = None
+        if isinstance(cn_img3, File):
+            cn_img3 = None
+        if isinstance(cn_img4, File):
+            cn_img4 = None
+
+        image_prompts: List[ImagePrompt] = []
+        image_prompt_config = [(cn_img1, cn_stop1, cn_weight1, cn_type1), (cn_img2, cn_stop2, cn_weight2, cn_type2),
+                               (cn_img3, cn_stop3, cn_weight3, cn_type3), (cn_img4, cn_stop4, cn_weight4, cn_type4)]
+        for config in image_prompt_config:
+            cn_img, cn_stop, cn_weight, cn_type = config
+            if cn_weight is None:
+                cn_weight = flags.default_parameters[cn_type.value][1]
+            image_prompts.append(ImagePrompt(
+                cn_img=cn_img, cn_stop=cn_stop, cn_weight=cn_weight, cn_type=cn_type))
+
+        style_selection_arr: List[FooocusStyle] = []
+        for part in style_selections:
+            if len(part) > 0:
+                for s in part.split(','):
+                    try:
+                        expansion = FooocusStyle(s)
+                        style_selection_arr.append(expansion)
+                    except ValueError as ve:
+                        err = InitErrorDetails(type='enum', loc=['style_selections'], input=style_selections, ctx={
+                            'expected': 'Valid fooocus styles seperated by comma'})
+                        raise RequestValidationError(errors=[err])
+
+        loras: List[Lora] = []
+        lora_config = [(l1, w1), (l2, w2), (l3, w3), (l4, w4), (l5, w5)]
+        for config in lora_config:
+            lora_model, lora_weight = config
+            if lora_model is not None and len(lora_model) > 0:
+                loras.append(Lora(model_name=lora_model, weight=lora_weight))
+
+        return cls(image_prompts=image_prompts, prompt=prompt, negative_promit=negative_promit, style_selections=style_selection_arr,
                    performance_selection=performance_selection, aspect_ratios_selection=aspect_ratios_selection,
                    image_number=image_number, image_seed=image_seed, sharpness=sharpness, guidance_scale=guidance_scale,
                    base_model_name=base_model_name, refiner_model_name=refiner_model_name,
