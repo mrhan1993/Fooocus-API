@@ -34,7 +34,7 @@ build:
     - "torch==2.0.1"
     - "torchvision==0.15.2"
     - "xformers==0.0.21"
-    - "pydantic==2.4.2"
+    - "fastapi==0.103.1"
 
   # commands run after the environment is setup
   # run:
