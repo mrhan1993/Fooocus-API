@@ -69,6 +69,8 @@ class Predictor(BasePredictor):
                                  inpaint_input_image=inpaint_input_image,
                                  image_prompts=image_prompts
                                  )
+        
+        print(f"[Predictor Predict] Params: {params.__dict__}")
 
         results = process_generate(params)
 
@@ -79,5 +81,7 @@ class Predictor(BasePredictor):
                 os.makedirs(os.path.dirname(local_temp_filename), exist_ok=True)
                 Image.fromarray(r.im).save(local_temp_filename)
                 output_paths.append(Path(local_temp_filename))
+
+        print(f"[Predictor Predict] Finished with {len(output_paths)} images")
 
         return output_paths
