@@ -1,6 +1,24 @@
+from enum import Enum
 import time
 from typing import List
-from fooocusapi.models import QueueTask, TaskType
+
+
+class TaskType(str, Enum):
+    text2img = 'text2img'
+
+
+class QueueTask(object):
+    is_finished: bool = False
+    start_millis: int = 0
+    finish_millis: int = 0
+    finish_with_error: bool = False
+    task_result: any = None
+
+    def __init__(self, seq: int, type: TaskType, req_param: dict, in_queue_millis: int):
+        self.seq = seq
+        self.type = type
+        self.req_param = req_param
+        self.in_queue_millis = in_queue_millis
 
 
 class TaskQueue(object):
@@ -30,20 +48,19 @@ class TaskQueue(object):
             if task.seq == seq:
                 return task
 
-        if include_history: 
+        if include_history:
             for task in self.history:
                 if task.seq == seq:
                     return task
 
         return None
-    
+
     def is_task_ready_to_start(self, seq: int) -> bool:
         task = self.get_task(seq)
         if task is None:
             return False
-        
-        return self.queue[0].seq == seq
 
+        return self.queue[0].seq == seq
 
     def start_task(self, seq: int):
         task = self.get_task(seq)

@@ -4,16 +4,15 @@ import time
 import numpy as np
 import torch
 from typing import List
-from fooocusapi.api_utils import read_input_image
-from fooocusapi.models import GeneratedImage, GenerationFinishReason, ImgInpaintOrOutpaintRequest, ImgPromptRequest, ImgUpscaleOrVaryRequest, PerfomanceSelection, TaskType, Text2ImgRequest
-from fooocusapi.task_queue import TaskQueue
+from fooocusapi.parameters import GenerationFinishReason, ImageGenerationParams, ImageGenerationResult
+from fooocusapi.task_queue import TaskQueue, TaskType
 
 task_queue = TaskQueue()
 
 
 @torch.no_grad()
 @torch.inference_mode()
-def process_generate(req: Text2ImgRequest) -> List[GeneratedImage]:
+def process_generate(params: ImageGenerationParams) -> List[ImageGenerationResult]:
     import modules.default_pipeline as pipeline
     import modules.patch as patch
     import modules.flags as flags
@@ -37,19 +36,19 @@ def process_generate(req: Text2ImgRequest) -> List[GeneratedImage]:
         outputs.append(['preview', (number, text, None)])
 
     def make_results_from_outputs():
-        results: List[GeneratedImage] = []
+        results: List[ImageGenerationResult] = []
         for item in outputs:
             if item[0] == 'results':
                 for im in item[1]:
                     if isinstance(im, np.ndarray):
-                        results.append(GeneratedImage(im=im, seed=item[2], finish_reason=GenerationFinishReason.success))
+                        results.append(ImageGenerationResult(im=im, seed=item[2], finish_reason=GenerationFinishReason.success))
         return results
 
     task_seq = task_queue.add_task(TaskType.text2img, {
-        'body': req.__dict__})
+        'body': params.__dict__})
     if task_seq is None:
         print("[Task Queue] The task queue has reached limit")
-        results = [GeneratedImage(im=None, seed=0,
+        results = [ImageGenerationResult(im=None, seed=0,
                            finish_reason=GenerationFinishReason.queue_is_full)]
         return results
 
@@ -75,41 +74,29 @@ def process_generate(req: Text2ImgRequest) -> List[GeneratedImage]:
         execution_start_time = time.perf_counter()
 
         # Transform pamameters
-        prompt = req.prompt
-        negative_prompt = req.negative_promit
-        style_selections = [s.value for s in req.style_selections]
-        performance_selection = req.performance_selection.value
-        aspect_ratios_selection = req.aspect_ratios_selection.value
-        image_number = req.image_number
-        image_seed = None if req.image_seed == -1 else req.image_seed
-        sharpness = req.sharpness
-        guidance_scale = req.guidance_scale
-        base_model_name = req.base_model_name
-        refiner_model_name = req.refiner_model_name
-        loras = [(lora.model_name, lora.weight) for lora in req.loras]
-        input_image_checkbox = isinstance(req, ImgUpscaleOrVaryRequest) or isinstance(req, ImgInpaintOrOutpaintRequest) or isinstance(req, ImgPromptRequest)
-        current_tab = 'uov' if isinstance(req, ImgUpscaleOrVaryRequest) else 'inpaint' if isinstance(req, ImgInpaintOrOutpaintRequest) else 'ip' if isinstance(req, ImgPromptRequest) else None
-        uov_method = flags.disabled if not isinstance(req, ImgUpscaleOrVaryRequest) else req.uov_method.value
-        uov_input_image = None if not isinstance(req, ImgUpscaleOrVaryRequest) else read_input_image(req.input_image)
-        outpaint_selections = [] if not isinstance(req, ImgInpaintOrOutpaintRequest) else [s.value for s in req.outpaint_selections]
-
-        inpaint_input_image = None
-        if isinstance(req, ImgInpaintOrOutpaintRequest):
-            input_image = read_input_image(req.input_image)
-            if req.input_mask is not None:
-                input_mask = read_input_image(req.input_mask)
-            else:
-                input_mask = np.zeros(input_image.shape)
-            inpaint_input_image = {
-                'image': input_image,
-                'mask': input_mask
-            }
+        prompt = params.prompt
+        negative_prompt = params.negative_promit
+        style_selections = params.style_selections
+        performance_selection = params.performance_selection
+        aspect_ratios_selection = params.aspect_ratios_selection
+        image_number = params.image_number
+        image_seed = params.image_seed
+        sharpness = params.sharpness
+        guidance_scale = params.guidance_scale
+        base_model_name = params.base_model_name
+        refiner_model_name = params.refiner_model_name
+        loras = params.loras
+        input_image_checkbox = params.uov_input_image is not None or params.inpaint_input_image is not None or len(params.image_prompts) > 0
+        current_tab = 'uov' if params.uov_method != flags.disabled else 'inpaint' if params.inpaint_input_image is not None else 'ip' if len(params.image_prompts) > 0 else None
+        uov_method = params.uov_method
+        uov_input_image = params.uov_input_image
+        outpaint_selections = params.outpaint_selections
+        inpaint_input_image = params.inpaint_input_image
 
         cn_tasks = {flags.cn_ip: [], flags.cn_canny: [], flags.cn_cpds: []}
-        if isinstance(req, ImgPromptRequest):
-            for img_prompt in req.image_prompts:
-                if img_prompt.cn_img is not None:
-                    cn_tasks[img_prompt.cn_type.value].append([read_input_image(img_prompt.cn_img), img_prompt.cn_stop, img_prompt.cn_weight])
+        for img_prompt in params.image_prompts:
+            cn_img, cn_stop, cn_weight, cn_type = img_prompt
+            cn_tasks[cn_type].append([cn_img, cn_stop, cn_weight])
 
         def build_advanced_parameters():
             adm_scaler_positive=1.5
@@ -598,16 +585,16 @@ def process_generate(req: Text2ImgRequest) -> List[GeneratedImage]:
                 
                 # Fooocus async_worker.py code end
 
-                results.append(GeneratedImage(
+                results.append(ImageGenerationResult(
                     im=imgs[0], seed=task['task_seed'], finish_reason=GenerationFinishReason.success))
             except model_management.InterruptProcessingException as e:
                 print('User stopped')
-                results.append(GeneratedImage(
+                results.append(ImageGenerationResult(
                         im=None, seed=task['task_seed'], finish_reason=GenerationFinishReason.user_cancel))
                 break
             except Exception as e:
                 print('Process failed:', e)
-                results.append(GeneratedImage(
+                results.append(ImageGenerationResult(
                     im=None, seed=task['task_seed'], finish_reason=GenerationFinishReason.error))
 
             execution_time = time.perf_counter() - execution_start_time

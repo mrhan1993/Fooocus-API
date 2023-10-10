@@ -2,7 +2,7 @@ from typing import List, Optional
 from fastapi import Depends, FastAPI, Header, Query, UploadFile
 from fastapi.params import File
 import uvicorn
-from fooocusapi.api_utils import generation_output
+from fooocusapi.api_utils import generation_output, req_to_params
 from fooocusapi.models import GeneratedImageBase64, ImgInpaintOrOutpaintRequest, ImgPromptRequest, ImgUpscaleOrVaryRequest, Text2ImgRequest
 from fooocusapi.task_queue import TaskQueue
 from fooocusapi.worker import process_generate
@@ -43,7 +43,7 @@ def text2img_generation(req: Text2ImgRequest, accept: str = Header(None),
     else:
         streaming_output = False
 
-    results = process_generate(req)
+    results = process_generate(req_to_params(req))
     return generation_output(results, streaming_output)
 
 
@@ -61,7 +61,7 @@ def img_upscale_or_vary(input_image: UploadFile, req: ImgUpscaleOrVaryRequest = 
     else:
         streaming_output = False
 
-    results = process_generate(req)
+    results = process_generate(req_to_params(req))
     return generation_output(results, streaming_output)
 
 
@@ -79,7 +79,7 @@ def img_inpaint_or_outpaint(input_image: UploadFile, req: ImgInpaintOrOutpaintRe
     else:
         streaming_output = False
 
-    results = process_generate(req)
+    results = process_generate(req_to_params(req))
     return generation_output(results, streaming_output)
 
 
@@ -98,7 +98,7 @@ def img_prompt(cn_img1: Optional[UploadFile] = File(None),
     else:
         streaming_output = False
 
-    results = process_generate(req)
+    results = process_generate(req_to_params(req))
     return generation_output(results, streaming_output)
 
 

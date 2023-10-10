@@ -1,0 +1,46 @@
+# Configuration for Cog ⚙️
+# Reference: https://github.com/replicate/cog/blob/main/docs/yaml.md
+
+build:
+  # set to true if your model requires a GPU
+  gpu: true
+  cuda: "11.8"
+
+  # a list of ubuntu apt packages to install
+  system_packages:
+    - "libgl1-mesa-glx"
+    - "libglib2.0-0"
+
+  # python version in the form '3.11' or '3.11.4'
+  python_version: "3.11"
+
+  # a list of packages in the format <package-name>==<version>
+  python_packages:
+    - "torchsde==0.2.5"
+    - "einops==0.4.1"
+    - "transformers==4.30.2"
+    - "safetensors==0.3.1"
+    - "accelerate==0.21.0"
+    - "pyyaml==6.0"
+    - "Pillow==9.2.0"
+    - "scipy==1.9.3"
+    - "tqdm==4.64.1"
+    - "psutil==5.9.5"
+    - "numpy==1.23.5"
+    - "pytorch_lightning==1.9.4"
+    - "omegaconf==2.2.3"
+    - "pygit2==1.12.2"
+    - "opencv-contrib-python==4.8.0.74"
+    - "torch==2.0.1"
+    - "torchvision==0.15.2"
+    - "xformers==0.0.21"
+
+  # commands run after the environment is setup
+  # run:
+  #   - "echo env is ready!"
+  #   - "echo another command if needed"
+
+image: "r8.im/konieshadow/fooocus-api"
+
+# predict.py defines how predictions are run on your model
+predict: "predict.py:Predictor"

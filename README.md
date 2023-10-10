@@ -7,7 +7,7 @@ Currently loaded Fooocus version: 2.1.25
 Need python version >= 3.10
 ```
 pip install -r requirements.txt
-pip install torch torchvision --extra-index-url https://download.pytorch.org/whl/cu118 xformers
+pip install torch==2.0.1 torchvision==0.15.2 --extra-index-url https://download.pytorch.org/whl/cu118 xformers
 ```
 You may change the part "cu118" of extra-index-url to your local installed cuda driver version.
 
