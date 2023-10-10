@@ -5,7 +5,7 @@ import os
 from typing import List
 from cog import BasePredictor, Input, Path
 
-from fooocusapi.parameters import GenerationFinishReason, ImageGenerationParams, ImageGenerationResult, fooocus_styles, aspect_ratios
+from fooocusapi.parameters import GenerationFinishReason, ImageGenerationParams, fooocus_styles, aspect_ratios
 from fooocusapi.worker import process_generate
 from PIL import Image
 
@@ -35,7 +35,7 @@ class Predictor(BasePredictor):
         image_seed: int = Input(default=-1, description="Seed to generate image, -1 for random"),
         sharpness: float = Input(default=2.0, ge=0.0, le=30.0),
         guidance_scale: float = Input(default=7.0, ge=1.0, le=30.0),
-    ) -> Path:
+    ) -> List[Path]:
         """Run a single prediction on the model"""
         from modules.util import generate_temp_filename
         import modules.flags as flags
@@ -80,19 +80,19 @@ class Predictor(BasePredictor):
 
         results = process_generate(params)
 
-        result: ImageGenerationResult | None
-        if len(results) > 0:
-            result = results[0]
-        else:
-            print(f"[Predictor Predict] Finished with empty results")
-            return None
-        
-        if result.finish_reason == GenerationFinishReason.success and result.im is not None:
-            _, local_temp_filename, _ = generate_temp_filename('/tmp')
-            os.makedirs(os.path.dirname(local_temp_filename), exist_ok=True)
-            Image.fromarray(result.im).save(local_temp_filename)
-            print(f"[Predictor Predict] Finished with {result.finish_reason.value}")
-            return Path(local_temp_filename)
-        else:
-            print(f"[Predictor Predict] Finished with {result.finish_reason.value}")
-            return None
+        output_paths: List[Path] = []
+        for r in results:
+            if r.finish_reason == GenerationFinishReason.success and r.im is not None:
+                _, local_temp_filename, _ = generate_temp_filename('/tmp')
+                os.makedirs(os.path.dirname(local_temp_filename), exist_ok=True)
+                Image.fromarray(r.im).save(local_temp_filename)
+                output_paths.append(Path(local_temp_filename))
+
+        print(f"[Predictor Predict] Finished with {len(output_paths)} images")
+
+        if len(output_paths) == 0:
+            raise Exception(
+                f"Process failed."
+            )
+
+        return output_paths
