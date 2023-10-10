@@ -7,9 +7,7 @@ from cog import BasePredictor, Input, Path
 
 from fooocusapi.parameters import GenerationFinishReason, ImageGenerationParams
 from fooocusapi.worker import process_generate
-from modules.util import generate_temp_filename
 from PIL import Image
-import modules.flags as flags
 
 
 class Args(object):
@@ -31,6 +29,8 @@ class Predictor(BasePredictor):
             default='', description="Prompt for image generation")
     ) -> List[Path]:
         """Run a single prediction on the model"""
+        from modules.util import generate_temp_filename
+        import modules.flags as flags
 
         negative_promit = ''
         style_selections = ['Fooocus V2', 'Default (Slightly Cinematic)']
