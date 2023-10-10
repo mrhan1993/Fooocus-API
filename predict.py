@@ -4,7 +4,6 @@
 import os
 from typing import List
 from cog import BasePredictor, Input, Path
-from fooocusapi.models import FooocusStyle
 
 from fooocusapi.parameters import GenerationFinishReason, ImageGenerationParams
 from fooocusapi.worker import process_generate
@@ -34,7 +33,7 @@ class Predictor(BasePredictor):
         """Run a single prediction on the model"""
 
         negative_promit = ''
-        style_selections = [FooocusStyle.fooocus_expansion, FooocusStyle.default]
+        style_selections = ['Fooocus V2', 'Default (Slightly Cinematic)']
         performance_selection = 'Spped'
         aspect_ratios_selection = '1152×896'
         image_number = 1
