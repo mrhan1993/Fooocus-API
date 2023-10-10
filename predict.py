@@ -4,11 +4,13 @@
 import os
 from typing import List
 from cog import BasePredictor, Input, Path
+from fooocusapi.models import FooocusStyle
 
-from fooocusapi.models import GenerationFinishReason, Text2ImgRequest
+from fooocusapi.parameters import GenerationFinishReason, ImageGenerationParams
 from fooocusapi.worker import process_generate
 from modules.util import generate_temp_filename
 from PIL import Image
+import modules.flags as flags
 
 
 class Args(object):
@@ -30,7 +32,44 @@ class Predictor(BasePredictor):
             default='', description="Prompt for image generation")
     ) -> List[Path]:
         """Run a single prediction on the model"""
-        text_to_img_req = Text2ImgRequest(prompt=prompt)
+
+        negative_promit = ''
+        style_selections = [FooocusStyle.fooocus_expansion, FooocusStyle.default]
+        performance_selection = 'Spped'
+        aspect_ratios_selection = '1152×896'
+        image_number = 1
+        image_seed = -1
+        sharpness = 2.0
+        guidance_scale = 7.0
+        base_model_name = 'sd_xl_base_1.0_0.9vae.safetensors'
+        refiner_model_name = 'sd_xl_refiner_1.0_0.9vae.safetensors'
+        loras = [('sd_xl_offset_example-lora_1.0.safetensors', 0.5)]
+        uov_input_image = None
+        uov_method = flags.disabled
+        outpaint_selections = []
+        inpaint_input_image = None
+        image_prompts = []
+
+        params = ImageGenerationParams(prompt=prompt,
+                                 negative_promit=negative_promit,
+                                 style_selections=style_selections,
+                                 performance_selection=performance_selection,
+                                 aspect_ratios_selection=aspect_ratios_selection,
+                                 image_number=image_number,
+                                 image_seed=image_seed,
+                                 sharpness=sharpness,
+                                 guidance_scale=guidance_scale,
+                                 base_model_name=base_model_name,
+                                 refiner_model_name=refiner_model_name,
+                                 loras=loras,
+                                 uov_input_image=uov_input_image,
+                                 uov_method=uov_method,
+                                 outpaint_selections=outpaint_selections,
+                                 inpaint_input_image=inpaint_input_image,
+                                 image_prompts=image_prompts
+                                 )
+
+        text_to_img_req = ImageGenerationParams(prompt=prompt)
         results = process_generate(text_to_img_req)
 
         output_paths: List[Path] = []
