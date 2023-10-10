@@ -27,9 +27,9 @@ class Predictor(BasePredictor):
 
     def predict(
         self,
-        prompt: str = Input(efault='', description="Prompt for image generation"),
+        prompt: str = Input(default='', description="Prompt for image generation"),
         negative_prompt: str = Input(default='', description="Negtive prompt for image generation"),
-        style_selections: List[str] = Input(default=['Fooocus V2', 'Default (Slightly Cinematic)'], description="Fooocus styles applied for image generation", choices=fooocus_styles),
+        style_selections: str = Input(default='Fooocus V2,Default (Slightly Cinematic)', description="Fooocus styles applied for image generation, seperated by comma"),
         performance_selection: str = Input(default='Spped', description="Performance selection", choices=['Speed', 'Quality']),
         aspect_ratios_selection: str = Input(default='1152×896', description="The generated image's size", choices=aspect_ratios),
         image_number: int = Input(default=1, description="How many images to generate", ge=1, le=4),
@@ -50,9 +50,16 @@ class Predictor(BasePredictor):
         inpaint_input_image = None
         image_prompts = []
 
+        style_selections_arr = []
+        for s in style_selections.strip().split(','):
+            if s in fooocus_styles:
+                style = s.strip()
+                if style in fooocus_styles:
+                    style_selections_arr.append(style)
+
         params = ImageGenerationParams(prompt=prompt,
                                  negative_prompt=negative_prompt,
-                                 style_selections=style_selections,
+                                 style_selections=style_selections_arr,
                                  performance_selection=performance_selection,
                                  aspect_ratios_selection=aspect_ratios_selection,
                                  image_number=image_number,
