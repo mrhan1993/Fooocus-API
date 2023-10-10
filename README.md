@@ -8,6 +8,11 @@ FastAPI powered API for [Fooocus](https://github.com/lllyasviel/Fooocus)
 
 Currently loaded Fooocus version: 2.1.25
 
+### Run with Replicate
+Now you can use Fooocus-API by Replicate, the model is in [konieshadow/fooocus-api](https://replicate.com/konieshadow/fooocus-api).
+
+I believe this is the easiest way to generate image with Fooocus's power.
+
 ### Install dependencies.
 Need python version >= 3.10
 ```
