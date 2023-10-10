@@ -4,8 +4,8 @@ import time
 import numpy as np
 import torch
 from typing import List
-from fooocusapi.parameters import GenerationFinishReason, ImageGenerationParams, ImageGenerationResult, TaskType
-from fooocusapi.task_queue import TaskQueue
+from fooocusapi.parameters import GenerationFinishReason, ImageGenerationParams, ImageGenerationResult
+from fooocusapi.task_queue import TaskQueue, TaskType
 
 task_queue = TaskQueue()
 

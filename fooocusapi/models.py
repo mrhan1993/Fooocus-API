@@ -6,7 +6,7 @@ from typing import List
 from enum import Enum
 
 from pydantic_core import InitErrorDetails
-from fooocusapi.parameters import GenerationFinishReason, TaskType
+from fooocusapi.parameters import GenerationFinishReason
 import modules.flags as flags
 
 
@@ -545,17 +545,3 @@ class GeneratedImageBase64(BaseModel):
         description="Image encoded in base64, or null if finishReasen is not 'SUCCESS'")
     seed: int = Field(description="The seed associated with this image")
     finish_reason: GenerationFinishReason
-
-
-class QueueTask(object):
-    is_finished: bool = False
-    start_millis: int = 0
-    finish_millis: int = 0
-    finish_with_error: bool = False
-    task_result: any = None
-
-    def __init__(self, seq: int, type: TaskType, req_param: dict, in_queue_millis: int):
-        self.seq = seq
-        self.type = type
-        self.req_param = req_param
-        self.in_queue_millis = in_queue_millis

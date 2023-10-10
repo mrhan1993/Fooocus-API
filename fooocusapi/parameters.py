@@ -3,10 +3,6 @@ from typing import BinaryIO, Dict, List, Tuple
 import numpy as np
 
 
-class TaskType(str, Enum):
-    text2img = 'text2img'
-
-
 class GenerationFinishReason(str, Enum):
     success = 'SUCCESS'
     queue_is_full = 'QUEUE_IS_FULL'
