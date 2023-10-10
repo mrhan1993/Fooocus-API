@@ -18,10 +18,12 @@ class Predictor(BasePredictor):
     def setup(self) -> None:
         """Load the model into memory to make running multiple predictions efficient"""
         from main import prepare_environments
+        print("[Predictor Setup] Prepare environments")
         prepare_environments(Args())
 
+        print("[Predictor Setup] Preload pipeline")
         import modules.default_pipeline as _
-        print("Predictor setuped")
+        print("[Predictor Setup] Finished")
 
     def predict(
         self,
@@ -68,15 +70,14 @@ class Predictor(BasePredictor):
                                  image_prompts=image_prompts
                                  )
 
-        text_to_img_req = ImageGenerationParams(prompt=prompt)
-        results = process_generate(text_to_img_req)
+        results = process_generate(params)
 
         output_paths: List[Path] = []
         for r in results:
             if r.finish_reason == GenerationFinishReason.success and r.im is not None:
-                output_path = generate_temp_filename('/tmp')
-                os.makedirs(os.path.dirname(output_path), exist_ok=True)
-                Image.fromarray(r.im).save(output_path)
-                output_paths.append(Path(output_path))
+                _, local_temp_filename, _ = generate_temp_filename('/tmp')
+                os.makedirs(os.path.dirname(local_temp_filename), exist_ok=True)
+                Image.fromarray(r.im).save(local_temp_filename)
+                output_paths.append(Path(local_temp_filename))
 
         return output_paths
