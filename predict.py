@@ -5,7 +5,7 @@ import os
 from typing import List
 from cog import BasePredictor, Input, Path
 
-from fooocusapi.parameters import GenerationFinishReason, ImageGenerationParams
+from fooocusapi.parameters import GenerationFinishReason, ImageGenerationParams, fooocus_styles, aspect_ratios
 from fooocusapi.worker import process_generate
 from PIL import Image
 
@@ -27,21 +27,20 @@ class Predictor(BasePredictor):
 
     def predict(
         self,
-        prompt: str = Input(
-            default='', description="Prompt for image generation")
+        prompt: str = Input(efault='', description="Prompt for image generation"),
+        negative_prompt: str = Input(default='', description="Negtive prompt for image generation"),
+        style_selections: List[str] = Input(default=['Fooocus V2', 'Default (Slightly Cinematic)'], description="Fooocus styles applied for image generation", choices=fooocus_styles),
+        performance_selection: str = Input(default='Spped', description="Performance selection", choices=['Speed', 'Quality']),
+        aspect_ratios_selection: str = Input(default='1152×896', description="The generated image's size", choices=aspect_ratios),
+        image_number: int = Input(default=1, description="How many images to generate", ge=1, le=4),
+        image_seed: int = Input(default=-1, description="Seed to generate image, -1 for random"),
+        sharpness: float = Input(default=2.0, ge=0.0, le=30.0),
+        guidance_scale: float = Input(default=7.0, ge=1.0, le=30.0),
     ) -> List[Path]:
         """Run a single prediction on the model"""
         from modules.util import generate_temp_filename
         import modules.flags as flags
 
-        negative_prompt = ''
-        style_selections = ['Fooocus V2', 'Default (Slightly Cinematic)']
-        performance_selection = 'Spped'
-        aspect_ratios_selection = '1152×896'
-        image_number = 1
-        image_seed = -1
-        sharpness = 2.0
-        guidance_scale = 7.0
         base_model_name = 'sd_xl_base_1.0_0.9vae.safetensors'
         refiner_model_name = 'sd_xl_refiner_1.0_0.9vae.safetensors'
         loras = [('sd_xl_offset_example-lora_1.0.safetensors', 0.5)]
