@@ -1,4 +1,9 @@
 # Fooocus-API
+
+[![Docker Image CI](https://github.com/konieshadow/Fooocus-API/actions/workflows/docker-image.yml/badge.svg?branch=main)](https://github.com/konieshadow/Fooocus-API/actions/workflows/docker-image.yml)
+
+[![Push to Replicate](https://github.com/konieshadow/Fooocus-API/actions/workflows/cog-push.yml/badge.svg?branch=main)](https://github.com/konieshadow/Fooocus-API/actions/workflows/cog-push.yml)
+
 FastAPI powered API for [Fooocus](https://github.com/lllyasviel/Fooocus)
 
 Currently loaded Fooocus version: 2.1.25
