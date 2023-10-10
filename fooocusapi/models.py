@@ -271,7 +271,7 @@ class ImagePrompt(BaseModel):
 
 class Text2ImgRequest(BaseModel):
     prompt: str = ''
-    negative_promit: str = ''
+    negative_prompt: str = ''
     style_selections: List[FooocusStyle] = [
         FooocusStyle.fooocus_expansion, FooocusStyle.default]
     performance_selection: PerfomanceSelection = PerfomanceSelection.speed
@@ -295,7 +295,7 @@ class ImgUpscaleOrVaryRequest(Text2ImgRequest):
     def as_form(cls, input_image: UploadFile = Form(description="Init image for upsacale or outpaint"),
                 uov_method: UpscaleOrVaryMethod = Form(),
                 prompt: str = Form(''),
-                negative_promit: str = Form(''),
+                negative_prompt: str = Form(''),
                 style_selections: List[str] = Form([
                     FooocusStyle.fooocus_expansion, FooocusStyle.default], description="Fooocus style selections, seperated by comma"),
                 performance_selection: PerfomanceSelection = Form(
@@ -342,7 +342,7 @@ class ImgUpscaleOrVaryRequest(Text2ImgRequest):
             if lora_model is not None and len(lora_model) > 0:
                 loras.append(Lora(model_name=lora_model, weight=lora_weight))
 
-        return cls(input_image=input_image, uov_method=uov_method, prompt=prompt, negative_promit=negative_promit, style_selections=style_selection_arr,
+        return cls(input_image=input_image, uov_method=uov_method, prompt=prompt, negative_prompt=negative_prompt, style_selections=style_selection_arr,
                    performance_selection=performance_selection, aspect_ratios_selection=aspect_ratios_selection,
                    image_number=image_number, image_seed=image_seed, sharpness=sharpness, guidance_scale=guidance_scale,
                    base_model_name=base_model_name, refiner_model_name=refiner_model_name,
@@ -361,7 +361,7 @@ class ImgInpaintOrOutpaintRequest(Text2ImgRequest):
                 outpaint_selections: List[str] = Form(
                     [], description="Outpaint expansion selections, literal 'Left', 'Right', 'Top', 'Bottom' seperated by comma"),
                 prompt: str = Form(''),
-                negative_promit: str = Form(''),
+                negative_prompt: str = Form(''),
                 style_selections: List[str] = Form([
                     FooocusStyle.fooocus_expansion, FooocusStyle.default], description="Fooocus style selections, seperated by comma"),
                 performance_selection: PerfomanceSelection = Form(
@@ -424,7 +424,7 @@ class ImgInpaintOrOutpaintRequest(Text2ImgRequest):
             if lora_model is not None and len(lora_model) > 0:
                 loras.append(Lora(model_name=lora_model, weight=lora_weight))
 
-        return cls(input_image=input_image, input_mask=input_mask, outpaint_selections=outpaint_selections_arr, prompt=prompt, negative_promit=negative_promit, style_selections=style_selection_arr,
+        return cls(input_image=input_image, input_mask=input_mask, outpaint_selections=outpaint_selections_arr, prompt=prompt, negative_prompt=negative_prompt, style_selections=style_selection_arr,
                    performance_selection=performance_selection, aspect_ratios_selection=aspect_ratios_selection,
                    image_number=image_number, image_seed=image_seed, sharpness=sharpness, guidance_scale=guidance_scale,
                    base_model_name=base_model_name, refiner_model_name=refiner_model_name,
@@ -467,7 +467,7 @@ class ImgPromptRequest(Text2ImgRequest):
                 cn_type4: ControlNetType = Form(
                     default=ControlNetType.cn_ip, description="ControlNet type for image prompt"),
                 prompt: str = Form(''),
-                negative_promit: str = Form(''),
+                negative_prompt: str = Form(''),
                 style_selections: List[str] = Form([
                     FooocusStyle.fooocus_expansion, FooocusStyle.default], description="Fooocus style selections, seperated by comma"),
                 performance_selection: PerfomanceSelection = Form(
@@ -533,7 +533,7 @@ class ImgPromptRequest(Text2ImgRequest):
             if lora_model is not None and len(lora_model) > 0:
                 loras.append(Lora(model_name=lora_model, weight=lora_weight))
 
-        return cls(image_prompts=image_prompts, prompt=prompt, negative_promit=negative_promit, style_selections=style_selection_arr,
+        return cls(image_prompts=image_prompts, prompt=prompt, negative_prompt=negative_prompt, style_selections=style_selection_arr,
                    performance_selection=performance_selection, aspect_ratios_selection=aspect_ratios_selection,
                    image_number=image_number, image_seed=image_seed, sharpness=sharpness, guidance_scale=guidance_scale,
                    base_model_name=base_model_name, refiner_model_name=refiner_model_name,

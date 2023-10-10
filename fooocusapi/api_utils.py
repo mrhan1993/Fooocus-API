@@ -43,7 +43,7 @@ def read_input_image(input_image: UploadFile) -> np.ndarray:
 
 def req_to_params(req: Text2ImgRequest) -> ImageGenerationParams:
     prompt = req.prompt
-    negative_prompt = req.negative_promit
+    negative_prompt = req.negative_prompt
     style_selections = [s.value for s in req.style_selections]
     performance_selection = req.performance_selection.value
     aspect_ratios_selection = req.aspect_ratios_selection.value
@@ -82,7 +82,7 @@ def req_to_params(req: Text2ImgRequest) -> ImageGenerationParams:
                     (cn_img, img_prompt.cn_stop, img_prompt.cn_weight, img_prompt.cn_type.value))
 
     return ImageGenerationParams(prompt=prompt,
-                                 negative_promit=negative_prompt,
+                                 negative_prompt=negative_prompt,
                                  style_selections=style_selections,
                                  performance_selection=performance_selection,
                                  aspect_ratios_selection=aspect_ratios_selection,

@@ -19,7 +19,7 @@ class ImageGenerationResult(object):
 
 class ImageGenerationParams(object):
     def __init__(self, prompt: str,
-                 negative_promit: str,
+                 negative_prompt: str,
                  style_selections: List[str],
                  performance_selection: List[str],
                  aspect_ratios_selection: str,
@@ -36,7 +36,7 @@ class ImageGenerationParams(object):
                  inpaint_input_image: Dict[str, np.ndarray] | None,
                  image_prompts: List[Tuple[BinaryIO, float, float, str]]):
         self.prompt = prompt
-        self.negative_promit = negative_promit
+        self.negative_prompt = negative_prompt
         self.style_selections = style_selections
         self.performance_selection = performance_selection
         self.aspect_ratios_selection = aspect_ratios_selection

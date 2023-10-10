@@ -75,7 +75,7 @@ def process_generate(params: ImageGenerationParams) -> List[ImageGenerationResul
 
         # Transform pamameters
         prompt = params.prompt
-        negative_prompt = params.negative_promit
+        negative_prompt = params.negative_prompt
         style_selections = params.style_selections
         performance_selection = params.performance_selection
         aspect_ratios_selection = params.aspect_ratios_selection

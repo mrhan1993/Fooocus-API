@@ -34,7 +34,7 @@ class Predictor(BasePredictor):
         from modules.util import generate_temp_filename
         import modules.flags as flags
 
-        negative_promit = ''
+        negative_prompt = ''
         style_selections = ['Fooocus V2', 'Default (Slightly Cinematic)']
         performance_selection = 'Spped'
         aspect_ratios_selection = '1152×896'
@@ -52,7 +52,7 @@ class Predictor(BasePredictor):
         image_prompts = []
 
         params = ImageGenerationParams(prompt=prompt,
-                                 negative_promit=negative_promit,
+                                 negative_prompt=negative_prompt,
                                  style_selections=style_selections,
                                  performance_selection=performance_selection,
                                  aspect_ratios_selection=aspect_ratios_selection,

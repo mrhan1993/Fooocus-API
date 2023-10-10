@@ -396,9 +396,9 @@
                         "title": "Prompt",
                         "default": ""
                     },
-                    "negative_promit": {
+                    "negative_prompt": {
                         "type": "string",
-                        "title": "Negative Promit",
+                        "title": "Negative Prompt",
                         "default": ""
                     },
                     "style_selections": {
@@ -720,9 +720,9 @@
                         "title": "Prompt",
                         "default": ""
                     },
-                    "negative_promit": {
+                    "negative_prompt": {
                         "type": "string",
-                        "title": "Negative Promit",
+                        "title": "Negative Prompt",
                         "default": ""
                     },
                     "style_selections": {
@@ -902,9 +902,9 @@
                         "title": "Prompt",
                         "default": ""
                     },
-                    "negative_promit": {
+                    "negative_prompt": {
                         "type": "string",
-                        "title": "Negative Promit",
+                        "title": "Negative Prompt",
                         "default": ""
                     },
                     "style_selections": {
@@ -1360,9 +1360,9 @@
                         "title": "Prompt",
                         "default": ""
                     },
-                    "negative_promit": {
+                    "negative_prompt": {
                         "type": "string",
-                        "title": "Negative Promit",
+                        "title": "Negative Prompt",
                         "default": ""
                     },
                     "style_selections": {
