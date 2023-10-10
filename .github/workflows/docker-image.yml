@@ -29,4 +29,4 @@ jobs:
         uses: docker/build-push-action@v5
         with:
           push: true
-          tags: konieshadow/fooocus-api:latest,konieshadow/fooocus-api:${{ github.ref }}
+          tags: konieshadow/fooocus-api:latest,konieshadow/fooocus-api:${{ github.ref_name }}
