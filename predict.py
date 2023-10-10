@@ -18,8 +18,12 @@ class Predictor(BasePredictor):
     def setup(self) -> None:
         """Load the model into memory to make running multiple predictions efficient"""
         from main import prepare_environments
+        import fooocusapi.worker as worker
+
         print("[Predictor Setup] Prepare environments")
         prepare_environments(Args())
+
+        worker.save_log = False
 
         print("[Predictor Setup] Preload pipeline")
         import modules.default_pipeline as _
@@ -31,7 +35,7 @@ class Predictor(BasePredictor):
         negative_prompt: str = Input(default='', description="Negtive prompt for image generation"),
         style_selections: str = Input(default='Fooocus V2,Default (Slightly Cinematic)', description="Fooocus styles applied for image generation, seperated by comma"),
         performance_selection: str = Input(default='Speed', description="Performance selection", choices=['Speed', 'Quality']),
-        aspect_ratios_selection: str = Input(default='1152x896', description="The generated image's size", choices=aspect_ratios),
+        aspect_ratios_selection: str = Input(default='1152×896', description="The generated image's size", choices=aspect_ratios),
         image_number: int = Input(default=1, description="How many image to generate", ge=1, le=8),
         image_seed: int = Input(default=-1, description="Seed to generate image, -1 for random"),
         sharpness: float = Input(default=2.0, ge=0.0, le=30.0),
@@ -40,8 +44,6 @@ class Predictor(BasePredictor):
         """Run a single prediction on the model"""
         from modules.util import generate_temp_filename
         import modules.flags as flags
-
-        aspect_ratios_selection = aspect_ratios_selection.replace('x', '×')
 
         base_model_name = 'sd_xl_base_1.0_0.9vae.safetensors'
         refiner_model_name = 'sd_xl_refiner_1.0_0.9vae.safetensors'

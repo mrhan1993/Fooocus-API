@@ -7,6 +7,7 @@ from typing import List
 from fooocusapi.parameters import GenerationFinishReason, ImageGenerationParams, ImageGenerationResult
 from fooocusapi.task_queue import TaskQueue, TaskType
 
+save_log = True
 task_queue = TaskQueue()
 
 
@@ -381,7 +382,8 @@ def process_generate(params: ImageGenerationParams) -> List[ImageGenerationResul
 
             if direct_return:
                 d = [('Upscale (Fast)', '2x')]
-                log(uov_input_image, d, single_line_number=1)
+                if save_log:
+                    log(uov_input_image, d, single_line_number=1)
                 outputs.append(['results', [uov_input_image], -1 if len(tasks) == 0 else tasks[0]['task_seed']])
                 results = make_results_from_outputs()
                 task_queue.finish_task(task_seq, results, False)
@@ -581,7 +583,8 @@ def process_generate(params: ImageGenerationParams) -> List[ImageGenerationResul
                     for n, w in loras_raw:
                         if n != 'None':
                             d.append((f'LoRA [{n}] weight', w))
-                    log(x, d, single_line_number=3)
+                    if save_log:
+                        log(x, d, single_line_number=3)
                 
                 # Fooocus async_worker.py code end
 
