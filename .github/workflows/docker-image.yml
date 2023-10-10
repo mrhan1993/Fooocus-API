@@ -30,3 +30,9 @@ jobs:
         with:
           push: true
           tags: konieshadow/fooocus-api:latest
+      -
+        name: Build and push
+        uses: docker/build-push-action@v5
+        with:
+          push: true
+          tags: konieshadow/fooocus-api:${GITHUB_REF#refs/tags/}
