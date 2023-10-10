@@ -6,6 +6,7 @@ from typing import List
 from enum import Enum
 
 from pydantic_core import InitErrorDetails
+from fooocusapi.parameters import GenerationFinishReason, TaskType
 import modules.flags as flags
 
 
@@ -539,28 +540,11 @@ class ImgPromptRequest(Text2ImgRequest):
                    loras=loras)
 
 
-class GenerationFinishReason(str, Enum):
-    success = 'SUCCESS'
-    queue_is_full = 'QUEUE_IS_FULL'
-    user_cancel = 'USER_CANCEL'
-    error = 'ERROR'
-
-
-class GeneratedImage(BaseModel):
-    im: object | None
-    seed: int
-    finish_reason: GenerationFinishReason
-
-
 class GeneratedImageBase64(BaseModel):
     base64: str | None = Field(
         description="Image encoded in base64, or null if finishReasen is not 'SUCCESS'")
     seed: int = Field(description="The seed associated with this image")
     finish_reason: GenerationFinishReason
-
-
-class TaskType(str, Enum):
-    text2img = 'text2img'
 
 
 class QueueTask(object):
