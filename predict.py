@@ -2,6 +2,7 @@
 # https://github.com/replicate/cog/blob/main/docs/python.md
 
 import os
+import sys
 from typing import List
 from cog import BasePredictor, Input, Path
 
@@ -18,12 +19,14 @@ class Args(object):
 class Predictor(BasePredictor):
     def setup(self) -> None:
         """Load the model into memory to make running multiple predictions efficient"""
-        from main import prepare_environments
+        from main import prepare_environments, ini_comfy_args
         import fooocusapi.worker as worker
 
         print("[Predictor Setup] Prepare environments")
         args = Args()
         prepare_environments(args)
+        sys.argv = [sys.argv[0]]
+        ini_comfy_args()
 
         worker.save_log = False
 
