@@ -81,7 +81,7 @@ def process_generate(params: ImageGenerationParams) -> List[ImageGenerationResul
         performance_selection = params.performance_selection
         aspect_ratios_selection = params.aspect_ratios_selection
         image_number = params.image_number
-        image_seed = params.image_seed
+        image_seed = None if params.image_seed == -1 else params.image_seed
         sharpness = params.sharpness
         guidance_scale = params.guidance_scale
         base_model_name = params.base_model_name
