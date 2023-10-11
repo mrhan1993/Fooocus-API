@@ -6,7 +6,7 @@ import sys
 from typing import List
 from cog import BasePredictor, Input, Path
 
-from fooocusapi.parameters import GenerationFinishReason, ImageGenerationParams, fooocus_styles, aspect_ratios, uov_methods, outpaint_expansions
+from fooocusapi.parameters import inpaint_model_version, GenerationFinishReason, ImageGenerationParams, fooocus_styles, aspect_ratios, uov_methods, outpaint_expansions
 from fooocusapi.worker import process_generate
 import numpy as np
 from PIL import Image
@@ -32,6 +32,12 @@ class Predictor(BasePredictor):
 
         print("[Predictor Setup] Preload pipeline")
         import modules.default_pipeline as _
+        import modules.path as path
+        path.downloading_upscale_model()
+        path.downloading_inpaint_models(inpaint_model_version)
+        path.downloading_controlnet_canny()
+        path.downloading_controlnet_cpds()
+        path.downloading_ip_adapters()
         print("[Predictor Setup] Finished")
 
     def predict(

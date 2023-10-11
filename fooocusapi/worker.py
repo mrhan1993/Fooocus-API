@@ -4,7 +4,7 @@ import time
 import numpy as np
 import torch
 from typing import List
-from fooocusapi.parameters import GenerationFinishReason, ImageGenerationParams, ImageGenerationResult
+from fooocusapi.parameters import inpaint_model_version, GenerationFinishReason, ImageGenerationParams, ImageGenerationResult
 from fooocusapi.task_queue import TaskQueue, TaskType
 
 save_log = True
@@ -118,7 +118,7 @@ def process_generate(params: ImageGenerationParams) -> List[ImageGenerationResul
             controlnet_softness = 0.25
             canny_low_threshold = 64
             canny_high_threshold = 128
-            inpaint_engine = 'v1'
+            inpaint_engine = inpaint_model_version
             freeu_enabled = False
             freeu_b1, freeu_b2, freeu_s1, freeu_s2 = [None] * 4
             return [adm_scaler_positive, adm_scaler_negative, adm_scaler_end, adaptive_cfg, sampler_name,

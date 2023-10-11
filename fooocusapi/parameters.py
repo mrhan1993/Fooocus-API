@@ -3,6 +3,9 @@ from typing import BinaryIO, Dict, List, Tuple
 import numpy as np
 
 
+inpaint_model_version = 'v1'
+
+
 fooocus_styles = [
     'Fooocus V2',
     'Default (Slightly Cinematic)',
