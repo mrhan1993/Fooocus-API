@@ -574,12 +574,18 @@
                         "description": "Input image for image prompt"
                     },
                     "cn_stop1": {
-                        "type": "number",
-                        "maximum": 1,
-                        "minimum": 0,
+                        "anyOf": [
+                            {
+                                "type": "number",
+                                "maximum": 1,
+                                "minimum": 0
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
                         "title": "Cn Stop1",
-                        "description": "Stop at for image prompt",
-                        "default": 0.4
+                        "description": "Stop at for image prompt"
                     },
                     "cn_weight1": {
                         "anyOf": [
@@ -611,12 +617,18 @@
                         "description": "Input image for image prompt"
                     },
                     "cn_stop2": {
-                        "type": "number",
-                        "maximum": 1,
-                        "minimum": 0,
+                        "anyOf": [
+                            {
+                                "type": "number",
+                                "maximum": 1,
+                                "minimum": 0
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
                         "title": "Cn Stop2",
-                        "description": "Stop at for image prompt",
-                        "default": 0.4
+                        "description": "Stop at for image prompt"
                     },
                     "cn_weight2": {
                         "anyOf": [
@@ -648,12 +660,18 @@
                         "description": "Input image for image prompt"
                     },
                     "cn_stop3": {
-                        "type": "number",
-                        "maximum": 1,
-                        "minimum": 0,
+                        "anyOf": [
+                            {
+                                "type": "number",
+                                "maximum": 1,
+                                "minimum": 0
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
                         "title": "Cn Stop3",
-                        "description": "Stop at for image prompt",
-                        "default": 0.4
+                        "description": "Stop at for image prompt"
                     },
                     "cn_weight3": {
                         "anyOf": [
@@ -685,12 +703,18 @@
                         "description": "Input image for image prompt"
                     },
                     "cn_stop4": {
-                        "type": "number",
-                        "maximum": 1,
-                        "minimum": 0,
+                        "anyOf": [
+                            {
+                                "type": "number",
+                                "maximum": 1,
+                                "minimum": 0
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
                         "title": "Cn Stop4",
-                        "description": "Stop at for image prompt",
-                        "default": 0.4
+                        "description": "Stop at for image prompt"
                     },
                     "cn_weight4": {
                         "anyOf": [
@@ -1435,7 +1459,6 @@
                             "$ref": "#/components/schemas/Lora"
                         },
                         "type": "array",
-                        "maxItems": 5,
                         "title": "Loras",
                         "default": [
                             {

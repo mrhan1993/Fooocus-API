@@ -284,7 +284,7 @@ class Text2ImgRequest(BaseModel):
     base_model_name: str = 'sd_xl_base_1.0_0.9vae.safetensors'
     refiner_model_name: str = 'sd_xl_refiner_1.0_0.9vae.safetensors'
     loras: List[Lora] = Field(default=[
-        Lora(model_name='sd_xl_offset_example-lora_1.0.safetensors', weight=0.5)], max_length=5)
+        Lora(model_name='sd_xl_offset_example-lora_1.0.safetensors', weight=0.5)])
 
 
 class ImgUpscaleOrVaryRequest(Text2ImgRequest):
@@ -436,32 +436,32 @@ class ImgPromptRequest(Text2ImgRequest):
 
     @classmethod
     def as_form(cls, cn_img1: UploadFile = Form(File(None), description="Input image for image prompt"),
-                cn_stop1: float = Form(
-                    default=0.4, ge=0, le=1, description="Stop at for image prompt"),
+                cn_stop1: float | None = Form(
+                    default=None, ge=0, le=1, description="Stop at for image prompt, None for default value"),
                 cn_weight1: float | None = Form(
                     default=None, ge=0, le=2, description="Weight for image prompt, None for default value"),
                 cn_type1: ControlNetType = Form(
                     default=ControlNetType.cn_ip, description="ControlNet type for image prompt"),
                 cn_img2: UploadFile = Form(
                     File(None), description="Input image for image prompt"),
-                cn_stop2: float = Form(
-                    default=0.4, ge=0, le=1, description="Stop at for image prompt"),
+                cn_stop2: float | None = Form(
+                    default=None, ge=0, le=1, description="Stop at for image prompt, None for default value"),
                 cn_weight2: float | None = Form(
                     default=None, ge=0, le=2, description="Weight for image prompt, None for default value"),
                 cn_type2: ControlNetType = Form(
                     default=ControlNetType.cn_ip, description="ControlNet type for image prompt"),
                 cn_img3: UploadFile = Form(
                     File(None), description="Input image for image prompt"),
-                cn_stop3: float = Form(
-                    default=0.4, ge=0, le=1, description="Stop at for image prompt"),
+                cn_stop3: float | None = Form(
+                    default=None, ge=0, le=1, description="Stop at for image prompt, None for default value"),
                 cn_weight3: float | None = Form(
                     default=None, ge=0, le=2, description="Weight for image prompt, None for default value"),
                 cn_type3: ControlNetType = Form(
                     default=ControlNetType.cn_ip, description="ControlNet type for image prompt"),
                 cn_img4: UploadFile = Form(
                     File(None), description="Input image for image prompt"),
-                cn_stop4: float = Form(
-                    default=0.4, ge=0, le=1, description="Stop at for image prompt"),
+                cn_stop4: float | None = Form(
+                    default=None, ge=0, le=1, description="Stop at for image prompt, None for default value"),
                 cn_weight4: float | None = Form(
                     default=None, ge=0, le=2, description="Weight for image prompt, None for default value"),
                 cn_type4: ControlNetType = Form(
@@ -509,6 +509,8 @@ class ImgPromptRequest(Text2ImgRequest):
                                (cn_img3, cn_stop3, cn_weight3, cn_type3), (cn_img4, cn_stop4, cn_weight4, cn_type4)]
         for config in image_prompt_config:
             cn_img, cn_stop, cn_weight, cn_type = config
+            if cn_stop is None:
+                cn_stop = flags.default_parameters[cn_type.value][0]
             if cn_weight is None:
                 cn_weight = flags.default_parameters[cn_type.value][1]
             image_prompts.append(ImagePrompt(

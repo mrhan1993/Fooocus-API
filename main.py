@@ -238,14 +238,8 @@ def prepare_environments(args) -> bool:
 
 # This function was copied from [Fooocus](https://github.com/lllyasviel/Fooocus) repository.
 def ini_comfy_args():
-    argv = sys.argv
-    sys.argv = [sys.argv[0]]
-
-    from comfy.cli_args import args as comfy_args
-    comfy_args.disable_cuda_malloc = True
-    comfy_args.auto_launch = False
-
-    sys.argv = argv
+    from args_manager import args
+    return args
 
 
 if __name__ == "__main__":
@@ -265,6 +259,8 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     if prepare_environments(args):
+        argv = sys.argv
+        sys.argv = [sys.argv[0]]
         ini_comfy_args()
 
         # Start api server

@@ -24,7 +24,7 @@ def process_generate(params: ImageGenerationParams) -> List[ImageGenerationResul
     import modules.advanced_parameters as advanced_parameters
     import fooocus_extras.preprocessors as preprocessors
     import fooocus_extras.ip_adapter as ip_adapter
-    from modules.util import join_prompts, remove_empty_str, image_is_generated_in_current_ui, resize_image, HWC3
+    from modules.util import join_prompts, remove_empty_str, image_is_generated_in_current_ui, resize_image, HWC3, make_sure_that_image_is_not_too_large
     from modules.private_logger import log
     from modules.upscaler import perform_upscale
     from modules.expansion import safe_str
@@ -100,27 +100,33 @@ def process_generate(params: ImageGenerationParams) -> List[ImageGenerationResul
             cn_tasks[cn_type].append([cn_img, cn_stop, cn_weight])
 
         def build_advanced_parameters():
-            adm_scaler_positive=1.5
-            adm_scaler_negative=0.8
-            adm_scaler_end=0.3
-            adaptive_cfg=7.0
-            sampler_name=flags.default_sampler
-            scheduler_name=flags.default_scheduler
-            overwrite_step=-1
-            overwrite_switch=-1
-            overwrite_width=-1
-            overwrite_height=-1
-            overwrite_vary_strength=-1
-            overwrite_upscale_strength=-1
-            mixing_image_prompt_and_vary_upscale=False
-            mixing_image_prompt_and_inpaint=False
-            debugging_cn_preprocessor=False
-            controlnet_softness=0.25
+            adm_scaler_positive = 1.5
+            adm_scaler_negative = 0.8
+            adm_scaler_end = 0.3
+            adaptive_cfg = 7.0
+            sampler_name = path.default_sampler
+            scheduler_name = path.default_scheduler
+            overwrite_step = -1
+            overwrite_switch = -1
+            overwrite_width = -1
+            overwrite_height = -1
+            overwrite_vary_strength = -1
+            overwrite_upscale_strength = -1
+            mixing_image_prompt_and_vary_upscale = False
+            mixing_image_prompt_and_inpaint = False
+            debugging_cn_preprocessor = False
+            controlnet_softness = 0.25
+            canny_low_threshold = 64
+            canny_high_threshold = 128
+            inpaint_engine = 'v1'
+            freeu_enabled = False
+            freeu_b1, freeu_b2, freeu_s1, freeu_s2 = [None] * 4
             return [adm_scaler_positive, adm_scaler_negative, adm_scaler_end, adaptive_cfg, sampler_name,
                                scheduler_name, overwrite_step, overwrite_switch, overwrite_width, overwrite_height,
                                overwrite_vary_strength, overwrite_upscale_strength,
                                mixing_image_prompt_and_vary_upscale, mixing_image_prompt_and_inpaint,
-                                debugging_cn_preprocessor, controlnet_softness]
+                                debugging_cn_preprocessor, controlnet_softness, canny_low_threshold, canny_high_threshold, inpaint_engine,
+                                freeu_enabled, freeu_b1, freeu_b2, freeu_s1, freeu_s2]
         
         advanced_parameters.set_all_advanced_parameters(*build_advanced_parameters())
 
@@ -218,8 +224,9 @@ def process_generate(params: ImageGenerationParams) -> List[ImageGenerationResul
                 if isinstance(inpaint_image, np.ndarray) and isinstance(input_mask, np.ndarray) \
                         and (np.any(input_mask > 127) or len(outpaint_selections) > 0):
                     progressbar(1, 'Downloading inpainter ...')
-                    inpaint_head_model_path, inpaint_patch_model_path = path.downloading_inpaint_models()
+                    inpaint_head_model_path, inpaint_patch_model_path = path.downloading_inpaint_models(advanced_parameters.inpaint_engine)
                     loras += [(inpaint_patch_model_path, 1.0)]
+                    print(f'[Inpaint] Current inpaint model is {inpaint_patch_model_path}')
                     goals.append('inpaint')
                     sampler_name = 'dpmpp_fooocus_2m_sde_inpaint_seamless'
             if current_tab == 'ip' or \
@@ -333,6 +340,8 @@ def process_generate(params: ImageGenerationParams) -> List[ImageGenerationResul
                 denoising_strength = 0.85
             if advanced_parameters.overwrite_vary_strength > 0:
                 denoising_strength = advanced_parameters.overwrite_vary_strength
+
+            uov_input_image = make_sure_that_image_is_not_too_large(uov_input_image)
             initial_pixels = core.numpy_to_pytorch(uov_input_image)
             progressbar(13, 'VAE encoding ...')
             initial_latent = core.encode_vae(vae=pipeline.final_vae, pixels=initial_pixels)
@@ -503,6 +512,16 @@ def process_generate(params: ImageGenerationParams) -> List[ImageGenerationResul
 
             if len(cn_tasks[flags.cn_ip]) > 0:
                 pipeline.final_unet = ip_adapter.patch_model(pipeline.final_unet, cn_tasks[flags.cn_ip])
+
+        if advanced_parameters.freeu_enabled:
+            print(f'FreeU is enabled!')
+            pipeline.final_unet = core.apply_freeu(
+                pipeline.final_unet,
+                advanced_parameters.freeu_b1,
+                advanced_parameters.freeu_b2,
+                advanced_parameters.freeu_s1,
+                advanced_parameters.freeu_s2
+            )
 
         results = []
         all_steps = steps * image_number
