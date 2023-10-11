@@ -32,12 +32,12 @@ class Predictor(BasePredictor):
 
         print("[Predictor Setup] Preload pipeline")
         import modules.default_pipeline as _
-        import modules.path as path
-        path.downloading_upscale_model()
-        path.downloading_inpaint_models(inpaint_model_version)
-        path.downloading_controlnet_canny()
-        path.downloading_controlnet_cpds()
-        path.downloading_ip_adapters()
+        # import modules.path as path
+        # path.downloading_upscale_model()
+        # path.downloading_inpaint_models(inpaint_model_version)
+        # path.downloading_controlnet_canny()
+        # path.downloading_controlnet_cpds()
+        # path.downloading_ip_adapters()
         print("[Predictor Setup] Finished")
 
     def predict(
