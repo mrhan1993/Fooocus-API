@@ -220,6 +220,15 @@ aspect_ratios = [
     '1728×576',
 ]
 
+uov_methods = [
+    'Disabled', 'Vary (Subtle)', 'Vary (Strong)', 'Upscale (1.5x)', 'Upscale (2x)', 'Upscale (Fast 2x)'
+]
+
+
+outpaint_expansions = [
+    'Left', 'Right', 'Top', 'Bottom'
+]
+
 
 class GenerationFinishReason(str, Enum):
     success = 'SUCCESS'
@@ -248,11 +257,11 @@ class ImageGenerationParams(object):
                  base_model_name: str,
                  refiner_model_name: str,
                  loras: List[Tuple[str, float]],
-                 uov_input_image: BinaryIO | None,
+                 uov_input_image: np.ndarray | None,
                  uov_method: str,
                  outpaint_selections: List[str],
                  inpaint_input_image: Dict[str, np.ndarray] | None,
-                 image_prompts: List[Tuple[BinaryIO, float, float, str]]):
+                 image_prompts: List[Tuple[np.ndarray, float, float, str]]):
         self.prompt = prompt
         self.negative_prompt = negative_prompt
         self.style_selections = style_selections
