@@ -233,15 +233,25 @@ def prepare_environments(args) -> bool:
     sys.path.append(os.path.join(script_path, dir_repos, fooocus_name))
 
     download_models()
+
+    sys.argv = [sys.argv[0]]
+    ini_comfy_args()
+
+    if args.preload_pipeline:
+        print("Preload pipeline")
+        import modules.default_pipeline as _
+
     return True
 
-def pre_setup(skip_sync_repo: bool=False, disable_private_log: bool=False,  load_all_models: bool=False):
+def pre_setup(skip_sync_repo: bool=False, disable_private_log: bool=False, load_all_models: bool=False, preload_pipeline: bool=False):
     class Args(object):
         sync_repo = None
+        preload_pipeline = False
 
     print("[Pre Setup] Prepare environments")
 
     args = Args()
+    args.preload_pipeline = preload_pipeline
     if skip_sync_repo:
         args.sync_repo = 'skip'
     prepare_environments(args)
@@ -252,9 +262,6 @@ def pre_setup(skip_sync_repo: bool=False, disable_private_log: bool=False,  load
     if disable_private_log:
         import fooocusapi.worker as worker
         worker.save_log = False
-
-    print("[Pre Setup] Preload pipeline")
-    import modules.default_pipeline as _
 
     if load_all_models:
         import modules.path as path
@@ -286,13 +293,13 @@ if __name__ == "__main__":
                         default='info', help="Log info for Uvicorn")
     parser.add_argument("--sync-repo", default=None,
                         help="Sync dependent git repositories to local, 'skip' for skip sync action, 'only' for only do the sync action and not launch app")
+    parser.add_argument("--preload-pipeline", default=False, action="store_true", help="True for preload pipeline before start http server")
 
     args = parser.parse_args()
 
     if prepare_environments(args):
         argv = sys.argv
         sys.argv = [sys.argv[0]]
-        ini_comfy_args()
 
         # Start api server
         from fooocusapi.api import start_app
