@@ -19,26 +19,8 @@ class Args(object):
 class Predictor(BasePredictor):
     def setup(self) -> None:
         """Load the model into memory to make running multiple predictions efficient"""
-        from main import prepare_environments, ini_comfy_args
-        import fooocusapi.worker as worker
-
-        print("[Predictor Setup] Prepare environments")
-        args = Args()
-        prepare_environments(args)
-        sys.argv = [sys.argv[0]]
-        ini_comfy_args()
-
-        worker.save_log = False
-
-        print("[Predictor Setup] Preload pipeline")
-        import modules.default_pipeline as _
-        # import modules.path as path
-        # path.downloading_upscale_model()
-        # path.downloading_inpaint_models(inpaint_model_version)
-        # path.downloading_controlnet_canny()
-        # path.downloading_controlnet_cpds()
-        # path.downloading_ip_adapters()
-        print("[Predictor Setup] Finished")
+        from main import pre_setup
+        pre_setup(skip_sync_repo=False, disable_private_log=True, load_all_models=False)
 
     def predict(
         self,

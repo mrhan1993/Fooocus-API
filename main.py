@@ -235,6 +235,37 @@ def prepare_environments(args) -> bool:
     download_models()
     return True
 
+def pre_setup(skip_sync_repo: bool=False, disable_private_log: bool=False,  load_all_models: bool=False):
+    class Args(object):
+        sync_repo = None
+
+    print("[Pre Setup] Prepare environments")
+
+    args = Args()
+    if skip_sync_repo:
+        args.sync_repo = 'skip'
+    prepare_environments(args)
+
+    sys.argv = [sys.argv[0]]
+    ini_comfy_args()
+
+    if disable_private_log:
+        import fooocusapi.worker as worker
+        worker.save_log = False
+
+    print("[Pre Setup] Preload pipeline")
+    import modules.default_pipeline as _
+
+    if load_all_models:
+        import modules.path as path
+        from fooocusapi.parameters import inpaint_model_version
+        path.downloading_upscale_model()
+        path.downloading_inpaint_models(inpaint_model_version)
+        path.downloading_controlnet_canny()
+        path.downloading_controlnet_cpds()
+        path.downloading_ip_adapters()
+    print("[Pre Setup] Finished")
+
 
 # This function was copied from [Fooocus](https://github.com/lllyasviel/Fooocus) repository.
 def ini_comfy_args():
