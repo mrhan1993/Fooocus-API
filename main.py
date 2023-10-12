@@ -246,8 +246,7 @@ def pre_setup(skip_sync_repo: bool=False, disable_private_log: bool=False,  load
         args.sync_repo = 'skip'
     prepare_environments(args)
 
-    sys.argv = [sys.argv[0]]
-    ini_comfy_args()
+    clear_comfy_args()
 
     if disable_private_log:
         import fooocusapi.worker as worker
@@ -258,19 +257,17 @@ def pre_setup(skip_sync_repo: bool=False, disable_private_log: bool=False,  load
 
     if load_all_models:
         import modules.path as path
-        from fooocusapi.parameters import inpaint_model_version
-        path.downloading_upscale_model()
-        path.downloading_inpaint_models(inpaint_model_version)
-        path.downloading_controlnet_canny()
-        path.downloading_controlnet_cpds()
-        path.downloading_ip_adapters()
+        path.downloading_inpaint_models()
     print("[Pre Setup] Finished")
 
 
 # This function was copied from [Fooocus](https://github.com/lllyasviel/Fooocus) repository.
-def ini_comfy_args():
-    from args_manager import args
-    return args
+def clear_comfy_args():
+    argv = sys.argv
+    sys.argv = [sys.argv[0]]
+    from comfy.cli_args import args as comfy_args
+    comfy_args.disable_cuda_malloc = True
+    sys.argv = argv
 
 
 if __name__ == "__main__":
@@ -292,7 +289,7 @@ if __name__ == "__main__":
     if prepare_environments(args):
         argv = sys.argv
         sys.argv = [sys.argv[0]]
-        ini_comfy_args()
+        clear_comfy_args()
 
         # Start api server
         from fooocusapi.api import start_app

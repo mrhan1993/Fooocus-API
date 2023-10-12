@@ -83,23 +83,23 @@ def img_inpaint_or_outpaint(input_image: UploadFile, req: ImgInpaintOrOutpaintRe
     return generation_output(results, streaming_output)
 
 
-@app.post("/v1/generation/image-prompt", response_model=List[GeneratedImageBase64], responses=img_generate_responses)
-def img_prompt(cn_img1: Optional[UploadFile] = File(None),
-               req: ImgPromptRequest = Depends(ImgPromptRequest.as_form),
-               accept: str = Header(None),
-               accept_query: str | None = Query(None, alias='accept', description="Parameter to overvide 'Accept' header, 'image/png' for output bytes")):
-    if accept_query is not None and len(accept_query) > 0:
-        accept = accept_query
+# @app.post("/v1/generation/image-prompt", response_model=List[GeneratedImageBase64], responses=img_generate_responses)
+# def img_prompt(cn_img1: Optional[UploadFile] = File(None),
+#                req: ImgPromptRequest = Depends(ImgPromptRequest.as_form),
+#                accept: str = Header(None),
+#                accept_query: str | None = Query(None, alias='accept', description="Parameter to overvide 'Accept' header, 'image/png' for output bytes")):
+#     if accept_query is not None and len(accept_query) > 0:
+#         accept = accept_query
 
-    if accept == 'image/png':
-        streaming_output = True
-        # image_number auto set to 1 in streaming mode
-        req.image_number = 1
-    else:
-        streaming_output = False
+#     if accept == 'image/png':
+#         streaming_output = True
+#         # image_number auto set to 1 in streaming mode
+#         req.image_number = 1
+#     else:
+#         streaming_output = False
 
-    results = process_generate(req_to_params(req))
-    return generation_output(results, streaming_output)
+#     results = process_generate(req_to_params(req))
+#     return generation_output(results, streaming_output)
 
 
 def start_app(args):

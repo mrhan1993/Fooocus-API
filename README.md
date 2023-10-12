@@ -4,7 +4,7 @@
 
 FastAPI powered API for [Fooocus](https://github.com/lllyasviel/Fooocus)
 
-Currently loaded Fooocus version: 2.1.44
+Currently loaded Fooocus version: 2.0.78'
 
 ### Run with Replicate
 Now you can use Fooocus-API by Replicate, the model is in [konieshadow/fooocus-api](https://replicate.com/konieshadow/fooocus-api).
@@ -16,7 +16,7 @@ In this moment, this notebook may cause OOM for free Colab subscription with sta
 
 | Colab | Info
 | --- | --- |
-[![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/konieshadow/Fooocus-API/blob/main/colab.ipynb) | Fooocus-API
+[![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/konieshadow/Fooocus-API/blob/colab/colab.ipynb) | Fooocus-API
 
 ### Install dependencies.
 Need python version >= 3.10
@@ -91,8 +91,3 @@ Alternative api for 'Upscale or Variation' tab of Fooocus Gradio interface.
 > POST /v1/generation/image-inpait-outpaint
 
 Alternative api for 'Inpaint or Outpaint' tab of Fooocus Gradio interface.
-
-#### Image Prompt
-> POST /v1/generation/image-prompt
-
-Alternative api for 'Image Prompt' tab of Fooocus Gradio interface.

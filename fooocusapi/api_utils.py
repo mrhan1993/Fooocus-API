@@ -9,6 +9,7 @@ from PIL import Image
 from fooocusapi.models import GeneratedImageBase64, GenerationFinishReason, ImgInpaintOrOutpaintRequest, ImgPromptRequest, ImgUpscaleOrVaryRequest, Text2ImgRequest
 from fooocusapi.parameters import ImageGenerationParams, ImageGenerationResult
 import modules.flags as flags
+from modules.util import HWC3
 
 
 def narray_to_base64img(narray: np.ndarray) -> str:
@@ -64,8 +65,10 @@ def req_to_params(req: Text2ImgRequest) -> ImageGenerationParams:
     inpaint_input_image = None
     if isinstance(req, ImgInpaintOrOutpaintRequest):
         input_image = read_input_image(req.input_image)
+        input_image = HWC3(input_image)
         if req.input_mask is not None:
             input_mask = read_input_image(req.input_mask)
+            input_image = HWC3(input_image)
         else:
             input_mask = np.zeros(input_image.shape)
         inpaint_input_image = {
