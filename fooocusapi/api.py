@@ -29,6 +29,10 @@ img_generate_responses = {
     }
 }
 
+@app.get("/")
+def home():
+    return "Swagger-UI to: /docs"
+
 
 @app.post("/v1/generation/text-to-image", response_model=List[GeneratedImageBase64], responses=img_generate_responses)
 def text2img_generation(req: Text2ImgRequest, accept: str = Header(None),
