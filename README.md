@@ -12,11 +12,11 @@ Now you can use Fooocus-API by Replicate, the model is in [konieshadow/fooocus-a
 I believe this is the easiest way to generate image with Fooocus's power.
 
 ### Colab
-In this moment, this notebook may cause OOM for free Colab subscription with standard RAM choice.
+The colab notebook uses the Fooocus's `colab` branch, which may lack some latest features.
 
 | Colab | Info
 | --- | --- |
-[![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/konieshadow/Fooocus-API/blob/main/colab.ipynb) | Fooocus-API
+[![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/konieshadow/Fooocus-API/blob/colab/colab.ipynb) | Fooocus-API
 
 ### Install dependencies.
 Need python version >= 3.10
