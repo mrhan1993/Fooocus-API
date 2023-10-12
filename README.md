@@ -16,7 +16,7 @@ In this moment, this notebook may cause OOM for free Colab subscription with sta
 
 | Colab | Info
 | --- | --- |
-[![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](colab.ipynb) | Fooocus-API
+[![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/konieshadow/Fooocus-API/blob/main/colab.ipynb) | Fooocus-API
 
 ### Install dependencies.
 Need python version >= 3.10
