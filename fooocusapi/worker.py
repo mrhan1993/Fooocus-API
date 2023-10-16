@@ -20,7 +20,7 @@ def process_generate(params: ImageGenerationParams) -> List[ImageGenerationResul
     import modules.core as core
     import modules.inpaint_worker as inpaint_worker
     import modules.path as path
-    import comfy.model_management as model_management
+    import fcbh.model_management as model_management
     import modules.advanced_parameters as advanced_parameters
     import fooocus_extras.preprocessors as preprocessors
     import fooocus_extras.ip_adapter as ip_adapter
@@ -119,6 +119,7 @@ def process_generate(params: ImageGenerationParams) -> List[ImageGenerationResul
             canny_low_threshold = 64
             canny_high_threshold = 128
             inpaint_engine = inpaint_model_version
+            refiner_swap_method = 'joint'
             freeu_enabled = False
             freeu_b1, freeu_b2, freeu_s1, freeu_s2 = [None] * 4
             return [adm_scaler_positive, adm_scaler_negative, adm_scaler_end, adaptive_cfg, sampler_name,
@@ -126,7 +127,7 @@ def process_generate(params: ImageGenerationParams) -> List[ImageGenerationResul
                                overwrite_vary_strength, overwrite_upscale_strength,
                                mixing_image_prompt_and_vary_upscale, mixing_image_prompt_and_inpaint,
                                 debugging_cn_preprocessor, controlnet_softness, canny_low_threshold, canny_high_threshold, inpaint_engine,
-                                freeu_enabled, freeu_b1, freeu_b2, freeu_s1, freeu_s2]
+                                refiner_swap_method, freeu_enabled, freeu_b1, freeu_b2, freeu_s1, freeu_s2]
         
         advanced_parameters.set_all_advanced_parameters(*build_advanced_parameters())
 
@@ -165,6 +166,7 @@ def process_generate(params: ImageGenerationParams) -> List[ImageGenerationResul
         inpaint_worker.current_task = None
         width, height = aspect_ratios[aspect_ratios_selection]
         skip_prompt_processing = False
+        refiner_swap_method = advanced_parameters.refiner_swap_method
 
         raw_prompt = prompt
         raw_negative_prompt = negative_prompt
@@ -228,7 +230,7 @@ def process_generate(params: ImageGenerationParams) -> List[ImageGenerationResul
                     loras += [(inpaint_patch_model_path, 1.0)]
                     print(f'[Inpaint] Current inpaint model is {inpaint_patch_model_path}')
                     goals.append('inpaint')
-                    sampler_name = 'dpmpp_fooocus_2m_sde_inpaint_seamless'
+                    sampler_name = 'dpmpp_2m_sde_gpu'  # only support the patched dpmpp_2m_sde_gpu
             if current_tab == 'ip' or \
                     advanced_parameters.mixing_image_prompt_and_inpaint or \
                     advanced_parameters.mixing_image_prompt_and_vary_upscale:
@@ -530,12 +532,6 @@ def process_generate(params: ImageGenerationParams) -> List[ImageGenerationResul
         print(f'Preparation time: {preparation_time:.2f} seconds')
 
         outputs.append(['preview', (13, 'Moving model to GPU ...', None)])
-        execution_start_time = time.perf_counter()
-        model_management.load_models_gpu([pipeline.final_unet])
-        moving_time = time.perf_counter() - execution_start_time
-        print(f'Moving model to GPU: {moving_time:.2f} seconds')
-
-        outputs.append(['preview', (13, 'Starting tasks ...', None)])
 
         def callback(step, x0, x, total_steps, y):
             done_steps = current_task_id * steps + step
@@ -574,7 +570,8 @@ def process_generate(params: ImageGenerationParams) -> List[ImageGenerationResul
                     latent=initial_latent,
                     denoise=denoising_strength,
                     tiled=tiled,
-                    cfg_scale=cfg_scale
+                    cfg_scale=cfg_scale,
+                    refiner_swap_method=advanced_parameters.refiner_swap_method
                 )
 
                 del task['c'], task['uc'], positive_cond, negative_cond  # Save memory

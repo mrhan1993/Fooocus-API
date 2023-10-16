@@ -6,9 +6,7 @@ import sys
 from importlib.util import find_spec
 
 from fooocus_api_version import version
-from fooocusapi.repositories_versions import (comfy_commit_hash,
-                                              fooocus_commit_hash,
-                                              fooocus_version)
+from fooocusapi.repositories_versions import fooocus_commit_hash
 
 os.environ["PYTORCH_ENABLE_MPS_FALLBACK"] = "1"
 
@@ -16,7 +14,6 @@ python = sys.executable
 default_command_live = True
 index_url = os.environ.get('INDEX_URL', "")
 
-comfyui_name = 'ComfyUI-from-StabilityAI-Official'
 fooocus_name = 'Fooocus'
 
 modules_path = os.path.dirname(os.path.realpath(__file__))
@@ -134,12 +131,6 @@ def download_repositories():
         print(f"Using https proxy for git clone: {https_proxy}")
         os.environ['https_proxy'] = https_proxy
 
-    # Check and download ComfyUI
-    comfy_repo = os.environ.get(
-        'COMFY_REPO', "https://github.com/comfyanonymous/ComfyUI")
-    git_clone(comfy_repo, repo_dir(comfyui_name),
-              "Inference Engine", comfy_commit_hash)
-    
     # Check and download Fooocus
     fooocus_repo = os.environ.get(
         'FOOOCUS_REPO', 'https://github.com/lllyasviel/Fooocus')
@@ -157,37 +148,25 @@ def is_installed(package):
 
 
 def download_models():
-    model_filenames = [
-        ('sd_xl_base_1.0_0.9vae.safetensors',
-         'https://huggingface.co/stabilityai/stable-diffusion-xl-base-1.0/resolve/main/sd_xl_base_1.0_0.9vae.safetensors'),
-        ('sd_xl_refiner_1.0_0.9vae.safetensors',
-         'https://huggingface.co/stabilityai/stable-diffusion-xl-refiner-1.0/resolve/main/sd_xl_refiner_1.0_0.9vae.safetensors')
-    ]
-
-    lora_filenames = [
-        ('sd_xl_offset_example-lora_1.0.safetensors',
-         'https://huggingface.co/stabilityai/stable-diffusion-xl-base-1.0/resolve/main/sd_xl_offset_example-lora_1.0.safetensors')
-    ]
-
     vae_approx_filenames = [
-        ('xlvaeapp.pth',
-         'https://huggingface.co/lllyasviel/misc/resolve/main/xlvaeapp.pth')
+        ('xlvaeapp.pth', 'https://huggingface.co/lllyasviel/misc/resolve/main/xlvaeapp.pth'),
+        ('vaeapp_sd15.pth', 'https://huggingface.co/lllyasviel/misc/resolve/main/vaeapp_sd15.pt'),
+        ('xl-to-v1_interposer-v3.1.safetensors',
+        'https://huggingface.co/lllyasviel/misc/resolve/main/xl-to-v1_interposer-v3.1.safetensors')
     ]
 
     from modules.model_loader import load_file_from_url
-    from modules.path import (fooocus_expansion_path, lorafile_path,
-                              modelfile_path, upscale_models_path,
-                              vae_approx_path)
+    from modules.path import modelfile_path, lorafile_path, vae_approx_path, fooocus_expansion_path, \
+        checkpoint_downloads, embeddings_path, embeddings_downloads, lora_downloads
 
-    for file_name, url in model_filenames:
-        load_file_from_url(url=url, model_dir=modelfile_path,
-                           file_name=file_name)
-    for file_name, url in lora_filenames:
-        load_file_from_url(url=url, model_dir=lorafile_path,
-                           file_name=file_name)
+    for file_name, url in checkpoint_downloads.items():
+        load_file_from_url(url=url, model_dir=modelfile_path, file_name=file_name)
+    for file_name, url in embeddings_downloads.items():
+        load_file_from_url(url=url, model_dir=embeddings_path, file_name=file_name)
+    for file_name, url in lora_downloads.items():
+        load_file_from_url(url=url, model_dir=lorafile_path, file_name=file_name)
     for file_name, url in vae_approx_filenames:
-        load_file_from_url(
-            url=url, model_dir=vae_approx_path, file_name=file_name)
+        load_file_from_url(url=url, model_dir=vae_approx_path, file_name=file_name)
 
     load_file_from_url(
         url='https://huggingface.co/lllyasviel/misc/resolve/main/fooocus_expansion.bin',
@@ -228,14 +207,18 @@ def prepare_environments(args) -> bool:
     if not skip_sync_repo:
         download_repositories()
 
-    # Add indent repositories to import path
-    sys.path.append(os.path.join(script_path, dir_repos, comfyui_name))
-    sys.path.append(os.path.join(script_path, dir_repos, fooocus_name))
-
-    download_models()
+    # Add dependent repositories to import path
+    sys.path.append(script_path)
+    fooocus_path = os.path.join(script_path, dir_repos, fooocus_name)
+    sys.path.append(fooocus_path)
+    backend_path = os.path.join(fooocus_path, 'backend', 'headless')
+    if backend_path not in sys.path:
+        sys.path.append(backend_path)
+    os.environ["PYTORCH_ENABLE_MPS_FALLBACK"] = "1"
 
     sys.argv = [sys.argv[0]]
-    ini_comfy_args()
+    download_models()
+    ini_cbh_args()
 
     if args.preload_pipeline:
         print("Preload pipeline")
@@ -256,9 +239,6 @@ def pre_setup(skip_sync_repo: bool=False, disable_private_log: bool=False, load_
         args.sync_repo = 'skip'
     prepare_environments(args)
 
-    sys.argv = [sys.argv[0]]
-    ini_comfy_args()
-
     if disable_private_log:
         import fooocusapi.worker as worker
         worker.save_log = False
@@ -275,7 +255,7 @@ def pre_setup(skip_sync_repo: bool=False, disable_private_log: bool=False, load_
 
 
 # This function was copied from [Fooocus](https://github.com/lllyasviel/Fooocus) repository.
-def ini_comfy_args():
+def ini_cbh_args():
     from args_manager import args
     return args
 
@@ -298,7 +278,6 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     if prepare_environments(args):
-        argv = sys.argv
         sys.argv = [sys.argv[0]]
 
         # Start api server
