@@ -27,6 +27,9 @@ class PerfomanceSelection(str, Enum):
 class FooocusStyle(str, Enum):
     fooocus_expansion = 'Fooocus V2'
     default = 'Default (Slightly Cinematic)'
+    fooocus_anime = 'Fooocus Anime'
+    fooocus_realistic = 'Fooocus Realistic'
+    fooocus_strong_negative = 'Fooocus Strong Negative'
     sai_3d_model = 'SAI 3D Model'
     sai_analog_film = 'SAI Analog Film'
     sai_anime = 'SAI Anime'
