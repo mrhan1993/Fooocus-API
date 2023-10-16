@@ -1,5 +1,6 @@
 import argparse
 import os
+import re
 import shutil
 import subprocess
 import sys
@@ -13,6 +14,7 @@ os.environ["PYTORCH_ENABLE_MPS_FALLBACK"] = "1"
 python = sys.executable
 default_command_live = True
 index_url = os.environ.get('INDEX_URL', "")
+re_requirement = re.compile(r"\s*([-_a-zA-Z0-9]+)\s*(?:==\s*([-+_.a-zA-Z0-9]+))?\s*")
 
 fooocus_name = 'Fooocus'
 
@@ -115,6 +117,43 @@ def run_pip(command, desc=None, live=default_command_live):
         return None
 
 
+
+# This function was copied from [Fooocus](https://github.com/lllyasviel/Fooocus) repository.
+def requirements_met(requirements_file):
+    """
+    Does a simple parse of a requirements.txt file to determine if all rerqirements in it
+    are already installed. Returns True if so, False if not installed or parsing fails.
+    """
+
+    import importlib.metadata
+    import packaging.version
+
+    with open(requirements_file, "r", encoding="utf8") as file:
+        for line in file:
+            if line.strip() == "":
+                continue
+
+            m = re.match(re_requirement, line)
+            if m is None:
+                return False
+
+            package = m.group(1).strip()
+            version_required = (m.group(2) or "").strip()
+
+            if version_required == "":
+                continue
+
+            try:
+                version_installed = importlib.metadata.version(package)
+            except Exception:
+                return False
+
+            if packaging.version.parse(version_required) != packaging.version.parse(version_installed):
+                return False
+
+    return True
+
+
 def download_repositories():
     import pygit2
 
@@ -175,17 +214,20 @@ def download_models():
     )
 
 
-def run_pip_install():
-    print("Run pip install")
-    run_pip("install -r requirements.txt", "requirements")
-    run_pip("install torch torchvision --extra-index-url https://download.pytorch.org/whl/cu118", "torch")
-    run_pip("install xformers", "xformers")
-
-
 def prepare_environments(args) -> bool:
+    torch_index_url = os.environ.get('TORCH_INDEX_URL', "https://download.pytorch.org/whl/cu121")
+
     # Check if need pip install
+    requirements_file = 'requirements.txt'
+    if not requirements_met(requirements_file):
+        run_pip(f"install -r \"{requirements_file}\"", "requirements")
+
+    if not is_installed("torch") or not is_installed("torchvision"):
+        print(f"torch_index_url: {torch_index_url}")
+        run_pip(f"install torch==2.0.1 torchvision==0.15.2 --extra-index-url {torch_index_url}", "torch")
+
     if not is_installed('xformers'):
-        run_pip_install()
+        run_pip("install xformers==0.0.21", "xformers")
 
     skip_sync_repo = False
     if args.sync_repo is not None:

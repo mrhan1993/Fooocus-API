@@ -18,25 +18,17 @@ The colab notebook uses the Fooocus's `colab` branch, which may lack some latest
 | --- | --- |
 [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/konieshadow/Fooocus-API/blob/colab/colab.ipynb) | Fooocus-API
 
-### Install dependencies.
-Need python version >= 3.10
-```
-pip install -r requirements.txt
-pip install torch==2.0.1 torchvision==0.15.2 --extra-index-url https://download.pytorch.org/whl/cu118 xformers
-```
-You may change the part "cu118" of extra-index-url to your local installed cuda driver version.
-
-### Sync dependent and download models (Optional)
-```
-python main.py --sync-repo only
-```
-After run successful, you can see the terminal print where to put the model files for Fooocus.
-
-Then you can put the model files to target directories manually, or let it auto downloads when start app.
-
-It will also apply user_path_config.txt config file as Fooocus. See [Changing Model Path](https://github.com/lllyasviel/Fooocus#changing-model-path).
-
 ### Start app
+Need python version >= 3.10, or use conda to create a new env.
+
+```
+conda env create -f environment.yaml
+conda activate fooocus-api
+```
+
+Set enviroment variable `TORCH_INDEX_URL` to the version corresponding to the local cuda driver.
+Default is "https://download.pytorch.org/whl/cu121", you may change the part "cu118".
+
 Run
 ```
 python main.py
