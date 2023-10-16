@@ -9,6 +9,9 @@ inpaint_model_version = 'v1'
 fooocus_styles = [
     'Fooocus V2',
     'Default (Slightly Cinematic)',
+    'Fooocus Anime',
+    'Fooocus Realistic',
+    'Fooocus Strong Negative',
     'SAI 3D Model',
     'SAI Analog Film',
     'SAI Anime',
