@@ -259,8 +259,9 @@ def prepare_environments(args) -> bool:
     os.environ["PYTORCH_ENABLE_MPS_FALLBACK"] = "1"
 
     sys.argv = [sys.argv[0]]
-    download_models()
     ini_cbh_args()
+
+    download_models()
 
     if args.preload_pipeline:
         print("Preload pipeline")
