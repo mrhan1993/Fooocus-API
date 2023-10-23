@@ -24,11 +24,11 @@ def process_generate(params: ImageGenerationParams) -> List[ImageGenerationResul
     import modules.advanced_parameters as advanced_parameters
     import fooocus_extras.preprocessors as preprocessors
     import fooocus_extras.ip_adapter as ip_adapter
-    from modules.util import join_prompts, remove_empty_str, image_is_generated_in_current_ui, resize_image, HWC3, make_sure_that_image_is_not_too_large
+    from modules.util import join_prompts, remove_empty_str, resize_image, HWC3, set_image_shape_ceil, get_image_shape_ceil, get_shape_ceil
     from modules.private_logger import log
     from modules.upscaler import perform_upscale
     from modules.expansion import safe_str
-    from modules.sdxl_styles import apply_style, fooocus_expansion, aspect_ratios
+    from modules.sdxl_styles import apply_style, fooocus_expansion, aspect_ratios, apply_wildcards
 
     outputs = []
 
@@ -168,11 +168,8 @@ def process_generate(params: ImageGenerationParams) -> List[ImageGenerationResul
         skip_prompt_processing = False
         refiner_swap_method = advanced_parameters.refiner_swap_method
 
-        raw_prompt = prompt
-        raw_negative_prompt = negative_prompt
-
         inpaint_image = None
-        input_mask = None
+        inpaint_mask = None
         inpaint_head_model_path = None
         controlnet_canny_path = None
         controlnet_cpds_path = None
@@ -221,10 +218,10 @@ def process_generate(params: ImageGenerationParams) -> List[ImageGenerationResul
             if (current_tab == 'inpaint' or (current_tab == 'ip' and advanced_parameters.mixing_image_prompt_and_inpaint))\
                     and isinstance(inpaint_input_image, dict):
                 inpaint_image = inpaint_input_image['image']
-                input_mask = inpaint_input_image['mask'][:, :, 0]
+                inpaint_mask = inpaint_input_image['mask'][:, :, 0]
                 inpaint_image = HWC3(inpaint_image)
-                if isinstance(inpaint_image, np.ndarray) and isinstance(input_mask, np.ndarray) \
-                        and (np.any(input_mask > 127) or len(outpaint_selections) > 0):
+                if isinstance(inpaint_image, np.ndarray) and isinstance(inpaint_mask, np.ndarray) \
+                        and (np.any(inpaint_mask > 127) or len(outpaint_selections) > 0):
                     progressbar(1, 'Downloading inpainter ...')
                     inpaint_head_model_path, inpaint_patch_model_path = path.downloading_inpaint_models(advanced_parameters.inpaint_engine)
                     loras += [(inpaint_patch_model_path, 1.0)]
@@ -280,62 +277,70 @@ def process_generate(params: ImageGenerationParams) -> List[ImageGenerationResul
             pipeline.refresh_everything(refiner_model_name=refiner_model_name, base_model_name=base_model_name, loras=loras)
 
             progressbar(3, 'Processing prompts ...')
-            positive_basic_workloads = []
-            negative_basic_workloads = []
+            tasks = []
+            for i in range(image_number):
+                task_seed = seed + i
+                task_rng = random.Random(task_seed)  # may bind to inpaint noise in the future
 
-            if use_style:
-                for s in style_selections:
-                    p, n = apply_style(s, positive=prompt)
-                    positive_basic_workloads.append(p)
-                    negative_basic_workloads.append(n)
-            else:
-                positive_basic_workloads.append(prompt)
+                task_prompt = apply_wildcards(prompt, task_rng)
+                task_negative_prompt = apply_wildcards(negative_prompt, task_rng)
+                task_extra_positive_prompts = [apply_wildcards(pmt, task_rng) for pmt in extra_positive_prompts]
+                task_extra_negative_prompts = [apply_wildcards(pmt, task_rng) for pmt in extra_negative_prompts]
 
-            negative_basic_workloads.append(negative_prompt)  # Always use independent workload for negative.
+                positive_basic_workloads = []
+                negative_basic_workloads = []
 
-            positive_basic_workloads = positive_basic_workloads + extra_positive_prompts
-            negative_basic_workloads = negative_basic_workloads + extra_negative_prompts
+                if use_style:
+                    for s in style_selections:
+                        p, n = apply_style(s, positive=task_prompt)
+                        positive_basic_workloads.append(p)
+                        negative_basic_workloads.append(n)
+                else:
+                    positive_basic_workloads.append(task_prompt)
 
-            positive_basic_workloads = remove_empty_str(positive_basic_workloads, default=prompt)
-            negative_basic_workloads = remove_empty_str(negative_basic_workloads, default=negative_prompt)
+                negative_basic_workloads.append(task_negative_prompt)  # Always use independent workload for negative.
 
-            positive_top_k = len(positive_basic_workloads)
-            negative_top_k = len(negative_basic_workloads)
+                positive_basic_workloads = positive_basic_workloads + task_extra_positive_prompts
+                negative_basic_workloads = negative_basic_workloads + task_extra_negative_prompts
 
-            tasks = [dict(
-                task_seed=seed + i,
-                positive=positive_basic_workloads,
-                negative=negative_basic_workloads,
-                expansion='',
-                c=None,
-                uc=None,
-            ) for i in range(image_number)]
+                positive_basic_workloads = remove_empty_str(positive_basic_workloads, default=task_prompt)
+                negative_basic_workloads = remove_empty_str(negative_basic_workloads, default=task_negative_prompt)
+
+                tasks.append(dict(
+                    task_seed=task_seed,
+                    task_prompt=task_prompt,
+                    task_negative_prompt=task_negative_prompt,
+                    positive=positive_basic_workloads,
+                    negative=negative_basic_workloads,
+                    expansion='',
+                    c=None,
+                    uc=None,
+                    positive_top_k=len(positive_basic_workloads),
+                    negative_top_k=len(negative_basic_workloads),
+                    log_positive_prompt='\n'.join([task_prompt] + task_extra_positive_prompts),
+                    log_negative_prompt='\n'.join([task_negative_prompt] + task_extra_negative_prompts),
+                ))
 
             if use_expansion:
                 for i, t in enumerate(tasks):
                     progressbar(5, f'Preparing Fooocus text #{i + 1} ...')
-                    expansion = pipeline.final_expansion(prompt, t['task_seed'])
+                    expansion = pipeline.final_expansion(t['task_prompt'], t['task_seed'])
                     print(f'[Prompt Expansion] New suffix: {expansion}')
                     t['expansion'] = expansion
-                    t['positive'] = copy.deepcopy(t['positive']) + [join_prompts(prompt, expansion)]  # Deep copy.
+                    t['positive'] = copy.deepcopy(t['positive']) + [join_prompts(t['task_prompt'], expansion)]  # Deep copy.
 
             for i, t in enumerate(tasks):
                 progressbar(7, f'Encoding positive #{i + 1} ...')
-                t['c'] = pipeline.clip_encode(texts=t['positive'], pool_top_k=positive_top_k)
+                t['c'] = pipeline.clip_encode(texts=t['positive'], pool_top_k=t['positive_top_k'])
 
             for i, t in enumerate(tasks):
                 progressbar(10, f'Encoding negative #{i + 1} ...')
-                t['uc'] = pipeline.clip_encode(texts=t['negative'], pool_top_k=negative_top_k)
+                t['uc'] = pipeline.clip_encode(texts=t['negative'], pool_top_k=t['negative_top_k'])
 
         if len(goals) > 0:
             progressbar(13, 'Image processing ...')
 
         if 'vary' in goals:
-            if not image_is_generated_in_current_ui(uov_input_image, ui_width=width, ui_height=height):
-                uov_input_image = resize_image(uov_input_image, width=width, height=height)
-                print(f'Resolution corrected - users are uploading their own images.')
-            else:
-                print(f'Processing images generated by Fooocus.')
             if 'subtle' in uov_method:
                 denoising_strength = 0.5
             if 'strong' in uov_method:
@@ -343,7 +348,16 @@ def process_generate(params: ImageGenerationParams) -> List[ImageGenerationResul
             if advanced_parameters.overwrite_vary_strength > 0:
                 denoising_strength = advanced_parameters.overwrite_vary_strength
 
-            uov_input_image = make_sure_that_image_is_not_too_large(uov_input_image)
+            shape_ceil = get_image_shape_ceil(uov_input_image)
+            if shape_ceil < 1024:
+                print(f'[Vary] Image is resized because it is too small.')
+                shape_ceil = 1024
+            elif shape_ceil > 2048:
+                print(f'[Vary] Image is resized because it is too big.')
+                shape_ceil = 2048
+
+            uov_input_image = set_image_shape_ceil(uov_input_image, shape_ceil)
+
             initial_pixels = core.numpy_to_pytorch(uov_input_image)
             progressbar(13, 'VAE encoding ...')
             initial_latent = core.encode_vae(vae=pipeline.final_vae, pixels=initial_pixels)
@@ -368,18 +382,12 @@ def process_generate(params: ImageGenerationParams) -> List[ImageGenerationResul
             else:
                 f = 1.0
 
-            width_f = int(width * f)
-            height_f = int(height * f)
-
-            if image_is_generated_in_current_ui(uov_input_image, ui_width=width_f, ui_height=height_f):
-                uov_input_image = resize_image(uov_input_image, width=int(W * f), height=int(H * f))
-                print(f'Processing images generated by Fooocus.')
-            else:
-                uov_input_image = resize_image(uov_input_image, width=width_f, height=height_f)
-                print(f'Resolution corrected - users are uploading their own images.')
-
-            H, W, C = uov_input_image.shape
-            image_is_super_large = H * W > 2800 * 2800
+            shape_ceil = get_shape_ceil(H * f, W * f)
+            if shape_ceil < 1024:
+                print(f'[Upscale] Image is resized because it is too small.')
+                shape_ceil = 1024
+            uov_input_image = set_image_shape_ceil(uov_input_image, shape_ceil)
+            image_is_super_large = shape_ceil > 2800
 
             if 'fast' in uov_method:
                 direct_return = True
@@ -393,12 +401,9 @@ def process_generate(params: ImageGenerationParams) -> List[ImageGenerationResul
 
             if direct_return:
                 d = [('Upscale (Fast)', '2x')]
-                if save_log:
-                    log(uov_input_image, d, single_line_number=1)
-                outputs.append(['results', [uov_input_image], -1 if len(tasks) == 0 else tasks[0]['task_seed']])
-                results = make_results_from_outputs()
-                task_queue.finish_task(task_seq, results, False)
-                return results * image_number
+                log(uov_input_image, d, single_line_number=1)
+                outputs.append(['results', [uov_input_image]])
+                return
 
             tiled = True
             denoising_strength = 0.382
@@ -409,70 +414,82 @@ def process_generate(params: ImageGenerationParams) -> List[ImageGenerationResul
             initial_pixels = core.numpy_to_pytorch(uov_input_image)
             progressbar(13, 'VAE encoding ...')
 
-            initial_latent = core.encode_vae(vae=pipeline.final_vae, pixels=initial_pixels, tiled=True)
+            initial_latent = core.encode_vae(
+                vae=pipeline.final_vae if pipeline.final_refiner_vae is None else pipeline.final_refiner_vae,
+                pixels=initial_pixels, tiled=True)
             B, C, H, W = initial_latent['samples'].shape
             width = W * 8
             height = H * 8
             print(f'Final resolution is {str((height, width))}.')
+            refiner_swap_method = 'upscale'
 
         if 'inpaint' in goals:
             if len(outpaint_selections) > 0:
                 H, W, C = inpaint_image.shape
                 if 'top' in outpaint_selections:
                     inpaint_image = np.pad(inpaint_image, [[int(H * 0.3), 0], [0, 0], [0, 0]], mode='edge')
-                    input_mask = np.pad(input_mask, [[int(H * 0.3), 0], [0, 0]], mode='constant',
+                    inpaint_mask = np.pad(inpaint_mask, [[int(H * 0.3), 0], [0, 0]], mode='constant',
                                           constant_values=255)
                 if 'bottom' in outpaint_selections:
                     inpaint_image = np.pad(inpaint_image, [[0, int(H * 0.3)], [0, 0], [0, 0]], mode='edge')
-                    input_mask = np.pad(input_mask, [[0, int(H * 0.3)], [0, 0]], mode='constant',
+                    inpaint_mask = np.pad(inpaint_mask, [[0, int(H * 0.3)], [0, 0]], mode='constant',
                                           constant_values=255)
 
                 H, W, C = inpaint_image.shape
                 if 'left' in outpaint_selections:
                     inpaint_image = np.pad(inpaint_image, [[0, 0], [int(H * 0.3), 0], [0, 0]], mode='edge')
-                    input_mask = np.pad(input_mask, [[0, 0], [int(H * 0.3), 0]], mode='constant',
+                    inpaint_mask = np.pad(inpaint_mask, [[0, 0], [int(H * 0.3), 0]], mode='constant',
                                           constant_values=255)
                 if 'right' in outpaint_selections:
                     inpaint_image = np.pad(inpaint_image, [[0, 0], [0, int(H * 0.3)], [0, 0]], mode='edge')
-                    input_mask = np.pad(input_mask, [[0, 0], [0, int(H * 0.3)]], mode='constant',
+                    inpaint_mask = np.pad(inpaint_mask, [[0, 0], [0, int(H * 0.3)]], mode='constant',
                                           constant_values=255)
 
                 inpaint_image = np.ascontiguousarray(inpaint_image.copy())
-                input_mask = np.ascontiguousarray(input_mask.copy())
+                inpaint_mask = np.ascontiguousarray(inpaint_mask.copy())
 
-            inpaint_worker.current_task = inpaint_worker.InpaintWorker(image=inpaint_image, mask=input_mask,
+            inpaint_worker.current_task = inpaint_worker.InpaintWorker(image=inpaint_image, mask=inpaint_mask,
                                                                        is_outpaint=len(outpaint_selections) > 0)
 
-            # print(f'Inpaint task: {str((height, width))}')
-            # outputs.append(['results', inpaint_worker.current_task.visualize_mask_processing()])
-            # return
+            pipeline.final_unet.model.diffusion_model.in_inpaint = True
+
+            if advanced_parameters.debugging_cn_preprocessor:
+                outputs.append(['results', inpaint_worker.current_task.visualize_mask_processing()])
+                return
+
+            progressbar(13, 'VAE Inpaint encoding ...')
+
+            inpaint_pixel_fill = core.numpy_to_pytorch(inpaint_worker.current_task.interested_fill)
+            inpaint_pixel_image = core.numpy_to_pytorch(inpaint_worker.current_task.interested_image)
+            inpaint_pixel_mask = core.numpy_to_pytorch(inpaint_worker.current_task.interested_mask)
+
+            latent_inpaint, latent_mask = core.encode_vae_inpaint(
+                mask=inpaint_pixel_mask,
+                vae=pipeline.final_vae,
+                pixels=inpaint_pixel_image)
+
+            latent_swap = None
+            if pipeline.final_refiner_vae is not None:
+                progressbar(13, 'VAE Inpaint SD15 encoding ...')
+                latent_swap = core.encode_vae(
+                    vae=pipeline.final_refiner_vae,
+                    pixels=inpaint_pixel_fill)['samples']
 
             progressbar(13, 'VAE encoding ...')
-            inpaint_pixels = core.numpy_to_pytorch(inpaint_worker.current_task.image_ready)
-            initial_latent = core.encode_vae(vae=pipeline.final_vae, pixels=inpaint_pixels)
-            inpaint_latent = initial_latent['samples']
-            B, C, H, W = inpaint_latent.shape
-            input_mask = core.numpy_to_pytorch(inpaint_worker.current_task.mask_ready[None])
-            input_mask = torch.nn.functional.avg_pool2d(input_mask, (8, 8))
-            input_mask = torch.nn.functional.interpolate(input_mask, (H, W), mode='bilinear')
-            inpaint_worker.current_task.load_latent(latent=inpaint_latent, mask=input_mask)
+            latent_fill = core.encode_vae(
+                vae=pipeline.final_vae,
+                pixels=inpaint_pixel_fill)['samples']
 
-            progressbar(13, 'VAE inpaint encoding ...')
+            inpaint_worker.current_task.load_latent(latent_fill=latent_fill,
+                                                    latent_inpaint=latent_inpaint,
+                                                    latent_mask=latent_mask,
+                                                    latent_swap=latent_swap,
+                                                    inpaint_head_model_path=inpaint_head_model_path)
 
-            input_mask = (inpaint_worker.current_task.mask_ready > 0).astype(np.float32)
-            input_mask = torch.tensor(input_mask).float()
-
-            vae_dict = core.encode_vae_inpaint(
-                mask=input_mask, vae=pipeline.final_vae, pixels=inpaint_pixels)
-
-            inpaint_latent = vae_dict['samples']
-            input_mask = vae_dict['noise_mask']
-            inpaint_worker.current_task.load_inpaint_guidance(latent=inpaint_latent, mask=input_mask,
-                                                              model_path=inpaint_head_model_path)
-
-            B, C, H, W = inpaint_latent.shape
-            final_height, final_width = inpaint_worker.current_task.image_raw.shape[:2]
+            B, C, H, W = latent_fill.shape
             height, width = H * 8, W * 8
+            final_height, final_width = inpaint_worker.current_task.image.shape[:2]
+            initial_latent = {'samples': latent_fill}
             print(f'Final resolution is {str((final_height, final_width))}, latent is {str((height, width))}.')
 
         if 'cn' in goals:
@@ -483,10 +500,8 @@ def process_generate(params: ImageGenerationParams) -> List[ImageGenerationResul
                 cn_img = HWC3(cn_img)
                 task[0] = core.numpy_to_pytorch(cn_img)
                 if advanced_parameters.debugging_cn_preprocessor:
-                    outputs.append(['results', [cn_img], task['task_seed']])
-                    results = make_results_from_outputs()
-                    task_queue.finish_task(task_seq, results, False)
-                    return results
+                    outputs.append(['results', [cn_img]])
+                    return
             for task in cn_tasks[flags.cn_cpds]:
                 cn_img, cn_stop, cn_weight = task
                 cn_img = resize_image(HWC3(cn_img), width=width, height=height)
@@ -494,10 +509,8 @@ def process_generate(params: ImageGenerationParams) -> List[ImageGenerationResul
                 cn_img = HWC3(cn_img)
                 task[0] = core.numpy_to_pytorch(cn_img)
                 if advanced_parameters.debugging_cn_preprocessor:
-                    outputs.append(['results', [cn_img], task['task_seed']])
-                    results = make_results_from_outputs()
-                    task_queue.finish_task(task_seq, results, False)
-                    return results
+                    outputs.append(['results', [cn_img]])
+                    return
             for task in cn_tasks[flags.cn_ip]:
                 cn_img, cn_stop, cn_weight = task
                 cn_img = HWC3(cn_img)
@@ -507,10 +520,8 @@ def process_generate(params: ImageGenerationParams) -> List[ImageGenerationResul
 
                 task[0] = ip_adapter.preprocess(cn_img)
                 if advanced_parameters.debugging_cn_preprocessor:
-                    outputs.append(['results', [cn_img], task['task_seed']])
-                    results = make_results_from_outputs()
-                    task_queue.finish_task(task_seq, results, False)
-                    return results
+                    outputs.append(['results', [cn_img]])
+                    return
 
             if len(cn_tasks[flags.cn_ip]) > 0:
                 pipeline.final_unet = ip_adapter.patch_model(pipeline.final_unet, cn_tasks[flags.cn_ip])
@@ -571,7 +582,7 @@ def process_generate(params: ImageGenerationParams) -> List[ImageGenerationResul
                     denoise=denoising_strength,
                     tiled=tiled,
                     cfg_scale=cfg_scale,
-                    refiner_swap_method=advanced_parameters.refiner_swap_method
+                    refiner_swap_method=refiner_swap_method
                 )
 
                 del task['c'], task['uc'], positive_cond, negative_cond  # Save memory
@@ -581,8 +592,8 @@ def process_generate(params: ImageGenerationParams) -> List[ImageGenerationResul
 
                 for x in imgs:
                     d = [
-                        ('Prompt', raw_prompt),
-                        ('Negative Prompt', raw_negative_prompt),
+                        ('Prompt', task['log_positive_prompt']),
+                        ('Negative Prompt', task['log_negative_prompt']),
                         ('Fooocus V2 Expansion', task['expansion']),
                         ('Styles', str(raw_style_selections)),
                         ('Performance', performance_selection),
@@ -599,8 +610,7 @@ def process_generate(params: ImageGenerationParams) -> List[ImageGenerationResul
                     for n, w in loras_raw:
                         if n != 'None':
                             d.append((f'LoRA [{n}] weight', w))
-                    if save_log:
-                        log(x, d, single_line_number=3)
+                    log(x, d, single_line_number=3)
                 
                 # Fooocus async_worker.py code end
 
