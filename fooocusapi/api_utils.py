@@ -1,13 +1,14 @@
 import base64
 import io
 from io import BytesIO
-from typing import List
+from typing import List, Tuple
 
 import numpy as np
 from fastapi import Response, UploadFile
 from PIL import Image
-from fooocusapi.models import GeneratedImageBase64, GenerationFinishReason, ImgInpaintOrOutpaintRequest, ImgPromptRequest, ImgUpscaleOrVaryRequest, Text2ImgRequest
+from fooocusapi.models import AsyncJobResponse, AsyncJobStage, GeneratedImageBase64, GenerationFinishReason, ImgInpaintOrOutpaintRequest, ImgPromptRequest, ImgUpscaleOrVaryRequest, Text2ImgRequest
 from fooocusapi.parameters import ImageGenerationParams, ImageGenerationResult
+from fooocusapi.task_queue import QueueTask, TaskType
 import modules.flags as flags
 from modules.sdxl_styles import legal_style_names
 
@@ -45,7 +46,8 @@ def read_input_image(input_image: UploadFile) -> np.ndarray:
 def req_to_params(req: Text2ImgRequest) -> ImageGenerationParams:
     prompt = req.prompt
     negative_prompt = req.negative_prompt
-    style_selections = [s for s in req.style_selections if s in legal_style_names]
+    style_selections = [
+        s for s in req.style_selections if s in legal_style_names]
     performance_selection = req.performance_selection.value
     aspect_ratios_selection = req.aspect_ratios_selection.value
     image_number = req.image_number
@@ -102,7 +104,27 @@ def req_to_params(req: Text2ImgRequest) -> ImageGenerationParams:
                                  )
 
 
-def generation_output(results: List[ImageGenerationResult], streaming_output: bool) -> Response | List[GeneratedImageBase64]:
+def generation_output(results: QueueTask | List[ImageGenerationResult], streaming_output: bool) -> Response | List[GeneratedImageBase64] | AsyncJobResponse:
+    if isinstance(results, QueueTask):
+        task = results
+        job_stage = AsyncJobStage.running
+        job_result = None
+        if task.start_millis == 0:
+            job_stage = AsyncJobStage.waiting
+        if task.is_finished:
+            if task.finish_with_error:
+                job_stage = AsyncJobStage.error
+            else:
+                if task.task_result != None:
+                    job_stage = AsyncJobStage.success
+                    job_result = generation_output(task.task_result, False)
+        return AsyncJobResponse(job_id=task.seq,
+                                job_type=task.type,
+                                job_stage=job_stage,
+                                job_progess=task.finish_progess,
+                                job_status=task.task_status,
+                                job_result=job_result)
+
     if streaming_output:
         if len(results) == 0 or results[0].finish_reason != GenerationFinishReason.success:
             return Response(status_code=500)

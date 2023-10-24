@@ -7,6 +7,7 @@ from enum import Enum
 
 from pydantic_core import InitErrorDetails
 from fooocusapi.parameters import GenerationFinishReason, defualt_styles
+from fooocusapi.task_queue import TaskType
 import modules.flags as flags
 
 
@@ -97,6 +98,7 @@ class Text2ImgRequest(BaseModel):
     refiner_model_name: str = 'sd_xl_refiner_1.0_0.9vae.safetensors'
     loras: List[Lora] = Field(default=[
         Lora(model_name='sd_xl_offset_example-lora_1.0.safetensors', weight=0.5)])
+    async_process: bool = Field(default=False, description="Set to true will run async and return job info for retrieve generataion result later")
 
 
 class ImgUpscaleOrVaryRequest(Text2ImgRequest):
@@ -133,12 +135,14 @@ class ImgUpscaleOrVaryRequest(Text2ImgRequest):
                 w4: float = Form(default=0.5, ge=-2, le=2),
                 l5: str | None = Form(None),
                 w5: float = Form(default=0.5, ge=-2, le=2),
+                async_process: bool = Form(default=False, description="Set to true will run async and return job info for retrieve generataion result later"),
                 ):
         style_selection_arr: List[str] = []
         for part in style_selections:
             if len(part) > 0:
                 for s in part.split(','):
-                    style_selection_arr.append(s)
+                    style = s.strip()
+                    style_selection_arr.append(style)
 
         loras: List[Lora] = []
         lora_config = [(l1, w1), (l2, w2), (l3, w3), (l4, w4), (l5, w5)]
@@ -151,7 +155,7 @@ class ImgUpscaleOrVaryRequest(Text2ImgRequest):
                    performance_selection=performance_selection, aspect_ratios_selection=aspect_ratios_selection,
                    image_number=image_number, image_seed=image_seed, sharpness=sharpness, guidance_scale=guidance_scale,
                    base_model_name=base_model_name, refiner_model_name=refiner_model_name,
-                   loras=loras)
+                   loras=loras, async_process=async_process)
 
 
 class ImgInpaintOrOutpaintRequest(Text2ImgRequest):
@@ -192,6 +196,7 @@ class ImgInpaintOrOutpaintRequest(Text2ImgRequest):
                 w4: float = Form(default=0.5, ge=-2, le=2),
                 l5: str | None = Form(None),
                 w5: float = Form(default=0.5, ge=-2, le=2),
+                async_process: bool = Form(default=False, description="Set to true will run async and return job info for retrieve generataion result later"),
                 ):
 
         if isinstance(input_mask, File):
@@ -213,7 +218,8 @@ class ImgInpaintOrOutpaintRequest(Text2ImgRequest):
         for part in style_selections:
             if len(part) > 0:
                 for s in part.split(','):
-                    style_selection_arr.append(s)
+                    style = s.strip()
+                    style_selection_arr.append(style)
 
         loras: List[Lora] = []
         lora_config = [(l1, w1), (l2, w2), (l3, w3), (l4, w4), (l5, w5)]
@@ -226,7 +232,7 @@ class ImgInpaintOrOutpaintRequest(Text2ImgRequest):
                    performance_selection=performance_selection, aspect_ratios_selection=aspect_ratios_selection,
                    image_number=image_number, image_seed=image_seed, sharpness=sharpness, guidance_scale=guidance_scale,
                    base_model_name=base_model_name, refiner_model_name=refiner_model_name,
-                   loras=loras)
+                   loras=loras, async_process=async_process)
 
 
 class ImgPromptRequest(Text2ImgRequest):
@@ -291,6 +297,7 @@ class ImgPromptRequest(Text2ImgRequest):
                 w4: float = Form(default=0.5, ge=-2, le=2),
                 l5: str | None = Form(None),
                 w5: float = Form(default=0.5, ge=-2, le=2),
+                async_process: bool = Form(default=False, description="Set to true will run async and return job info for retrieve generataion result later"),
                 ):
         if isinstance(cn_img1, File):
             cn_img1 = None
@@ -317,7 +324,8 @@ class ImgPromptRequest(Text2ImgRequest):
         for part in style_selections:
             if len(part) > 0:
                 for s in part.split(','):
-                    style_selection_arr.append(s)
+                    style = s.strip()
+                    style_selection_arr.append(style)
 
         loras: List[Lora] = []
         lora_config = [(l1, w1), (l2, w2), (l3, w3), (l4, w4), (l5, w5)]
@@ -330,7 +338,7 @@ class ImgPromptRequest(Text2ImgRequest):
                    performance_selection=performance_selection, aspect_ratios_selection=aspect_ratios_selection,
                    image_number=image_number, image_seed=image_seed, sharpness=sharpness, guidance_scale=guidance_scale,
                    base_model_name=base_model_name, refiner_model_name=refiner_model_name,
-                   loras=loras)
+                   loras=loras, async_process=async_process)
 
 
 class GeneratedImageBase64(BaseModel):
@@ -338,3 +346,19 @@ class GeneratedImageBase64(BaseModel):
         description="Image encoded in base64, or null if finishReasen is not 'SUCCESS'")
     seed: int = Field(description="The seed associated with this image")
     finish_reason: GenerationFinishReason
+
+
+class AsyncJobStage(str, Enum):
+    waiting = 'WAITING'
+    running = 'RUNNING'
+    success = 'SUCCESS'
+    error = 'ERROR'
+
+
+class AsyncJobResponse(BaseModel):
+    job_id: int
+    job_type: TaskType
+    job_stage: AsyncJobStage
+    job_progess: int
+    job_status: str | None
+    job_result: List[GeneratedImageBase64] | None

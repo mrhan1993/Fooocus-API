@@ -5,15 +5,15 @@ import numpy as np
 import torch
 from typing import List
 from fooocusapi.parameters import inpaint_model_version, GenerationFinishReason, ImageGenerationParams, ImageGenerationResult
-from fooocusapi.task_queue import TaskQueue, TaskType
+from fooocusapi.task_queue import QueueTask, TaskQueue
 
 save_log = True
-task_queue = TaskQueue()
+task_queue = TaskQueue(queue_size=3, hisotry_size=6)
 
 
 @torch.no_grad()
 @torch.inference_mode()
-def process_generate(params: ImageGenerationParams) -> List[ImageGenerationResult]:
+def process_generate(queue_task: QueueTask, params: ImageGenerationParams) -> List[ImageGenerationResult]:
     import modules.default_pipeline as pipeline
     import modules.patch as patch
     import modules.flags as flags
@@ -35,42 +35,39 @@ def process_generate(params: ImageGenerationParams) -> List[ImageGenerationResul
     def progressbar(number, text):
         print(f'[Fooocus] {text}')
         outputs.append(['preview', (number, text, None)])
+        queue_task.set_progress(number, text)
 
     def make_results_from_outputs():
         results: List[ImageGenerationResult] = []
         for item in outputs:
+            seed = -1 if len(item) < 3 else item[2]
             if item[0] == 'results':
                 for im in item[1]:
                     if isinstance(im, np.ndarray):
-                        results.append(ImageGenerationResult(im=im, seed=item[2], finish_reason=GenerationFinishReason.success))
-        return results
-
-    task_seq = task_queue.add_task(TaskType.text2img, {
-        'body': params.__dict__})
-    if task_seq is None:
-        print("[Task Queue] The task queue has reached limit")
-        results = [ImageGenerationResult(im=None, seed=0,
-                           finish_reason=GenerationFinishReason.queue_is_full)]
+                        results.append(ImageGenerationResult(im=im, seed=seed, finish_reason=GenerationFinishReason.success))
+        queue_task.set_result(results, False)
+        task_queue.finish_task(queue_task.seq)
+        print(f"[Task Queue] Finish task, seq={queue_task.seq}")
         return results
 
     try:
         waiting_sleep_steps: int = 0
         waiting_start_time = time.perf_counter()
-        while not task_queue.is_task_ready_to_start(task_seq):
+        while not task_queue.is_task_ready_to_start(queue_task.seq):
             if waiting_sleep_steps == 0:
                 print(
-                    f"[Task Queue] Waiting for task queue become free, seq={task_seq}")
+                    f"[Task Queue] Waiting for task queue become free, seq={queue_task.seq}")
             delay = 0.1
             time.sleep(delay)
             waiting_sleep_steps += 1
             if waiting_sleep_steps % int(10 / delay) == 0:
                 waiting_time = time.perf_counter() - waiting_start_time
                 print(
-                    f"[Task Queue] Already waiting for {waiting_time}S, seq={task_seq}")
+                    f"[Task Queue] Already waiting for {waiting_time}S, seq={queue_task.seq}")
 
-        print(f"[Task Queue] Task queue is free, start task, seq={task_seq}")
+        print(f"[Task Queue] Task queue is free, start task, seq={queue_task.seq}")
 
-        task_queue.start_task(task_seq)
+        task_queue.start_task(queue_task.seq)
 
         execution_start_time = time.perf_counter()
 
@@ -401,10 +398,10 @@ def process_generate(params: ImageGenerationParams) -> List[ImageGenerationResul
 
             if direct_return:
                 d = [('Upscale (Fast)', '2x')]
-                log(uov_input_image, d, single_line_number=1)
+                if save_log:
+                    log(uov_input_image, d, single_line_number=1)
                 outputs.append(['results', [uov_input_image], -1 if len(tasks) == 0 else tasks[0]['task_seed']])
                 results = make_results_from_outputs()
-                task_queue.finish_task(task_seq, results, False)
                 return results * image_number
 
             tiled = True
@@ -456,9 +453,8 @@ def process_generate(params: ImageGenerationParams) -> List[ImageGenerationResul
             pipeline.final_unet.model.diffusion_model.in_inpaint = True
 
             if advanced_parameters.debugging_cn_preprocessor:
-                outputs.append(['results', inpaint_worker.current_task.visualize_mask_processing()])
-                results = []
-                task_queue.finish_task(task_seq, results, False)
+                outputs.append(['results', inpaint_worker.current_task.visualize_mask_processing(), -1 if len(tasks) == 0 else tasks[0]['task_seed']])
+                results = make_results_from_outputs()
                 return results
 
             progressbar(13, 'VAE Inpaint encoding ...')
@@ -506,7 +502,6 @@ def process_generate(params: ImageGenerationParams) -> List[ImageGenerationResul
                 if advanced_parameters.debugging_cn_preprocessor:
                     outputs.append(['results', [cn_img], task['task_seed']])
                     results = make_results_from_outputs()
-                    task_queue.finish_task(task_seq, results, False)
                     return results
             for task in cn_tasks[flags.cn_cpds]:
                 cn_img, cn_stop, cn_weight = task
@@ -517,7 +512,6 @@ def process_generate(params: ImageGenerationParams) -> List[ImageGenerationResul
                 if advanced_parameters.debugging_cn_preprocessor:
                     outputs.append(['results', [cn_img], task['task_seed']])
                     results = make_results_from_outputs()
-                    task_queue.finish_task(task_seq, results, False)
                     return results
             for task in cn_tasks[flags.cn_ip]:
                 cn_img, cn_stop, cn_weight = task
@@ -530,7 +524,6 @@ def process_generate(params: ImageGenerationParams) -> List[ImageGenerationResul
                 if advanced_parameters.debugging_cn_preprocessor:
                     outputs.append(['results', [cn_img], task['task_seed']])
                     results = make_results_from_outputs()
-                    task_queue.finish_task(task_seq, results, False)
                     return results
 
             if len(cn_tasks[flags.cn_ip]) > 0:
@@ -620,33 +613,31 @@ def process_generate(params: ImageGenerationParams) -> List[ImageGenerationResul
                     for n, w in loras_raw:
                         if n != 'None':
                             d.append((f'LoRA [{n}] weight', w))
-                    log(x, d, single_line_number=3)
+                    if save_log:
+                        log(x, d, single_line_number=3)
                 
                 # Fooocus async_worker.py code end
 
                 results.append(ImageGenerationResult(
                     im=imgs[0], seed=task['task_seed'], finish_reason=GenerationFinishReason.success))
-            except model_management.InterruptProcessingException as e:
-                print('User stopped')
-                results.append(ImageGenerationResult(
-                        im=None, seed=task['task_seed'], finish_reason=GenerationFinishReason.user_cancel))
-                break
             except Exception as e:
-                print('Process failed:', e)
+                print('Process error:', e)
                 results.append(ImageGenerationResult(
                     im=None, seed=task['task_seed'], finish_reason=GenerationFinishReason.error))
+                queue_task.set_result(results, True, str(e))
+                break
 
             execution_time = time.perf_counter() - execution_start_time
             print(f'Generating and saving time: {execution_time:.2f} seconds')
 
         pipeline.prepare_text_encoder(async_call=True)
 
-        print(f"[Task Queue] Finish task, seq={task_seq}")
-        task_queue.finish_task(task_seq, results, False)
-
+        if not queue_task.finish_with_error:
+            queue_task.set_result(results, False)
+        task_queue.finish_task(queue_task.seq)
+        print(f"[Task Queue] Finish task, seq={queue_task.seq}")
         return results
     except Exception as e:
         print('Worker error:', e)
-        print(f"[Task Queue] Finish task, seq={task_seq}")
-        task_queue.finish_task(task_seq, [], True)
-        raise e
+        queue_task.set_result([], True, str(e))
+        return []

@@ -5,6 +5,22 @@
         "version": "0.1.0"
     },
     "paths": {
+        "/": {
+            "get": {
+                "summary": "Home",
+                "operationId": "home__get",
+                "responses": {
+                    "200": {
+                        "description": "Successful Response",
+                        "content": {
+                            "application/json": {
+                                "schema": {}
+                            }
+                        }
+                    }
+                }
+            }
+        },
         "/v1/generation/text-to-image": {
             "post": {
                 "summary": "Text2Img Generation",
@@ -54,10 +70,17 @@
                         "content": {
                             "application/json": {
                                 "schema": {
-                                    "type": "array",
-                                    "items": {
-                                        "$ref": "#/components/schemas/GeneratedImageBase64"
-                                    },
+                                    "anyOf": [
+                                        {
+                                            "type": "array",
+                                            "items": {
+                                                "$ref": "#/components/schemas/GeneratedImageBase64"
+                                            }
+                                        },
+                                        {
+                                            "$ref": "#/components/schemas/AsyncJobResponse"
+                                        }
+                                    ],
                                     "title": "Response Text2Img Generation V1 Generation Text To Image Post"
                                 },
                                 "example": [
@@ -67,6 +90,12 @@
                                         "finish_reason": "SUCCESS"
                                     }
                                 ]
+                            },
+                            "application/json async": {
+                                "example": {
+                                    "job_id": 1,
+                                    "job_type": "Text to Image"
+                                }
                             },
                             "image/png": {
                                 "example": "PNG bytes, what did you expect?"
@@ -135,10 +164,17 @@
                         "content": {
                             "application/json": {
                                 "schema": {
-                                    "type": "array",
-                                    "items": {
-                                        "$ref": "#/components/schemas/GeneratedImageBase64"
-                                    },
+                                    "anyOf": [
+                                        {
+                                            "type": "array",
+                                            "items": {
+                                                "$ref": "#/components/schemas/GeneratedImageBase64"
+                                            }
+                                        },
+                                        {
+                                            "$ref": "#/components/schemas/AsyncJobResponse"
+                                        }
+                                    ],
                                     "title": "Response Img Upscale Or Vary V1 Generation Image Upscale Vary Post"
                                 },
                                 "example": [
@@ -148,6 +184,12 @@
                                         "finish_reason": "SUCCESS"
                                     }
                                 ]
+                            },
+                            "application/json async": {
+                                "example": {
+                                    "job_id": 1,
+                                    "job_type": "Text to Image"
+                                }
                             },
                             "image/png": {
                                 "example": "PNG bytes, what did you expect?"
@@ -216,10 +258,17 @@
                         "content": {
                             "application/json": {
                                 "schema": {
-                                    "type": "array",
-                                    "items": {
-                                        "$ref": "#/components/schemas/GeneratedImageBase64"
-                                    },
+                                    "anyOf": [
+                                        {
+                                            "type": "array",
+                                            "items": {
+                                                "$ref": "#/components/schemas/GeneratedImageBase64"
+                                            }
+                                        },
+                                        {
+                                            "$ref": "#/components/schemas/AsyncJobResponse"
+                                        }
+                                    ],
                                     "title": "Response Img Inpaint Or Outpaint V1 Generation Image Inpait Outpaint Post"
                                 },
                                 "example": [
@@ -229,6 +278,12 @@
                                         "finish_reason": "SUCCESS"
                                     }
                                 ]
+                            },
+                            "application/json async": {
+                                "example": {
+                                    "job_id": 1,
+                                    "job_type": "Text to Image"
+                                }
                             },
                             "image/png": {
                                 "example": "PNG bytes, what did you expect?"
@@ -301,10 +356,17 @@
                         "content": {
                             "application/json": {
                                 "schema": {
-                                    "type": "array",
-                                    "items": {
-                                        "$ref": "#/components/schemas/GeneratedImageBase64"
-                                    },
+                                    "anyOf": [
+                                        {
+                                            "type": "array",
+                                            "items": {
+                                                "$ref": "#/components/schemas/GeneratedImageBase64"
+                                            }
+                                        },
+                                        {
+                                            "$ref": "#/components/schemas/AsyncJobResponse"
+                                        }
+                                    ],
                                     "title": "Response Img Prompt V1 Generation Image Prompt Post"
                                 },
                                 "example": [
@@ -315,8 +377,54 @@
                                     }
                                 ]
                             },
+                            "application/json async": {
+                                "example": {
+                                    "job_id": 1,
+                                    "job_type": "Text to Image"
+                                }
+                            },
                             "image/png": {
                                 "example": "PNG bytes, what did you expect?"
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Validation Error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/HTTPValidationError"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/v1/generation/query-job": {
+            "get": {
+                "summary": "Query Job",
+                "description": "Query async generation job",
+                "operationId": "query_job_v1_generation_query_job_get",
+                "parameters": [
+                    {
+                        "name": "job_id",
+                        "in": "query",
+                        "required": true,
+                        "schema": {
+                            "type": "integer",
+                            "title": "Job Id"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successful Response",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/AsyncJobResponse"
+                                }
                             }
                         }
                     },
@@ -367,6 +475,69 @@
                     "1728×576"
                 ],
                 "title": "AspectRatio"
+            },
+            "AsyncJobResponse": {
+                "properties": {
+                    "job_id": {
+                        "type": "integer",
+                        "title": "Job Id"
+                    },
+                    "job_type": {
+                        "$ref": "#/components/schemas/TaskType"
+                    },
+                    "job_stage": {
+                        "$ref": "#/components/schemas/AsyncJobStage"
+                    },
+                    "job_progess": {
+                        "type": "integer",
+                        "title": "Job Progess"
+                    },
+                    "job_status": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Job Status"
+                    },
+                    "job_result": {
+                        "anyOf": [
+                            {
+                                "items": {
+                                    "$ref": "#/components/schemas/GeneratedImageBase64"
+                                },
+                                "type": "array"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Job Result"
+                    }
+                },
+                "type": "object",
+                "required": [
+                    "job_id",
+                    "job_type",
+                    "job_stage",
+                    "job_progess",
+                    "job_status",
+                    "job_result"
+                ],
+                "title": "AsyncJobResponse"
+            },
+            "AsyncJobStage": {
+                "type": "string",
+                "enum": [
+                    "WAITING",
+                    "RUNNING",
+                    "SUCCESS",
+                    "ERROR"
+                ],
+                "title": "AsyncJobStage"
             },
             "Body_img_inpaint_or_outpaint_v1_generation_image_inpait_outpaint_post": {
                 "properties": {
@@ -557,6 +728,12 @@
                         "minimum": -2,
                         "title": "W5",
                         "default": 0.5
+                    },
+                    "async_process": {
+                        "type": "boolean",
+                        "title": "Async Process",
+                        "description": "Set to true will run async and return job info for retrieve generataion result later",
+                        "default": false
                     }
                 },
                 "type": "object",
@@ -585,7 +762,7 @@
                             }
                         ],
                         "title": "Cn Stop1",
-                        "description": "Stop at for image prompt"
+                        "description": "Stop at for image prompt, None for default value"
                     },
                     "cn_weight1": {
                         "anyOf": [
@@ -628,7 +805,7 @@
                             }
                         ],
                         "title": "Cn Stop2",
-                        "description": "Stop at for image prompt"
+                        "description": "Stop at for image prompt, None for default value"
                     },
                     "cn_weight2": {
                         "anyOf": [
@@ -671,7 +848,7 @@
                             }
                         ],
                         "title": "Cn Stop3",
-                        "description": "Stop at for image prompt"
+                        "description": "Stop at for image prompt, None for default value"
                     },
                     "cn_weight3": {
                         "anyOf": [
@@ -714,7 +891,7 @@
                             }
                         ],
                         "title": "Cn Stop4",
-                        "description": "Stop at for image prompt"
+                        "description": "Stop at for image prompt, None for default value"
                     },
                     "cn_weight4": {
                         "anyOf": [
@@ -905,6 +1082,12 @@
                         "minimum": -2,
                         "title": "W5",
                         "default": 0.5
+                    },
+                    "async_process": {
+                        "type": "boolean",
+                        "title": "Async Process",
+                        "description": "Set to true will run async and return job info for retrieve generataion result later",
+                        "default": false
                     }
                 },
                 "type": "object",
@@ -1087,6 +1270,12 @@
                         "minimum": -2,
                         "title": "W5",
                         "default": 0.5
+                    },
+                    "async_process": {
+                        "type": "boolean",
+                        "title": "Async Process",
+                        "description": "Set to true will run async and return job info for retrieve generataion result later",
+                        "default": false
                     }
                 },
                 "type": "object",
@@ -1104,196 +1293,6 @@
                     "CPDS"
                 ],
                 "title": "ControlNetType"
-            },
-            "FooocusStyle": {
-                "type": "string",
-                "enum": [
-                    "Fooocus V2",
-                    "Default (Slightly Cinematic)",
-                    "SAI 3D Model",
-                    "SAI Analog Film",
-                    "SAI Anime",
-                    "SAI Cinematic",
-                    "SAI Comic Book",
-                    "SAI Craft Clay",
-                    "SAI Digital Art",
-                    "SAI Enhance",
-                    "SAI Fantasy Art",
-                    "SAI Isometric",
-                    "SAI Line Art",
-                    "SAI Lowpoly",
-                    "SAI Neonpunk",
-                    "SAI Prigami",
-                    "SAI Photographic",
-                    "SAI Pixel Art",
-                    "SAI Texture",
-                    "Ads Advertising",
-                    "Ads Automotive",
-                    "Ads Corporate",
-                    "Ads Fashion Editorial",
-                    "Ads Food Photography",
-                    "Ads Luxury",
-                    "Ads Real Estate",
-                    "Ads Retail",
-                    "Artstyle Abstract",
-                    "Artstyle Abstract Expressionism",
-                    "Artstyle Art Deco",
-                    "Artstyle Art Nouveau",
-                    "Artstyle Constructivist",
-                    "Artstyle Cubist",
-                    "Artstyle Expressionist",
-                    "Artstyle Graffiti",
-                    "Artstyle Hyperrealism",
-                    "Artstyle Impressionist",
-                    "Artstyle Pointillism",
-                    "Artstyle Pop Art",
-                    "Artstyle Psychedelic",
-                    "Artstyle Renaissance",
-                    "Artstyle Steampunk",
-                    "Artstyle Surrealist",
-                    "Artstyle Typography",
-                    "Artstyle Watercolor",
-                    "Futuristic Biomechanical",
-                    "Futuristic Biomechanical Cyberpunk",
-                    "Futuristic Cybernetic",
-                    "Futuristic Cybernetic Robot",
-                    "Futuristic Cyberpunk Cityscape",
-                    "Futuristic Futuristic",
-                    "Futuristic Retro Cyberpunk",
-                    "Futuristic Retro Futurism",
-                    "Futuristic Sci Fi",
-                    "Futuristic Vaporwave",
-                    "Game Bubble Bobble",
-                    "Game Cyberpunk Game",
-                    "Game Fighting Game",
-                    "Game Gta",
-                    "Game Mario",
-                    "Game Minecraft",
-                    "Game Pokemon",
-                    "Game Retro Arcade",
-                    "Game Retro Game",
-                    "Game Rpg Fantasy Game",
-                    "Game Strategy Game",
-                    "Game Streetfighter",
-                    "Game Zelda",
-                    "Misc Architectural",
-                    "Misc Disco",
-                    "Misc Dreamscape",
-                    "Misc Dystopian",
-                    "Misc Fairy Tale",
-                    "Misc Gothic",
-                    "Misc Grunge",
-                    "Misc Horror",
-                    "Misc Kawaii",
-                    "Misc Lovecraftian",
-                    "Misc Macabre",
-                    "Misc Manga",
-                    "Misc Metropolis",
-                    "Misc Minimalist",
-                    "Misc Monochrome",
-                    "Misc Nautical",
-                    "Misc Space",
-                    "Misc Stained Glass",
-                    "Misc Techwear Fashion",
-                    "Misc Tribal",
-                    "Misc Zentangle",
-                    "Papercraft Collage",
-                    "Papercraft Flat Papercut",
-                    "Papercraft Kirigami",
-                    "Papercraft Paper Mache",
-                    "Papercraft Paper Quilling",
-                    "Papercraft Papercut Collage",
-                    "Papercraft Papercut Shadow Box",
-                    "Papercraft Stacked Papercut",
-                    "Papercraft Thick Layered Papercut",
-                    "Photo Alien",
-                    "Photo Film Noir",
-                    "Photo Hdr",
-                    "Photo Long Exposure",
-                    "Photo Neon Noir",
-                    "Photo Silhouette",
-                    "Photo Tilt Shift",
-                    "Cinematic Diva",
-                    "Abstract Expressionism",
-                    "Academia",
-                    "Action Figure",
-                    "Adorable 3D Character",
-                    "Adorable Kawaii",
-                    "Art Deco",
-                    "Art Nouveau",
-                    "Astral Aura",
-                    "Avant Garde",
-                    "Baroque",
-                    "Bauhaus Style Poster",
-                    "Blueprint Schematic Drawing",
-                    "Caricature",
-                    "Cel Shaded Art",
-                    "Character Design Sheet",
-                    "Classicism Art",
-                    "Color Field Painting",
-                    "Colored Pencil Art",
-                    "Conceptual Art",
-                    "Constructivism",
-                    "Cubism",
-                    "Dadaism",
-                    "Dark Fantasy",
-                    "Dark Moody Atmosphere",
-                    "DMT Art Style",
-                    "Doodle Art",
-                    "Double Exposure",
-                    "Dripping Paint Splatter Art",
-                    "Expressionism",
-                    "Faded Polaroid Photo",
-                    "Fauvism",
-                    "Flat 2D Art",
-                    "Fortnite Art Style",
-                    "Futurism",
-                    "Glitchcore",
-                    "Glo Fi",
-                    "Googie Art Style",
-                    "Graffiti Art",
-                    "Harlem Renaissance Art",
-                    "High Fashion",
-                    "Idyllic",
-                    "Impressionism",
-                    "Infographic Drawing",
-                    "Ink Dripping Drawing",
-                    "Japanese Ink Drawing",
-                    "Knolling Photography",
-                    "Light Cheery Atmosphere",
-                    "Logo Design",
-                    "Luxurious Elegance",
-                    "Macro Photography",
-                    "Mandola Art",
-                    "Marker Drawing",
-                    "Medievalism",
-                    "Minimalism",
-                    "Neo Baroque",
-                    "Neo Byzantine",
-                    "Neo Futurism",
-                    "Neo Impressionism",
-                    "Neo Rococo",
-                    "Neoclassicism",
-                    "Op Art",
-                    "Ornate And Intricate",
-                    "Pencil Sketch Drawing",
-                    "Pop Art 2",
-                    "Rococo",
-                    "Silhouette Art",
-                    "Simple Vector Art",
-                    "Sketchup",
-                    "Steampunk 2",
-                    "Surrealism",
-                    "Suprematism",
-                    "Terragen",
-                    "Tranquil Relaxing Atmosphere",
-                    "Sticker Designs",
-                    "Vibrant Rim Light",
-                    "Volumetric Lighting",
-                    "Watercolor 2",
-                    "Whimsical And Playful"
-                ],
-                "title": "FooocusStyle"
             },
             "GeneratedImageBase64": {
                 "properties": {
@@ -1377,6 +1376,16 @@
                 ],
                 "title": "PerfomanceSelection"
             },
+            "TaskType": {
+                "type": "string",
+                "enum": [
+                    "Text to Image",
+                    "Image Upscale or Variation",
+                    "Image Inpaint or Outpaint",
+                    "Image Prompt"
+                ],
+                "title": "TaskType"
+            },
             "Text2ImgRequest": {
                 "properties": {
                     "prompt": {
@@ -1391,7 +1400,7 @@
                     },
                     "style_selections": {
                         "items": {
-                            "$ref": "#/components/schemas/FooocusStyle"
+                            "type": "string"
                         },
                         "type": "array",
                         "title": "Style Selections",
@@ -1466,6 +1475,12 @@
                                 "weight": 0.5
                             }
                         ]
+                    },
+                    "async_process": {
+                        "type": "boolean",
+                        "title": "Async Process",
+                        "description": "Set to true will run async and return job info for retrieve generataion result later",
+                        "default": false
                     }
                 },
                 "type": "object",

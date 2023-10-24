@@ -4,15 +4,21 @@ from typing import List
 
 
 class TaskType(str, Enum):
-    text2img = 'text2img'
+    text_2_img = 'Text to Image'
+    img_uov = 'Image Upscale or Variation'
+    img_inpaint_outpaint = 'Image Inpaint or Outpaint'
+    img_prompt = 'Image Prompt'
 
 
 class QueueTask(object):
     is_finished: bool = False
+    finish_progess: int = 0
     start_millis: int = 0
     finish_millis: int = 0
     finish_with_error: bool = False
+    task_status: str | None = None
     task_result: any = None
+    error_message: str | None = None
 
     def __init__(self, seq: int, type: TaskType, req_param: dict, in_queue_millis: int):
         self.seq = seq
@@ -20,14 +26,29 @@ class QueueTask(object):
         self.req_param = req_param
         self.in_queue_millis = in_queue_millis
 
+    def set_progress(self, progress: int, status: str | None):
+        if progress > 100:
+            progress = 100
+        self.finish_progess = progress
+        self.task_status = status
+
+    def set_result(self, task_result: any, finish_with_error: bool, error_message: str | None = None):
+        if not finish_with_error:
+            self.finish_progess = 100
+            self.task_status = 'Finished'
+        self.task_result = task_result
+        self.finish_with_error = finish_with_error
+        self.error_message = error_message
+
 
 class TaskQueue(object):
     queue: List[QueueTask] = []
     history: List[QueueTask] = []
     last_seq = 0
 
-    def __init__(self, queue_size: int = 3):
+    def __init__(self, queue_size: int, hisotry_size: int):
         self.queue_size = queue_size
+        self.hisotry_size = hisotry_size
 
     def add_task(self, type: TaskType, req_param: dict) -> QueueTask | None:
         """
@@ -40,8 +61,8 @@ class TaskQueue(object):
         task = QueueTask(seq=self.last_seq+1, type=type, req_param=req_param,
                          in_queue_millis=int(round(time.time() * 1000)))
         self.queue.append(task)
-        self.last_seq += task.seq
-        return task.seq
+        self.last_seq = task.seq
+        return task
 
     def get_task(self, seq: int, include_history: bool = False) -> QueueTask | None:
         for task in self.queue:
@@ -67,14 +88,17 @@ class TaskQueue(object):
         if task is not None:
             task.start_millis = int(round(time.time() * 1000))
 
-    def finish_task(self, seq: int, task_result: any, finish_with_error: bool):
+    def finish_task(self, seq: int):
         task = self.get_task(seq)
         if task is not None:
             task.is_finished = True
             task.finish_millis = int(round(time.time() * 1000))
-            task.finish_with_error = finish_with_error
-            task.task_result = task_result
 
             # Move task to history
             self.queue.remove(task)
             self.history.append(task)
+
+            # Clean history
+            if len(self.history) > self.hisotry_size:
+                removed_task = self.history.pop(0)
+                print(f"Clean task history, remove task: {removed_task.seq}")

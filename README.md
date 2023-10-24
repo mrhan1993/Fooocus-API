@@ -29,9 +29,6 @@ conda env create -f environment.yaml
 conda activate fooocus-api
 ```
 
-Set enviroment variable `TORCH_INDEX_URL` to the version corresponding to the local cuda driver.
-Default is "https://download.pytorch.org/whl/cu121", you may change the part "cu118".
-
 Run
 ```
 python main.py
@@ -70,12 +67,14 @@ Swagger openapi defination see [openapi.json](docs/openapi.json).
 
 You can import it in [Swagger-UI](https://swagger.io/tools/swagger-ui/) editor.
 
+All the generation api support for response in PNG bytes directly when request's 'Accept' header is 'image/png'.
+
+All the generation api support async process by pass parameter `async_process`` to true. And then use query job api to retrieve progress and generation results.
+
 #### Text to Image
 > POST /v1/generation/text-to-image
 
 Alternative api for the normal image generation of Fooocus Gradio interface.
-
-Add support for response in PNG bytes directly when request's 'Accept' header is 'image/png'.
 
 #### Image Upscale or Variation
 > POST /v1/generation/image-upscale-vary
@@ -91,3 +90,8 @@ Alternative api for 'Inpaint or Outpaint' tab of Fooocus Gradio interface.
 > POST /v1/generation/image-prompt
 
 Alternative api for 'Image Prompt' tab of Fooocus Gradio interface.
+
+#### Query Job
+> GET /v1/generation/query-job
+
+Query async generation request results, return job progress and generation results.
