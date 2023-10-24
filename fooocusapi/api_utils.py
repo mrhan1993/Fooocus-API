@@ -9,6 +9,7 @@ from PIL import Image
 from fooocusapi.models import GeneratedImageBase64, GenerationFinishReason, ImgInpaintOrOutpaintRequest, ImgPromptRequest, ImgUpscaleOrVaryRequest, Text2ImgRequest
 from fooocusapi.parameters import ImageGenerationParams, ImageGenerationResult
 import modules.flags as flags
+from modules.sdxl_styles import legal_style_names
 
 
 def narray_to_base64img(narray: np.ndarray) -> str:
@@ -44,7 +45,7 @@ def read_input_image(input_image: UploadFile) -> np.ndarray:
 def req_to_params(req: Text2ImgRequest) -> ImageGenerationParams:
     prompt = req.prompt
     negative_prompt = req.negative_prompt
-    style_selections = [s.value for s in req.style_selections]
+    style_selections = [s for s in req.style_selections if s in legal_style_names]
     performance_selection = req.performance_selection.value
     aspect_ratios_selection = req.aspect_ratios_selection.value
     image_number = req.image_number
