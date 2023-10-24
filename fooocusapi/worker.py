@@ -402,8 +402,10 @@ def process_generate(params: ImageGenerationParams) -> List[ImageGenerationResul
             if direct_return:
                 d = [('Upscale (Fast)', '2x')]
                 log(uov_input_image, d, single_line_number=1)
-                outputs.append(['results', [uov_input_image]])
-                return
+                outputs.append(['results', [uov_input_image], -1 if len(tasks) == 0 else tasks[0]['task_seed']])
+                results = make_results_from_outputs()
+                task_queue.finish_task(task_seq, results, False)
+                return results * image_number
 
             tiled = True
             denoising_strength = 0.382
@@ -455,7 +457,9 @@ def process_generate(params: ImageGenerationParams) -> List[ImageGenerationResul
 
             if advanced_parameters.debugging_cn_preprocessor:
                 outputs.append(['results', inpaint_worker.current_task.visualize_mask_processing()])
-                return
+                results = []
+                task_queue.finish_task(task_seq, results, False)
+                return results
 
             progressbar(13, 'VAE Inpaint encoding ...')
 
@@ -500,8 +504,10 @@ def process_generate(params: ImageGenerationParams) -> List[ImageGenerationResul
                 cn_img = HWC3(cn_img)
                 task[0] = core.numpy_to_pytorch(cn_img)
                 if advanced_parameters.debugging_cn_preprocessor:
-                    outputs.append(['results', [cn_img]])
-                    return
+                    outputs.append(['results', [cn_img], task['task_seed']])
+                    results = make_results_from_outputs()
+                    task_queue.finish_task(task_seq, results, False)
+                    return results
             for task in cn_tasks[flags.cn_cpds]:
                 cn_img, cn_stop, cn_weight = task
                 cn_img = resize_image(HWC3(cn_img), width=width, height=height)
@@ -509,8 +515,10 @@ def process_generate(params: ImageGenerationParams) -> List[ImageGenerationResul
                 cn_img = HWC3(cn_img)
                 task[0] = core.numpy_to_pytorch(cn_img)
                 if advanced_parameters.debugging_cn_preprocessor:
-                    outputs.append(['results', [cn_img]])
-                    return
+                    outputs.append(['results', [cn_img], task['task_seed']])
+                    results = make_results_from_outputs()
+                    task_queue.finish_task(task_seq, results, False)
+                    return results
             for task in cn_tasks[flags.cn_ip]:
                 cn_img, cn_stop, cn_weight = task
                 cn_img = HWC3(cn_img)
@@ -520,8 +528,10 @@ def process_generate(params: ImageGenerationParams) -> List[ImageGenerationResul
 
                 task[0] = ip_adapter.preprocess(cn_img)
                 if advanced_parameters.debugging_cn_preprocessor:
-                    outputs.append(['results', [cn_img]])
-                    return
+                    outputs.append(['results', [cn_img], task['task_seed']])
+                    results = make_results_from_outputs()
+                    task_queue.finish_task(task_seq, results, False)
+                    return results
 
             if len(cn_tasks[flags.cn_ip]) > 0:
                 pipeline.final_unet = ip_adapter.patch_model(pipeline.final_unet, cn_tasks[flags.cn_ip])
