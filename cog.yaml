@@ -33,7 +33,6 @@ build:
     - "opencv-contrib-python==4.8.0.74"
     - "torch==2.0.1"
     - "torchvision==0.15.2"
-    - "xformers==0.0.21"
 
   # commands run after the environment is setup
   # run:
