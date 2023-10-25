@@ -100,3 +100,13 @@ Query async generation request results, return job progress and generation resul
 > GET /v1/generation/job-queue
 
 Query job queue info, include running job count, finished job count and last job id.
+
+#### Get All Model Names
+> GET /v1/engines/all-models
+
+Get all filenames of base model and lora.
+
+#### Refresh Models
+> POST /v1/engines/refresh-models
+
+Refresh local files and get all filenames of base model and lora.
