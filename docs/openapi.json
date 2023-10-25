@@ -440,6 +440,25 @@
                     }
                 }
             }
+        },
+        "/v1/generation/job-queue": {
+            "get": {
+                "summary": "Job Queue",
+                "description": "Query job queue info",
+                "operationId": "job_queue_v1_generation_job_queue_get",
+                "responses": {
+                    "200": {
+                        "description": "Successful Response",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/JobQueueInfo"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
         }
     },
     "components": {
@@ -1347,6 +1366,32 @@
                 },
                 "type": "object",
                 "title": "HTTPValidationError"
+            },
+            "JobQueueInfo": {
+                "properties": {
+                    "running_size": {
+                        "type": "integer",
+                        "title": "Running Size",
+                        "description": "The current running and waiting job count"
+                    },
+                    "finished_size": {
+                        "type": "integer",
+                        "title": "Finished Size",
+                        "description": "Finished job cound (after auto clean)"
+                    },
+                    "last_job_id": {
+                        "type": "integer",
+                        "title": "Last Job Id",
+                        "description": "Last submit generation job id"
+                    }
+                },
+                "type": "object",
+                "required": [
+                    "running_size",
+                    "finished_size",
+                    "last_job_id"
+                ],
+                "title": "JobQueueInfo"
             },
             "Lora": {
                 "properties": {
