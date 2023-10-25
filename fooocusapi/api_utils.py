@@ -6,7 +6,8 @@ from typing import List, Tuple
 import numpy as np
 from fastapi import Response, UploadFile
 from PIL import Image
-from fooocusapi.models import AsyncJobResponse, AsyncJobStage, GeneratedImageBase64, GenerationFinishReason, ImgInpaintOrOutpaintRequest, ImgPromptRequest, ImgUpscaleOrVaryRequest, Text2ImgRequest
+from fooocusapi.file_utils import get_file_serve_url, output_file_to_base64img, output_file_to_bytesimg
+from fooocusapi.models import AsyncJobResponse, AsyncJobStage, GeneratedImageResult, GenerationFinishReason, ImgInpaintOrOutpaintRequest, ImgPromptRequest, ImgUpscaleOrVaryRequest, Text2ImgRequest
 from fooocusapi.parameters import ImageGenerationParams, ImageGenerationResult
 from fooocusapi.task_queue import QueueTask, TaskType
 import modules.flags as flags
@@ -104,7 +105,7 @@ def req_to_params(req: Text2ImgRequest) -> ImageGenerationParams:
                                  )
 
 
-def generation_output(results: QueueTask | List[ImageGenerationResult], streaming_output: bool) -> Response | List[GeneratedImageBase64] | AsyncJobResponse:
+def generation_output(results: QueueTask | List[ImageGenerationResult], streaming_output: bool, require_base64: bool) -> Response | List[GeneratedImageResult] | AsyncJobResponse:
     if isinstance(results, QueueTask):
         task = results
         job_stage = AsyncJobStage.running
@@ -117,7 +118,11 @@ def generation_output(results: QueueTask | List[ImageGenerationResult], streamin
             else:
                 if task.task_result != None:
                     job_stage = AsyncJobStage.success
-                    job_result = generation_output(task.task_result, False)
+                    task_result_require_base64 = False
+                    if 'require_base64' in task.req_param and task.req_param['require_base64']:
+                        task_result_require_base64 = True
+
+                    job_result = generation_output(task.task_result, False, task_result_require_base64)
         return AsyncJobResponse(job_id=task.seq,
                                 job_type=task.type,
                                 job_stage=job_stage,
@@ -128,11 +133,15 @@ def generation_output(results: QueueTask | List[ImageGenerationResult], streamin
     if streaming_output:
         if len(results) == 0 or results[0].finish_reason != GenerationFinishReason.success:
             return Response(status_code=500)
-        bytes = narray_to_bytesimg(results[0].im)
+        bytes = output_file_to_bytesimg(results[0].im)
         return Response(bytes, media_type='image/png')
     else:
-        results = [GeneratedImageBase64(base64=narray_to_base64img(
-            item.im), seed=item.seed, finish_reason=item.finish_reason) for item in results]
+        results = [GeneratedImageResult(
+            base64=output_file_to_base64img(
+                item.im) if require_base64 else None,
+            url=get_file_serve_url(item.im),
+            seed=item.seed,
+            finish_reason=item.finish_reason) for item in results]
         return results
 
 

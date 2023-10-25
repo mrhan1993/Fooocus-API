@@ -4,6 +4,7 @@ import time
 import numpy as np
 import torch
 from typing import List
+from fooocusapi.file_utils import save_output_file
 from fooocusapi.parameters import inpaint_model_version, GenerationFinishReason, ImageGenerationParams, ImageGenerationResult
 from fooocusapi.task_queue import QueueTask, TaskQueue
 
@@ -44,7 +45,8 @@ def process_generate(queue_task: QueueTask, params: ImageGenerationParams) -> Li
             if item[0] == 'results':
                 for im in item[1]:
                     if isinstance(im, np.ndarray):
-                        results.append(ImageGenerationResult(im=im, seed=seed, finish_reason=GenerationFinishReason.success))
+                        img_filename = save_output_file(im)
+                        results.append(ImageGenerationResult(im=img_filename, seed=seed, finish_reason=GenerationFinishReason.success))
         queue_task.set_result(results, False)
         task_queue.finish_task(queue_task.seq)
         print(f"[Task Queue] Finish task, seq={queue_task.seq}")
@@ -593,6 +595,7 @@ def process_generate(queue_task: QueueTask, params: ImageGenerationParams) -> Li
                 if inpaint_worker.current_task is not None:
                     imgs = [inpaint_worker.current_task.post_process(x) for x in imgs]
 
+                img_filenames = []
                 for x in imgs:
                     d = [
                         ('Prompt', task['log_positive_prompt']),
@@ -615,11 +618,13 @@ def process_generate(queue_task: QueueTask, params: ImageGenerationParams) -> Li
                             d.append((f'LoRA [{n}] weight', w))
                     if save_log:
                         log(x, d, single_line_number=3)
+                    img_filename = save_output_file(x)
+                    img_filenames.append(img_filename)
                 
                 # Fooocus async_worker.py code end
 
                 results.append(ImageGenerationResult(
-                    im=imgs[0], seed=task['task_seed'], finish_reason=GenerationFinishReason.success))
+                    im=img_filenames[0], seed=task['task_seed'], finish_reason=GenerationFinishReason.success))
             except Exception as e:
                 print('Process error:', e)
                 results.append(ImageGenerationResult(

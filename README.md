@@ -62,7 +62,11 @@ You can import it in [Swagger-UI](https://swagger.io/tools/swagger-ui/) editor.
 
 All the generation api support for response in PNG bytes directly when request's 'Accept' header is 'image/png'.
 
-All the generation api support async process by pass parameter `async_process`` to true. And then use query job api to retrieve progress and generation results.
+All the generation api support async process by pass parameter `async_process` to true. And then use query job api to retrieve progress and generation results.
+
+Break change from v0.3.0:
+* The generation apis won't return `base64` field expect request parameters set `require_base64` to true.
+* The generation apis return a `url` field where the generated image can be requested via a static file url.
 
 #### Text to Image
 > POST /v1/generation/text-to-image

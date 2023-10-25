@@ -1,9 +1,11 @@
 from typing import List, Optional
 from fastapi import Depends, FastAPI, Header, Query, Response, UploadFile
 from fastapi.params import File
+from fastapi.staticfiles import StaticFiles
 import uvicorn
 from fooocusapi.api_utils import generation_output, req_to_params
-from fooocusapi.models import AllModelNamesResponse, AsyncJobResponse, GeneratedImageBase64, ImgInpaintOrOutpaintRequest, ImgPromptRequest, ImgUpscaleOrVaryRequest, JobQueueInfo, Text2ImgRequest
+import fooocusapi.file_utils as file_utils
+from fooocusapi.models import AllModelNamesResponse, AsyncJobResponse, GeneratedImageResult, ImgInpaintOrOutpaintRequest, ImgPromptRequest, ImgUpscaleOrVaryRequest, JobQueueInfo, Text2ImgRequest
 from fooocusapi.parameters import GenerationFinishReason, ImageGenerationResult
 from fooocusapi.task_queue import TaskType
 from fooocusapi.worker import process_generate, task_queue
@@ -11,7 +13,8 @@ from concurrent.futures import ThreadPoolExecutor
 
 app = FastAPI()
 
-work_executor = ThreadPoolExecutor(max_workers=task_queue.queue_size*2, thread_name_prefix="worker_")
+work_executor = ThreadPoolExecutor(
+    max_workers=task_queue.queue_size*2, thread_name_prefix="worker_")
 
 img_generate_responses = {
     "200": {
@@ -37,6 +40,7 @@ img_generate_responses = {
     }
 }
 
+
 def call_worker(req: Text2ImgRequest, accept: str):
     task_type = TaskType.text_2_img
     if isinstance(req, ImgUpscaleOrVaryRequest):
@@ -47,12 +51,13 @@ def call_worker(req: Text2ImgRequest, accept: str):
         task_type = TaskType.img_prompt
 
     params = req_to_params(req)
-    queue_task = task_queue.add_task(task_type, {'params': params.__dict__, 'accept': accept})
+    queue_task = task_queue.add_task(
+        task_type, {'params': params.__dict__, 'accept': accept, 'require_base64': req.require_base64})
 
     if queue_task is None:
         print("[Task Queue] The task queue has reached limit")
         results = [ImageGenerationResult(im=None, seed=0,
-                           finish_reason=GenerationFinishReason.queue_is_full)]
+                                         finish_reason=GenerationFinishReason.queue_is_full)]
     elif req.async_process:
         work_executor.submit(process_generate, queue_task, params)
         results = queue_task
@@ -61,12 +66,13 @@ def call_worker(req: Text2ImgRequest, accept: str):
 
     return results
 
+
 @app.get("/")
 def home():
     return Response(content='Swagger-UI to: <a href="/docs">/docs</a>', media_type="text/html")
 
 
-@app.post("/v1/generation/text-to-image", response_model=List[GeneratedImageBase64] | AsyncJobResponse, responses=img_generate_responses)
+@app.post("/v1/generation/text-to-image", response_model=List[GeneratedImageResult] | AsyncJobResponse, responses=img_generate_responses)
 def text2img_generation(req: Text2ImgRequest, accept: str = Header(None),
                         accept_query: str | None = Query(None, alias='accept', description="Parameter to overvide 'Accept' header, 'image/png' for output bytes")):
     if accept_query is not None and len(accept_query) > 0:
@@ -80,10 +86,10 @@ def text2img_generation(req: Text2ImgRequest, accept: str = Header(None),
         streaming_output = False
 
     results = call_worker(req, accept)
-    return generation_output(results, streaming_output)
+    return generation_output(results, streaming_output, req.require_base64)
 
 
-@app.post("/v1/generation/image-upscale-vary", response_model=List[GeneratedImageBase64] | AsyncJobResponse, responses=img_generate_responses)
+@app.post("/v1/generation/image-upscale-vary", response_model=List[GeneratedImageResult] | AsyncJobResponse, responses=img_generate_responses)
 def img_upscale_or_vary(input_image: UploadFile, req: ImgUpscaleOrVaryRequest = Depends(ImgUpscaleOrVaryRequest.as_form),
                         accept: str = Header(None),
                         accept_query: str | None = Query(None, alias='accept', description="Parameter to overvide 'Accept' header, 'image/png' for output bytes")):
@@ -98,10 +104,10 @@ def img_upscale_or_vary(input_image: UploadFile, req: ImgUpscaleOrVaryRequest = 
         streaming_output = False
 
     results = call_worker(req, accept)
-    return generation_output(results, streaming_output)
+    return generation_output(results, streaming_output, req.require_base64)
 
 
-@app.post("/v1/generation/image-inpait-outpaint", response_model=List[GeneratedImageBase64] | AsyncJobResponse, responses=img_generate_responses)
+@app.post("/v1/generation/image-inpait-outpaint", response_model=List[GeneratedImageResult] | AsyncJobResponse, responses=img_generate_responses)
 def img_inpaint_or_outpaint(input_image: UploadFile, req: ImgInpaintOrOutpaintRequest = Depends(ImgInpaintOrOutpaintRequest.as_form),
                             accept: str = Header(None),
                             accept_query: str | None = Query(None, alias='accept', description="Parameter to overvide 'Accept' header, 'image/png' for output bytes")):
@@ -116,10 +122,10 @@ def img_inpaint_or_outpaint(input_image: UploadFile, req: ImgInpaintOrOutpaintRe
         streaming_output = False
 
     results = call_worker(req, accept)
-    return generation_output(results, streaming_output)
+    return generation_output(results, streaming_output, req.require_base64)
 
 
-@app.post("/v1/generation/image-prompt", response_model=List[GeneratedImageBase64] | AsyncJobResponse, responses=img_generate_responses)
+@app.post("/v1/generation/image-prompt", response_model=List[GeneratedImageResult] | AsyncJobResponse, responses=img_generate_responses)
 def img_prompt(cn_img1: Optional[UploadFile] = File(None),
                req: ImgPromptRequest = Depends(ImgPromptRequest.as_form),
                accept: str = Header(None),
@@ -135,7 +141,7 @@ def img_prompt(cn_img1: Optional[UploadFile] = File(None),
         streaming_output = False
 
     results = call_worker(req, accept)
-    return generation_output(results, streaming_output)
+    return generation_output(results, streaming_output, req.require_base64)
 
 
 @app.get("/v1/generation/query-job", response_model=AsyncJobResponse, description="Query async generation job")
@@ -143,8 +149,8 @@ def query_job(job_id: int):
     queue_task = task_queue.get_task(job_id, True)
     if queue_task is None:
         return Response(content="Job not found", status_code=404)
-    
-    return generation_output(queue_task, False)
+
+    return generation_output(queue_task, False, False)
 
 
 @app.get("/v1/generation/job-queue", response_model=JobQueueInfo, description="Query job queue info")
@@ -170,6 +176,11 @@ def all_styles():
     from modules.sdxl_styles import legal_style_names
     return legal_style_names
 
+
+app.mount("/files", StaticFiles(directory=file_utils.output_dir), name="files")
+
+
 def start_app(args):
+    file_utils.static_serve_base_url = args.base_url + "/files/"
     uvicorn.run("fooocusapi.api:app", host=args.host,
                 port=args.port, log_level=args.log_level)

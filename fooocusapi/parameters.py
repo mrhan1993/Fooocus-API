@@ -58,7 +58,7 @@ class GenerationFinishReason(str, Enum):
 
 
 class ImageGenerationResult(object):
-    def __init__(self, im: np.ndarray | None, seed: int, finish_reason: GenerationFinishReason):
+    def __init__(self, im: str | None, seed: int, finish_reason: GenerationFinishReason):
         self.im = im
         self.seed = seed
         self.finish_reason = finish_reason

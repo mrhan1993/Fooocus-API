@@ -253,6 +253,12 @@ def prepare_environments(args) -> bool:
     if not skip_sync_repo:
         download_repositories()
 
+    if args.base_url is None or len(args.base_url.strip()) == 0:
+        host = args.host
+        if host == '0.0.0.0':
+            host = '127.0.0.1'
+        args.base_url = f"http://{host}:{args.port}"
+
     # Add dependent repositories to import path
     sys.path.append(script_path)
     fooocus_path = os.path.join(script_path, dir_repos, fooocus_name)
@@ -275,11 +281,12 @@ def prepare_environments(args) -> bool:
 
 def pre_setup(skip_sync_repo: bool=False, disable_private_log: bool=False, load_all_models: bool=False, preload_pipeline: bool=False):
     class Args(object):
+        base_url = None
         sync_repo = None
         disable_private_log = False
         preload_pipeline = False
         queue_size = 3
-        queue_history = 6
+        queue_history = 100
 
     print("[Pre Setup] Prepare environments")
 
@@ -316,6 +323,7 @@ if __name__ == "__main__":
                         help="Set the listen port, default: 8888")
     parser.add_argument("--host", type=str,
                         default='127.0.0.1', help="Set the listen host, default: 127.0.0.1")
+    parser.add_argument("--base-url", type=str, default=None, help="Set base url for outside visit, default is http://host:port")
     parser.add_argument("--log-level", type=str,
                         default='info', help="Log info for Uvicorn, default: info")
     parser.add_argument("--sync-repo", default=None,
@@ -323,7 +331,7 @@ if __name__ == "__main__":
     parser.add_argument("--disable-private-log", default=False, action="store_true", help="Disable Fooocus private log, won't save output files (include generated image files)")
     parser.add_argument("--preload-pipeline", default=False, action="store_true", help="Preload pipeline before start http server")
     parser.add_argument("--queue-size", type=int, default=3, help="Working queue size, default: 3, generation requests exceeding working queue size will return failure")
-    parser.add_argument("--queue-history", type=int, default=6, help="Finished jobs reserve in memory size, default: 6")
+    parser.add_argument("--queue-history", type=int, default=100, help="Finished jobs reserve in memory size, default: 100")
 
     args = parser.parse_args()
 

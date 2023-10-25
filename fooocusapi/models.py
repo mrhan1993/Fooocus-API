@@ -98,6 +98,7 @@ class Text2ImgRequest(BaseModel):
     refiner_model_name: str = 'sd_xl_refiner_1.0_0.9vae.safetensors'
     loras: List[Lora] = Field(default=[
         Lora(model_name='sd_xl_offset_example-lora_1.0.safetensors', weight=0.5)])
+    require_base64: bool = Field(default=False, description="Return base64 data of generated image")
     async_process: bool = Field(default=False, description="Set to true will run async and return job info for retrieve generataion result later")
 
 
@@ -135,6 +136,7 @@ class ImgUpscaleOrVaryRequest(Text2ImgRequest):
                 w4: float = Form(default=0.5, ge=-2, le=2),
                 l5: str | None = Form(None),
                 w5: float = Form(default=0.5, ge=-2, le=2),
+                require_base64: bool = Form(default=False, description="Return base64 data of generated image"),
                 async_process: bool = Form(default=False, description="Set to true will run async and return job info for retrieve generataion result later"),
                 ):
         style_selection_arr: List[str] = []
@@ -155,7 +157,7 @@ class ImgUpscaleOrVaryRequest(Text2ImgRequest):
                    performance_selection=performance_selection, aspect_ratios_selection=aspect_ratios_selection,
                    image_number=image_number, image_seed=image_seed, sharpness=sharpness, guidance_scale=guidance_scale,
                    base_model_name=base_model_name, refiner_model_name=refiner_model_name,
-                   loras=loras, async_process=async_process)
+                   loras=loras, require_base64=require_base64, async_process=async_process)
 
 
 class ImgInpaintOrOutpaintRequest(Text2ImgRequest):
@@ -196,6 +198,7 @@ class ImgInpaintOrOutpaintRequest(Text2ImgRequest):
                 w4: float = Form(default=0.5, ge=-2, le=2),
                 l5: str | None = Form(None),
                 w5: float = Form(default=0.5, ge=-2, le=2),
+                require_base64: bool = Form(default=False, description="Return base64 data of generated image"),
                 async_process: bool = Form(default=False, description="Set to true will run async and return job info for retrieve generataion result later"),
                 ):
 
@@ -232,7 +235,7 @@ class ImgInpaintOrOutpaintRequest(Text2ImgRequest):
                    performance_selection=performance_selection, aspect_ratios_selection=aspect_ratios_selection,
                    image_number=image_number, image_seed=image_seed, sharpness=sharpness, guidance_scale=guidance_scale,
                    base_model_name=base_model_name, refiner_model_name=refiner_model_name,
-                   loras=loras, async_process=async_process)
+                   loras=loras, require_base64=require_base64, async_process=async_process)
 
 
 class ImgPromptRequest(Text2ImgRequest):
@@ -297,6 +300,7 @@ class ImgPromptRequest(Text2ImgRequest):
                 w4: float = Form(default=0.5, ge=-2, le=2),
                 l5: str | None = Form(None),
                 w5: float = Form(default=0.5, ge=-2, le=2),
+                require_base64: bool = Form(default=False, description="Return base64 data of generated image"),
                 async_process: bool = Form(default=False, description="Set to true will run async and return job info for retrieve generataion result later"),
                 ):
         if isinstance(cn_img1, File):
@@ -338,12 +342,13 @@ class ImgPromptRequest(Text2ImgRequest):
                    performance_selection=performance_selection, aspect_ratios_selection=aspect_ratios_selection,
                    image_number=image_number, image_seed=image_seed, sharpness=sharpness, guidance_scale=guidance_scale,
                    base_model_name=base_model_name, refiner_model_name=refiner_model_name,
-                   loras=loras, async_process=async_process)
+                   loras=loras, require_base64=require_base64, async_process=async_process)
 
 
-class GeneratedImageBase64(BaseModel):
+class GeneratedImageResult(BaseModel):
     base64: str | None = Field(
-        description="Image encoded in base64, or null if finishReasen is not 'SUCCESS'")
+        description="Image encoded in base64, or null if finishReasen is not 'SUCCESS', only return when request require base64")
+    url: str | None = Field(description="Image file static serve url, or null if finishReasen is not 'SUCCESS'")
     seed: int = Field(description="The seed associated with this image")
     finish_reason: GenerationFinishReason
 
@@ -361,7 +366,7 @@ class AsyncJobResponse(BaseModel):
     job_stage: AsyncJobStage
     job_progess: int
     job_status: str | None
-    job_result: List[GeneratedImageBase64] | None
+    job_result: List[GeneratedImageResult] | None
 
 
 class JobQueueInfo(BaseModel):
