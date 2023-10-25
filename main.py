@@ -246,6 +246,13 @@ def prepare_environments(args) -> bool:
                 f"Invalid value for argument '--sync-repo', acceptable value are 'skip' and 'only'")
             exit(1)
 
+    import fooocusapi.worker as worker
+    worker.task_queue.queue_size = args.queue_size
+    worker.task_queue.history_size = args.queue_history
+
+    if args.disable_private_log:
+        worker.save_log = False
+
     if not skip_sync_repo:
         download_repositories()
 
@@ -269,22 +276,22 @@ def prepare_environments(args) -> bool:
 
     return True
 
-def pre_setup(skip_sync_repo: bool=False, disable_private_log: bool=False, load_all_models: bool=False, preload_pipeline: bool=False):
+def pre_setup(skip_sync_repo: bool=False, disable_private_log: bool=False, load_all_models: bool=False, preload_pipeline: bool=False, skip_save_log: bool=False):
     class Args(object):
         sync_repo = None
+        disable_private_log = False
         preload_pipeline = False
+        queue_size = 3
+        queue_history = 6
 
     print("[Pre Setup] Prepare environments")
 
     args = Args()
+    args.disable_private_log = disable_private_log
     args.preload_pipeline = preload_pipeline
     if skip_sync_repo:
         args.sync_repo = 'skip'
     prepare_environments(args)
-
-    if disable_private_log:
-        import fooocusapi.worker as worker
-        worker.save_log = False
 
     if load_all_models:
         import modules.path as path
@@ -309,14 +316,17 @@ if __name__ == "__main__":
 
     parser = argparse.ArgumentParser()
     parser.add_argument("--port", type=int, default=8888,
-                        help="Set the listen port")
+                        help="Set the listen port, default: 8888")
     parser.add_argument("--host", type=str,
-                        default='127.0.0.1', help="Set the listen host")
+                        default='127.0.0.1', help="Set the listen host, default: 127.0.0.1")
     parser.add_argument("--log-level", type=str,
-                        default='info', help="Log info for Uvicorn")
+                        default='info', help="Log info for Uvicorn, default: info")
     parser.add_argument("--sync-repo", default=None,
                         help="Sync dependent git repositories to local, 'skip' for skip sync action, 'only' for only do the sync action and not launch app")
-    parser.add_argument("--preload-pipeline", default=False, action="store_true", help="True for preload pipeline before start http server")
+    parser.add_argument("--disable-private-log", default=False, action="store_true", help="Disable Fooocus private log, won't save output files (include generated image files)")
+    parser.add_argument("--preload-pipeline", default=False, action="store_true", help="Preload pipeline before start http server")
+    parser.add_argument("--queue-size", type=int, default=3, help="Working queue size, default: 3, generation requests exceeding working queue size will return failure")
+    parser.add_argument("--queue-history", type=int, default=6, help="Finished jobs reserve in memory size, default: 6")
 
     args = parser.parse_args()
 

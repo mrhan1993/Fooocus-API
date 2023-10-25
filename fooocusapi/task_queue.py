@@ -48,7 +48,7 @@ class TaskQueue(object):
 
     def __init__(self, queue_size: int, hisotry_size: int):
         self.queue_size = queue_size
-        self.hisotry_size = hisotry_size
+        self.history_size = hisotry_size
 
     def add_task(self, type: TaskType, req_param: dict) -> QueueTask | None:
         """
@@ -99,6 +99,6 @@ class TaskQueue(object):
             self.history.append(task)
 
             # Clean history
-            if len(self.history) > self.hisotry_size:
+            if len(self.history) > self.history_size:
                 removed_task = self.history.pop(0)
                 print(f"Clean task history, remove task: {removed_task.seq}")

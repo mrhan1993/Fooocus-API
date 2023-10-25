@@ -95,3 +95,8 @@ Alternative api for 'Image Prompt' tab of Fooocus Gradio interface.
 > GET /v1/generation/query-job
 
 Query async generation request results, return job progress and generation results.
+
+#### Query Job Queue Info
+> GET /v1/generation/job-queue
+
+Query job queue info, include running job count, finished job count and last job id.
