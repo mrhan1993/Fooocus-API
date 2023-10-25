@@ -74,7 +74,7 @@
                                         {
                                             "type": "array",
                                             "items": {
-                                                "$ref": "#/components/schemas/GeneratedImageBase64"
+                                                "$ref": "#/components/schemas/GeneratedImageResult"
                                             }
                                         },
                                         {
@@ -168,7 +168,7 @@
                                         {
                                             "type": "array",
                                             "items": {
-                                                "$ref": "#/components/schemas/GeneratedImageBase64"
+                                                "$ref": "#/components/schemas/GeneratedImageResult"
                                             }
                                         },
                                         {
@@ -262,7 +262,7 @@
                                         {
                                             "type": "array",
                                             "items": {
-                                                "$ref": "#/components/schemas/GeneratedImageBase64"
+                                                "$ref": "#/components/schemas/GeneratedImageResult"
                                             }
                                         },
                                         {
@@ -360,7 +360,7 @@
                                         {
                                             "type": "array",
                                             "items": {
-                                                "$ref": "#/components/schemas/GeneratedImageBase64"
+                                                "$ref": "#/components/schemas/GeneratedImageResult"
                                             }
                                         },
                                         {
@@ -611,7 +611,7 @@
                         "anyOf": [
                             {
                                 "items": {
-                                    "$ref": "#/components/schemas/GeneratedImageBase64"
+                                    "$ref": "#/components/schemas/GeneratedImageResult"
                                 },
                                 "type": "array"
                             },
@@ -832,6 +832,12 @@
                         "minimum": -2,
                         "title": "W5",
                         "default": 0.5
+                    },
+                    "require_base64": {
+                        "type": "boolean",
+                        "title": "Require Base64",
+                        "description": "Return base64 data of generated image",
+                        "default": false
                     },
                     "async_process": {
                         "type": "boolean",
@@ -1187,6 +1193,12 @@
                         "title": "W5",
                         "default": 0.5
                     },
+                    "require_base64": {
+                        "type": "boolean",
+                        "title": "Require Base64",
+                        "description": "Return base64 data of generated image",
+                        "default": false
+                    },
                     "async_process": {
                         "type": "boolean",
                         "title": "Async Process",
@@ -1375,6 +1387,12 @@
                         "title": "W5",
                         "default": 0.5
                     },
+                    "require_base64": {
+                        "type": "boolean",
+                        "title": "Require Base64",
+                        "description": "Return base64 data of generated image",
+                        "default": false
+                    },
                     "async_process": {
                         "type": "boolean",
                         "title": "Async Process",
@@ -1398,7 +1416,7 @@
                 ],
                 "title": "ControlNetType"
             },
-            "GeneratedImageBase64": {
+            "GeneratedImageResult": {
                 "properties": {
                     "base64": {
                         "anyOf": [
@@ -1410,7 +1428,19 @@
                             }
                         ],
                         "title": "Base64",
-                        "description": "Image encoded in base64, or null if finishReasen is not 'SUCCESS'"
+                        "description": "Image encoded in base64, or null if finishReasen is not 'SUCCESS', only return when request require base64"
+                    },
+                    "url": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Url",
+                        "description": "Image file static serve url, or null if finishReasen is not 'SUCCESS'"
                     },
                     "seed": {
                         "type": "integer",
@@ -1424,10 +1454,11 @@
                 "type": "object",
                 "required": [
                     "base64",
+                    "url",
                     "seed",
                     "finish_reason"
                 ],
-                "title": "GeneratedImageBase64"
+                "title": "GeneratedImageResult"
             },
             "GenerationFinishReason": {
                 "type": "string",
@@ -1605,6 +1636,12 @@
                                 "weight": 0.5
                             }
                         ]
+                    },
+                    "require_base64": {
+                        "type": "boolean",
+                        "title": "Require Base64",
+                        "description": "Return base64 data of generated image",
+                        "default": false
                     },
                     "async_process": {
                         "type": "boolean",
