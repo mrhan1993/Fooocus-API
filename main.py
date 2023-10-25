@@ -226,9 +226,6 @@ def prepare_environments(args) -> bool:
         print(f"torch_index_url: {torch_index_url}")
         run_pip(f"install torch==2.0.1 torchvision==0.15.2 --extra-index-url {torch_index_url}", "torch")
 
-    if not is_installed('xformers'):
-        run_pip("install xformers==0.0.21", "xformers")
-
     skip_sync_repo = False
     if args.sync_repo is not None:
         if args.sync_repo == 'only':
@@ -276,7 +273,7 @@ def prepare_environments(args) -> bool:
 
     return True
 
-def pre_setup(skip_sync_repo: bool=False, disable_private_log: bool=False, load_all_models: bool=False, preload_pipeline: bool=False, skip_save_log: bool=False):
+def pre_setup(skip_sync_repo: bool=False, disable_private_log: bool=False, load_all_models: bool=False, preload_pipeline: bool=False):
     class Args(object):
         sync_repo = None
         disable_private_log = False
