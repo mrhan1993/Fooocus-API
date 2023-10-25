@@ -109,4 +109,7 @@ Get all filenames of base model and lora.
 #### Refresh Models
 > POST /v1/engines/refresh-models
 
-Refresh local files and get all filenames of base model and lora.
+#### Get All Fooocus Styles
+> GET /v1/engines/styles
+
+Get all legal Fooocus styles.

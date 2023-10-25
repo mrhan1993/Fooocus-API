@@ -497,6 +497,29 @@
                     }
                 }
             }
+        },
+        "/v1/engines/styles": {
+            "get": {
+                "summary": "All Styles",
+                "description": "Get all legal Fooocus styles",
+                "operationId": "all_styles_v1_engines_styles_get",
+                "responses": {
+                    "200": {
+                        "description": "Successful Response",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "items": {
+                                        "type": "string"
+                                    },
+                                    "type": "array",
+                                    "title": "Response All Styles V1 Engines Styles Get"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
         }
     },
     "components": {

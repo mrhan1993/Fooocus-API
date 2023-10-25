@@ -164,6 +164,12 @@ def refresh_models():
     path.update_all_model_names()
     return AllModelNamesResponse(model_filenames=path.model_filenames, lora_filenames=path.lora_filenames)
 
+
+@app.get("/v1/engines/styles", response_model=List[str], description="Get all legal Fooocus styles")
+def all_styles():
+    from modules.sdxl_styles import legal_style_names
+    return legal_style_names
+
 def start_app(args):
     uvicorn.run("fooocusapi.api:app", host=args.host,
                 port=args.port, log_level=args.log_level)
