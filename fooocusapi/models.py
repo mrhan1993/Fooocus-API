@@ -368,3 +368,8 @@ class JobQueueInfo(BaseModel):
     running_size: int = Field(description="The current running and waiting job count")
     finished_size: int = Field(description="Finished job cound (after auto clean)")
     last_job_id: int = Field(description="Last submit generation job id")
+
+
+class AllModelNamesResponse(BaseModel):
+    model_filenames: List[str]
+    lora_filenames: List[str]

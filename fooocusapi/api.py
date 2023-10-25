@@ -3,7 +3,7 @@ from fastapi import Depends, FastAPI, Header, Query, Response, UploadFile
 from fastapi.params import File
 import uvicorn
 from fooocusapi.api_utils import generation_output, req_to_params
-from fooocusapi.models import AsyncJobResponse, GeneratedImageBase64, ImgInpaintOrOutpaintRequest, ImgPromptRequest, ImgUpscaleOrVaryRequest, JobQueueInfo, Text2ImgRequest
+from fooocusapi.models import AllModelNamesResponse, AsyncJobResponse, GeneratedImageBase64, ImgInpaintOrOutpaintRequest, ImgPromptRequest, ImgUpscaleOrVaryRequest, JobQueueInfo, Text2ImgRequest
 from fooocusapi.parameters import GenerationFinishReason, ImageGenerationResult
 from fooocusapi.task_queue import TaskType
 from fooocusapi.worker import process_generate, task_queue
@@ -151,6 +151,24 @@ def query_job(job_id: int):
 def job_queue():
     return JobQueueInfo(running_size=len(task_queue.queue), finished_size=len(task_queue.history), last_job_id=task_queue.last_seq)
 
+
+@app.get("/v1/engines/all-models", response_model=AllModelNamesResponse, description="Get all filenames of base model and lora")
+def all_models():
+    import modules.path as path
+    return AllModelNamesResponse(model_filenames=path.model_filenames, lora_filenames=path.lora_filenames)
+
+
+@app.post("/v1/engines/refresh-models", response_model=AllModelNamesResponse, description="Refresh local files and get all filenames of base model and lora")
+def refresh_models():
+    import modules.path as path
+    path.update_all_model_names()
+    return AllModelNamesResponse(model_filenames=path.model_filenames, lora_filenames=path.lora_filenames)
+
+
+@app.get("/v1/engines/styles", response_model=List[str], description="Get all legal Fooocus styles")
+def all_styles():
+    from modules.sdxl_styles import legal_style_names
+    return legal_style_names
 
 def start_app(args):
     uvicorn.run("fooocusapi.api:app", host=args.host,

@@ -459,10 +459,95 @@
                     }
                 }
             }
+        },
+        "/v1/engines/all-models": {
+            "get": {
+                "summary": "All Models",
+                "description": "Get all filenames of base model and lora",
+                "operationId": "all_models_v1_engines_all_models_get",
+                "responses": {
+                    "200": {
+                        "description": "Successful Response",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/AllModelNamesResponse"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/v1/engines/refresh-models": {
+            "post": {
+                "summary": "Refresh Models",
+                "description": "Refresh local files and get all filenames of base model and lora",
+                "operationId": "refresh_models_v1_engines_refresh_models_post",
+                "responses": {
+                    "200": {
+                        "description": "Successful Response",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/AllModelNamesResponse"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/v1/engines/styles": {
+            "get": {
+                "summary": "All Styles",
+                "description": "Get all legal Fooocus styles",
+                "operationId": "all_styles_v1_engines_styles_get",
+                "responses": {
+                    "200": {
+                        "description": "Successful Response",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "items": {
+                                        "type": "string"
+                                    },
+                                    "type": "array",
+                                    "title": "Response All Styles V1 Engines Styles Get"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
         }
     },
     "components": {
         "schemas": {
+            "AllModelNamesResponse": {
+                "properties": {
+                    "model_filenames": {
+                        "items": {
+                            "type": "string"
+                        },
+                        "type": "array",
+                        "title": "Model Filenames"
+                    },
+                    "lora_filenames": {
+                        "items": {
+                            "type": "string"
+                        },
+                        "type": "array",
+                        "title": "Lora Filenames"
+                    }
+                },
+                "type": "object",
+                "required": [
+                    "model_filenames",
+                    "lora_filenames"
+                ],
+                "title": "AllModelNamesResponse"
+            },
             "AspectRatio": {
                 "type": "string",
                 "enum": [
