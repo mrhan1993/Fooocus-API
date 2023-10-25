@@ -362,3 +362,9 @@ class AsyncJobResponse(BaseModel):
     job_progess: int
     job_status: str | None
     job_result: List[GeneratedImageBase64] | None
+
+
+class JobQueueInfo(BaseModel):
+    running_size: int = Field(description="The current running and waiting job count")
+    finished_size: int = Field(description="Finished job cound (after auto clean)")
+    last_job_id: int = Field(description="Last submit generation job id")
