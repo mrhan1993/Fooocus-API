@@ -11,7 +11,7 @@ from concurrent.futures import ThreadPoolExecutor
 
 app = FastAPI()
 
-work_executor = ThreadPoolExecutor(max_workers=12, thread_name_prefix="worker_")
+work_executor = ThreadPoolExecutor(max_workers=task_queue.queue_size*2, thread_name_prefix="worker_")
 
 img_generate_responses = {
     "200": {
