@@ -3,7 +3,7 @@ from fastapi import Depends, FastAPI, Header, Query, Response, UploadFile
 from fastapi.params import File
 import uvicorn
 from fooocusapi.api_utils import generation_output, req_to_params
-from fooocusapi.models import AsyncJobResponse, GeneratedImageBase64, ImgInpaintOrOutpaintRequest, ImgPromptRequest, ImgUpscaleOrVaryRequest, Text2ImgRequest
+from fooocusapi.models import AsyncJobResponse, GeneratedImageBase64, ImgInpaintOrOutpaintRequest, ImgPromptRequest, ImgUpscaleOrVaryRequest, JobQueueInfo, Text2ImgRequest
 from fooocusapi.parameters import GenerationFinishReason, ImageGenerationResult
 from fooocusapi.task_queue import TaskType
 from fooocusapi.worker import process_generate, task_queue
@@ -11,7 +11,7 @@ from concurrent.futures import ThreadPoolExecutor
 
 app = FastAPI()
 
-work_executor = ThreadPoolExecutor(max_workers=12, thread_name_prefix="worker_")
+work_executor = ThreadPoolExecutor(max_workers=task_queue.queue_size*2, thread_name_prefix="worker_")
 
 img_generate_responses = {
     "200": {
@@ -145,6 +145,11 @@ def query_job(job_id: int):
         return Response(content="Job not found", status_code=404)
     
     return generation_output(queue_task, False)
+
+
+@app.get("/v1/generation/job-queue", response_model=JobQueueInfo, description="Query job queue info")
+def job_queue():
+    return JobQueueInfo(running_size=len(task_queue.queue), finished_size=len(task_queue.history), last_job_id=task_queue.last_seq)
 
 
 def start_app(args):
