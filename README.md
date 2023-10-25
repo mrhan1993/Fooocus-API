@@ -14,7 +14,7 @@ I believe this is the easiest way to generate image with Fooocus's power.
 ### Colab
 | Colab | Info
 | --- | --- |
-[![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/konieshadow/Fooocus-API/blob/main/colab.ipynb) | Fooocus-API
+[![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/konieshadow/Fooocus-API/blob/main/google_colab.ipynb) | Fooocus-API
 
 ### Reuse model files from Fooocus
 You can simple copy `user_path_config.txt` file from your local Fooocus folder to Fooocus-API's root folder. See [Customization](https://github.com/lllyasviel/Fooocus#customization) for details.
