@@ -8,7 +8,7 @@ from fooocusapi.task_queue import TaskType
 inpaint_model_version = 'v1'
 
 
-defualt_styles = ['Fooocus V2', 'Default (Slightly Cinematic)']
+defualt_styles = ['Fooocus V2', 'Fooocus Enhance', 'Fooocus Sharp']
 
 
 aspect_ratios = [

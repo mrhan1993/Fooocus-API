@@ -21,17 +21,30 @@ def process_generate(queue_task: QueueTask, params: ImageGenerationParams) -> Li
     import modules.core as core
     import modules.inpaint_worker as inpaint_worker
     import modules.path as path
-    import fcbh.model_management as model_management
     import modules.advanced_parameters as advanced_parameters
+    import modules.constants as constants
+    import fcbh.model_management as model_management
     import fooocus_extras.preprocessors as preprocessors
     import fooocus_extras.ip_adapter as ip_adapter
     from modules.util import join_prompts, remove_empty_str, resize_image, HWC3, set_image_shape_ceil, get_image_shape_ceil, get_shape_ceil
     from modules.private_logger import log
     from modules.upscaler import perform_upscale
     from modules.expansion import safe_str
-    from modules.sdxl_styles import apply_style, fooocus_expansion, aspect_ratios, apply_wildcards
+    from modules.sdxl_styles import apply_style, fooocus_expansion, apply_wildcards
 
     outputs = []
+
+    def refresh_seed(r, seed_string):
+        if r:
+            return random.randint(constants.MIN_SEED, constants.MAX_SEED)
+        else:
+            try:
+                seed_value = int(seed_string)
+                if constants.MIN_SEED <= seed_value <= constants.MAX_SEED:
+                    return seed_value
+            except ValueError:
+                pass
+            return random.randint(constants.MIN_SEED, constants.MAX_SEED)
 
     def progressbar(number, text):
         print(f'[Fooocus] {text}')
@@ -92,6 +105,8 @@ def process_generate(queue_task: QueueTask, params: ImageGenerationParams) -> Li
         uov_input_image = params.uov_input_image
         outpaint_selections = params.outpaint_selections
         inpaint_input_image = params.inpaint_input_image
+
+        image_seed = refresh_seed(image_seed is None, image_seed)
 
         cn_tasks = {flags.cn_ip: [], flags.cn_canny: [], flags.cn_cpds: []}
         for img_prompt in params.image_prompts:
@@ -163,7 +178,10 @@ def process_generate(queue_task: QueueTask, params: ImageGenerationParams) -> Li
         denoising_strength = 1.0
         tiled = False
         inpaint_worker.current_task = None
-        width, height = aspect_ratios[aspect_ratios_selection]
+        
+        width, height = aspect_ratios_selection.split('×')
+        width, height = int(width), int(height)
+
         skip_prompt_processing = False
         refiner_swap_method = advanced_parameters.refiner_swap_method
 
@@ -174,13 +192,8 @@ def process_generate(queue_task: QueueTask, params: ImageGenerationParams) -> Li
         controlnet_cpds_path = None
         clip_vision_path, ip_negative_path, ip_adapter_path = None, None, None
 
-        seed = image_seed
-        max_seed = int(1024 * 1024 * 1024)
-        if not isinstance(seed, int):
-            seed = random.randint(1, max_seed)
-        if seed < 0:
-            seed = - seed
-        seed = seed % max_seed
+        seed = int(image_seed)
+        print(f'[Parameters] Seed = {seed}')
 
         if performance_selection == 'Speed':
             steps = 30
@@ -226,7 +239,6 @@ def process_generate(queue_task: QueueTask, params: ImageGenerationParams) -> Li
                     loras += [(inpaint_patch_model_path, 1.0)]
                     print(f'[Inpaint] Current inpaint model is {inpaint_patch_model_path}')
                     goals.append('inpaint')
-                    sampler_name = 'dpmpp_2m_sde_gpu'  # only support the patched dpmpp_2m_sde_gpu
             if current_tab == 'ip' or \
                     advanced_parameters.mixing_image_prompt_and_inpaint or \
                     advanced_parameters.mixing_image_prompt_and_vary_upscale:
@@ -278,7 +290,7 @@ def process_generate(queue_task: QueueTask, params: ImageGenerationParams) -> Li
             progressbar(3, 'Processing prompts ...')
             tasks = []
             for i in range(image_number):
-                task_seed = seed + i
+                task_seed = (seed + i) % (constants.MAX_SEED + 1) # randint is inclusive, % is not
                 task_rng = random.Random(task_seed)  # may bind to inpaint noise in the future
 
                 task_prompt = apply_wildcards(prompt, task_rng)
