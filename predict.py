@@ -6,14 +6,12 @@ import sys
 from typing import List
 from cog import BasePredictor, Input, Path
 
-from fooocusapi.parameters import GenerationFinishReason, ImageGenerationParams, aspect_ratios, uov_methods, outpaint_expansions
-from fooocusapi.worker import process_generate
+from fooocusapi.parameters import GenerationFinishReason, ImageGenerationParams, aspect_ratios, uov_methods, outpaint_expansions, defualt_styles
+from fooocusapi.task_queue import TaskType
+from fooocusapi.worker import process_generate, task_queue
+from fooocusapi.file_utils import output_dir
 import numpy as np
 from PIL import Image
-
-
-class Args(object):
-    sync_repo = None
 
 
 class Predictor(BasePredictor):
@@ -28,7 +26,7 @@ class Predictor(BasePredictor):
             default='', description="Prompt for image generation"),
         negative_prompt: str = Input(
             default='', description="Negtive prompt for image generation"),
-        style_selections: str = Input(default='Fooocus V2,Default (Slightly Cinematic)',
+        style_selections: str = Input(default=','.join(defualt_styles),
                                       description="Fooocus styles applied for image generation, seperated by comma"),
         performance_selection: str = Input(
             default='Speed', description="Performance selection", choices=['Speed', 'Quality']),
@@ -83,7 +81,6 @@ class Predictor(BasePredictor):
                               'Image Prompt', 'PyraCanny', 'CPDS']),
     ) -> List[Path]:
         """Run a single prediction on the model"""
-        from modules.util import generate_temp_filename
         import modules.flags as flags
         from modules.sdxl_styles import legal_style_names
 
@@ -158,16 +155,18 @@ class Predictor(BasePredictor):
 
         print(f"[Predictor Predict] Params: {params.__dict__}")
 
-        results = process_generate(params)
+        queue_task = task_queue.add_task(TaskType.text_2_img, {'params': params.__dict__, 'require_base64': False})
+        if queue_task is None:
+            print("[Task Queue] The task queue has reached limit")
+            raise Exception(
+                f"The task queue has reached limit."
+            )
+        results = process_generate(queue_task, params)
 
         output_paths: List[Path] = []
         for r in results:
             if r.finish_reason == GenerationFinishReason.success and r.im is not None:
-                _, local_temp_filename, _ = generate_temp_filename('/tmp')
-                os.makedirs(os.path.dirname(
-                    local_temp_filename), exist_ok=True)
-                Image.fromarray(r.im).save(local_temp_filename)
-                output_paths.append(Path(local_temp_filename))
+                output_paths.append(Path(os.path.join(output_dir, r.im)))
 
         print(f"[Predictor Predict] Finished with {len(output_paths)} images")
 

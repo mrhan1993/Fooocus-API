@@ -1,7 +1,7 @@
 import base64
 import io
 from io import BytesIO
-from typing import List, Tuple
+from typing import List
 
 import numpy as np
 from fastapi import Response, UploadFile

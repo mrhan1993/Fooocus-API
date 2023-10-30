@@ -281,6 +281,8 @@ def prepare_environments(args) -> bool:
 
 def pre_setup(skip_sync_repo: bool=False, disable_private_log: bool=False, load_all_models: bool=False, preload_pipeline: bool=False):
     class Args(object):
+        host = '127.0.0.1'
+        port = 8888
         base_url = None
         sync_repo = None
         disable_private_log = False
