@@ -25,7 +25,9 @@ def save_output_file(img: np.ndarray) -> str:
     return filename
 
 
-def output_file_to_base64img(filename: str) -> str:
+def output_file_to_base64img(filename: str | None) -> str | None:
+    if filename is None:
+        return None
     file_path = os.path.join(output_dir, filename)
     if not os.path.exists(file_path) or not os.path.isfile(file_path):
         return None
@@ -38,7 +40,9 @@ def output_file_to_base64img(filename: str) -> str:
     return base64_str
 
 
-def output_file_to_bytesimg(filename: str) -> bytes:
+def output_file_to_bytesimg(filename: str | None) -> bytes | None:
+    if filename is None:
+        return None
     file_path = os.path.join(output_dir, filename)
     if not os.path.exists(file_path) or not os.path.isfile(file_path):
         return None
@@ -50,5 +54,7 @@ def output_file_to_bytesimg(filename: str) -> bytes:
     return byte_data
 
 
-def get_file_serve_url(filename: str) -> str:
+def get_file_serve_url(filename: str | None) -> str | None:
+    if filename is None:
+        return None
     return static_serve_base_url + filename
