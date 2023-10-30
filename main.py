@@ -268,6 +268,8 @@ def prepare_environments(args) -> bool:
                 parameters.default_lora_weight = preset_json['default_lora_weight']
                 parameters.default_cfg_scale = preset_json['default_cfg_scale']
                 parameters.default_prompt_negative = preset_json['default_prompt_negative']
+                if parameters.default_refiner_model_name == '':
+                    parameters.default_refiner_model_name = 'None'
 
     import fooocusapi.worker as worker
     worker.task_queue.queue_size = args.queue_size
