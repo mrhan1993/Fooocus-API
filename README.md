@@ -9,6 +9,10 @@ Currently loaded Fooocus version: 2.1.741
 ### Run with Replicate
 Now you can use Fooocus-API by Replicate, the model is in [konieshadow/fooocus-api](https://replicate.com/konieshadow/fooocus-api).
 
+With preset:
+* [konieshadow/fooocus-api-anime](https://replicate.com/konieshadow/fooocus-api-anime)
+* [konieshadow/fooocus-api-realistic](https://replicate.com/konieshadow/fooocus-api-realistic)
+
 I believe this is the easiest way to generate image with Fooocus's power.
 
 ### Reuse model files from Fooocus
