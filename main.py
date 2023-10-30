@@ -245,6 +245,9 @@ def prepare_environments(args) -> bool:
                 f"Invalid value for argument '--sync-repo', acceptable value are 'skip' and 'only'")
             exit(1)
 
+    if not skip_sync_repo:
+        download_repositories()
+
     preset_json = None
     if args.preset is not None:
         # Remove and copy preset folder
@@ -277,9 +280,6 @@ def prepare_environments(args) -> bool:
 
     if args.disable_private_log:
         worker.save_log = False
-
-    if not skip_sync_repo:
-        download_repositories()
 
     if args.base_url is None or len(args.base_url.strip()) == 0:
         host = args.host
