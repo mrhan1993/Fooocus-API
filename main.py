@@ -1,4 +1,5 @@
 import argparse
+import json
 import os
 import re
 import shutil
@@ -215,16 +216,17 @@ def download_models():
 
 
 def prepare_environments(args) -> bool:
-    torch_index_url = os.environ.get('TORCH_INDEX_URL', "https://download.pytorch.org/whl/cu121")
+    if not args.skip_pip:
+        torch_index_url = os.environ.get('TORCH_INDEX_URL', "https://download.pytorch.org/whl/cu121")
+        
+        # Check if need pip install
+        requirements_file = 'requirements.txt'
+        if not requirements_met(requirements_file):
+            run_pip(f"install -r \"{requirements_file}\"", "requirements")
 
-    # Check if need pip install
-    requirements_file = 'requirements.txt'
-    if not requirements_met(requirements_file):
-        run_pip(f"install -r \"{requirements_file}\"", "requirements")
-
-    if not is_installed("torch") or not is_installed("torchvision"):
-        print(f"torch_index_url: {torch_index_url}")
-        run_pip(f"install torch==2.0.1 torchvision==0.15.2 --extra-index-url {torch_index_url}", "torch")
+        if not is_installed("torch") or not is_installed("torchvision"):
+            print(f"torch_index_url: {torch_index_url}")
+            run_pip(f"install torch==2.0.1 torchvision==0.15.2 --extra-index-url {torch_index_url}", "torch")
 
     skip_sync_repo = False
     if args.sync_repo is not None:
@@ -242,6 +244,30 @@ def prepare_environments(args) -> bool:
             print(
                 f"Invalid value for argument '--sync-repo', acceptable value are 'skip' and 'only'")
             exit(1)
+
+    preset_json = None
+    if args.preset is not None:
+        # Remove and copy preset folder
+        origin_preset_folder = os.path.abspath(os.path.join(script_path, dir_repos, fooocus_name, 'presets'))
+        preset_folder = os.path.abspath(os.path.join(script_path, 'presets'))
+        if os.path.exists(preset_folder):
+            shutil.rmtree(preset_folder)
+        shutil.copytree(origin_preset_folder, preset_folder)
+
+        preset_config = os.path.join(preset_folder, f"{args.preset}.json")
+        if os.path.exists(preset_config) and os.path.isfile(preset_config):
+            with open(preset_config, "r", encoding="utf-8") as json_file:
+                preset_json = json.load(json_file)
+                print(f"Using preset: {args.preset}")
+
+                import fooocusapi.parameters as parameters
+                parameters.defualt_styles = preset_json['default_styles']
+                parameters.default_base_model_name = preset_json['default_model']
+                parameters.default_refiner_model_name = preset_json['default_refiner']
+                parameters.default_lora = preset_json['default_lora']
+                parameters.default_lora_weight = preset_json['default_lora_weight']
+                parameters.default_cfg_scale = preset_json['default_cfg_scale']
+                parameters.default_prompt_negative = preset_json['default_prompt_negative']
 
     import fooocusapi.worker as worker
     worker.task_queue.queue_size = args.queue_size
@@ -269,6 +295,10 @@ def prepare_environments(args) -> bool:
     os.environ["PYTORCH_ENABLE_MPS_FALLBACK"] = "1"
 
     sys.argv = [sys.argv[0]]
+    if preset_json is not None:
+        sys.argv.append('--preset')
+        sys.argv.append(args.preset)
+
     ini_cbh_args()
 
     download_models()
@@ -279,22 +309,25 @@ def prepare_environments(args) -> bool:
 
     return True
 
-def pre_setup(skip_sync_repo: bool=False, disable_private_log: bool=False, load_all_models: bool=False, preload_pipeline: bool=False):
+def pre_setup(skip_sync_repo: bool=False, disable_private_log: bool=False, skip_pip=False, load_all_models: bool=False, preload_pipeline: bool=False, preset: str | None=None):
     class Args(object):
         host = '127.0.0.1'
         port = 8888
         base_url = None
         sync_repo = None
         disable_private_log = False
+        skip_pip = False
         preload_pipeline = False
         queue_size = 3
         queue_history = 100
+        preset = None
 
     print("[Pre Setup] Prepare environments")
 
     args = Args()
     args.disable_private_log = disable_private_log
     args.preload_pipeline = preload_pipeline
+    args.preset = preset
     if skip_sync_repo:
         args.sync_repo = 'skip'
     prepare_environments(args)
@@ -331,9 +364,12 @@ if __name__ == "__main__":
     parser.add_argument("--sync-repo", default=None,
                         help="Sync dependent git repositories to local, 'skip' for skip sync action, 'only' for only do the sync action and not launch app")
     parser.add_argument("--disable-private-log", default=False, action="store_true", help="Disable Fooocus private log, won't save output files (include generated image files)")
+    parser.add_argument("--skip-pip", default=False, action="store_true", help="Skip automatic pip install when setup")
     parser.add_argument("--preload-pipeline", default=False, action="store_true", help="Preload pipeline before start http server")
     parser.add_argument("--queue-size", type=int, default=3, help="Working queue size, default: 3, generation requests exceeding working queue size will return failure")
     parser.add_argument("--queue-history", type=int, default=100, help="Finished jobs reserve in memory size, default: 100")
+    parser.add_argument("--preset", type=str, default=None, help="Apply specified UI preset.")
+
 
     args = parser.parse_args()
 

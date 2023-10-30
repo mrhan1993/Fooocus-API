@@ -6,7 +6,7 @@ import sys
 from typing import List
 from cog import BasePredictor, Input, Path
 
-from fooocusapi.parameters import GenerationFinishReason, ImageGenerationParams, aspect_ratios, uov_methods, outpaint_expansions, defualt_styles
+from fooocusapi.parameters import GenerationFinishReason, ImageGenerationParams, aspect_ratios, uov_methods, outpaint_expansions, defualt_styles, default_base_model_name, default_refiner_model_name, default_lora, default_lora_weight, default_cfg_scale, default_prompt_negative
 from fooocusapi.task_queue import TaskType
 from fooocusapi.worker import process_generate, task_queue
 from fooocusapi.file_utils import output_dir
@@ -18,14 +18,14 @@ class Predictor(BasePredictor):
     def setup(self) -> None:
         """Load the model into memory to make running multiple predictions efficient"""
         from main import pre_setup
-        pre_setup(disable_private_log=True, preload_pipeline=True)
+        pre_setup(disable_private_log=True, skip_pip=True, preload_pipeline=True, preset=None)
 
     def predict(
         self,
         prompt: str = Input(
             default='', description="Prompt for image generation"),
         negative_prompt: str = Input(
-            default='', description="Negtive prompt for image generation"),
+            default=default_prompt_negative, description="Negtive prompt for image generation"),
         style_selections: str = Input(default=','.join(defualt_styles),
                                       description="Fooocus styles applied for image generation, seperated by comma"),
         performance_selection: str = Input(
@@ -37,7 +37,7 @@ class Predictor(BasePredictor):
         image_seed: int = Input(
             default=-1, description="Seed to generate image, -1 for random"),
         sharpness: float = Input(default=2.0, ge=0.0, le=30.0),
-        guidance_scale: float = Input(default=7.0, ge=1.0, le=30.0),
+        guidance_scale: float = Input(default=default_cfg_scale, ge=1.0, le=30.0),
         uov_input_image: Path = Input(
             default=None, description="Input image for upscale or variation, keep None for not upscale or variation"),
         uov_method: str = Input(default='Disabled', choices=uov_methods),
@@ -84,9 +84,9 @@ class Predictor(BasePredictor):
         import modules.flags as flags
         from modules.sdxl_styles import legal_style_names
 
-        base_model_name = 'sd_xl_base_1.0_0.9vae.safetensors'
-        refiner_model_name = 'sd_xl_refiner_1.0_0.9vae.safetensors'
-        loras = [('sd_xl_offset_example-lora_1.0.safetensors', 0.5)]
+        base_model_name = default_base_model_name
+        refiner_model_name = default_refiner_model_name
+        loras = [(default_lora, default_lora_weight)]
 
         style_selections_arr = []
         for s in style_selections.strip().split(','):

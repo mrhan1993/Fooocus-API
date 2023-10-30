@@ -6,7 +6,7 @@ from typing import List
 from enum import Enum
 
 from pydantic_core import InitErrorDetails
-from fooocusapi.parameters import GenerationFinishReason, defualt_styles
+from fooocusapi.parameters import GenerationFinishReason, defualt_styles, default_base_model_name, default_refiner_model_name, default_lora, default_lora_weight, default_cfg_scale, default_prompt_negative
 from fooocusapi.task_queue import TaskType
 import modules.flags as flags
 
@@ -85,7 +85,7 @@ class ImagePrompt(BaseModel):
 
 class Text2ImgRequest(BaseModel):
     prompt: str = ''
-    negative_prompt: str = ''
+    negative_prompt: str = default_prompt_negative
     style_selections: List[str] = defualt_styles
     performance_selection: PerfomanceSelection = PerfomanceSelection.speed
     aspect_ratios_selection: AspectRatio = AspectRatio.a_1_29
@@ -93,11 +93,11 @@ class Text2ImgRequest(BaseModel):
         default=1, description="Image number", min=1, max=32)
     image_seed: int = Field(default=-1, description="Seed to generate image, -1 for random")
     sharpness: float = Field(default=2.0, min=0.0, max=30.0)
-    guidance_scale: float = Field(default=7.0, min=1.0, max=30.0)
-    base_model_name: str = 'sd_xl_base_1.0_0.9vae.safetensors'
-    refiner_model_name: str = 'sd_xl_refiner_1.0_0.9vae.safetensors'
+    guidance_scale: float = Field(default=default_cfg_scale, min=1.0, max=30.0)
+    base_model_name: str = default_base_model_name
+    refiner_model_name: str = default_refiner_model_name
     loras: List[Lora] = Field(default=[
-        Lora(model_name='sd_xl_offset_example-lora_1.0.safetensors', weight=0.5)])
+        Lora(model_name=default_lora, weight=default_lora_weight)])
     require_base64: bool = Field(default=False, description="Return base64 data of generated image")
     async_process: bool = Field(default=False, description="Set to true will run async and return job info for retrieve generataion result later")
 
@@ -110,7 +110,7 @@ class ImgUpscaleOrVaryRequest(Text2ImgRequest):
     def as_form(cls, input_image: UploadFile = Form(description="Init image for upsacale or outpaint"),
                 uov_method: UpscaleOrVaryMethod = Form(),
                 prompt: str = Form(''),
-                negative_prompt: str = Form(''),
+                negative_prompt: str = Form(default_prompt_negative),
                 style_selections: List[str] = Form(defualt_styles, description="Fooocus style selections, seperated by comma"),
                 performance_selection: PerfomanceSelection = Form(
                     PerfomanceSelection.speed),
@@ -120,22 +120,19 @@ class ImgUpscaleOrVaryRequest(Text2ImgRequest):
                     default=1, description="Image number", ge=1, le=32),
                 image_seed: int = Form(default=-1, description="Seed to generate image, -1 for random"),
                 sharpness: float = Form(default=2.0, ge=0.0, le=30.0),
-                guidance_scale: float = Form(default=7.0, ge=1.0, le=30.0),
-                base_model_name: str = Form(
-                    'sd_xl_base_1.0_0.9vae.safetensors'),
-                refiner_model_name: str = Form(
-                    'sd_xl_refiner_1.0_0.9vae.safetensors'),
-                l1: str | None = Form(
-                    'sd_xl_offset_example-lora_1.0.safetensors'),
-                w1: float = Form(default=0.5, ge=-2, le=2),
+                guidance_scale: float = Form(default=default_cfg_scale, ge=1.0, le=30.0),
+                base_model_name: str = Form(default_base_model_name),
+                refiner_model_name: str = Form(default_refiner_model_name),
+                l1: str | None = Form(default_lora),
+                w1: float = Form(default=default_lora_weight, ge=-2, le=2),
                 l2: str | None = Form(None),
-                w2: float = Form(default=0.5, ge=-2, le=2),
+                w2: float = Form(default=default_lora_weight, ge=-2, le=2),
                 l3: str | None = Form(None),
-                w3: float = Form(default=0.5, ge=-2, le=2),
+                w3: float = Form(default=default_lora_weight, ge=-2, le=2),
                 l4: str | None = Form(None),
-                w4: float = Form(default=0.5, ge=-2, le=2),
+                w4: float = Form(default=default_lora_weight, ge=-2, le=2),
                 l5: str | None = Form(None),
-                w5: float = Form(default=0.5, ge=-2, le=2),
+                w5: float = Form(default=default_lora_weight, ge=-2, le=2),
                 require_base64: bool = Form(default=False, description="Return base64 data of generated image"),
                 async_process: bool = Form(default=False, description="Set to true will run async and return job info for retrieve generataion result later"),
                 ):
@@ -172,7 +169,7 @@ class ImgInpaintOrOutpaintRequest(Text2ImgRequest):
                 outpaint_selections: List[str] = Form(
                     [], description="Outpaint expansion selections, literal 'Left', 'Right', 'Top', 'Bottom' seperated by comma"),
                 prompt: str = Form(''),
-                negative_prompt: str = Form(''),
+                negative_prompt: str = Form(default_prompt_negative),
                 style_selections: List[str] = Form(defualt_styles, description="Fooocus style selections, seperated by comma"),
                 performance_selection: PerfomanceSelection = Form(
                     PerfomanceSelection.speed),
@@ -182,22 +179,19 @@ class ImgInpaintOrOutpaintRequest(Text2ImgRequest):
                     default=1, description="Image number", ge=1, le=32),
                 image_seed: int = Form(default=-1, description="Seed to generate image, -1 for random"),
                 sharpness: float = Form(default=2.0, ge=0.0, le=30.0),
-                guidance_scale: float = Form(default=7.0, ge=1.0, le=30.0),
-                base_model_name: str = Form(
-                    'sd_xl_base_1.0_0.9vae.safetensors'),
-                refiner_model_name: str = Form(
-                    'sd_xl_refiner_1.0_0.9vae.safetensors'),
-                l1: str | None = Form(
-                    'sd_xl_offset_example-lora_1.0.safetensors'),
-                w1: float = Form(default=0.5, ge=-2, le=2),
+                guidance_scale: float = Form(default=default_cfg_scale, ge=1.0, le=30.0),
+                base_model_name: str = Form(default_base_model_name),
+                refiner_model_name: str = Form(default_refiner_model_name),
+                l1: str | None = Form(default_lora),
+                w1: float = Form(default=default_lora_weight, ge=-2, le=2),
                 l2: str | None = Form(None),
-                w2: float = Form(default=0.5, ge=-2, le=2),
+                w2: float = Form(default=default_lora_weight, ge=-2, le=2),
                 l3: str | None = Form(None),
-                w3: float = Form(default=0.5, ge=-2, le=2),
+                w3: float = Form(default=default_lora_weight, ge=-2, le=2),
                 l4: str | None = Form(None),
-                w4: float = Form(default=0.5, ge=-2, le=2),
+                w4: float = Form(default=default_lora_weight, ge=-2, le=2),
                 l5: str | None = Form(None),
-                w5: float = Form(default=0.5, ge=-2, le=2),
+                w5: float = Form(default=default_lora_weight, ge=-2, le=2),
                 require_base64: bool = Form(default=False, description="Return base64 data of generated image"),
                 async_process: bool = Form(default=False, description="Set to true will run async and return job info for retrieve generataion result later"),
                 ):
@@ -274,7 +268,7 @@ class ImgPromptRequest(Text2ImgRequest):
                 cn_type4: ControlNetType = Form(
                     default=ControlNetType.cn_ip, description="ControlNet type for image prompt"),
                 prompt: str = Form(''),
-                negative_prompt: str = Form(''),
+                negative_prompt: str = Form(default_prompt_negative),
                 style_selections: List[str] = Form(defualt_styles, description="Fooocus style selections, seperated by comma"),
                 performance_selection: PerfomanceSelection = Form(
                     PerfomanceSelection.speed),
@@ -284,22 +278,19 @@ class ImgPromptRequest(Text2ImgRequest):
                     default=1, description="Image number", ge=1, le=32),
                 image_seed: int = Form(default=-1, description="Seed to generate image, -1 for random"),
                 sharpness: float = Form(default=2.0, ge=0.0, le=30.0),
-                guidance_scale: float = Form(default=7.0, ge=1.0, le=30.0),
-                base_model_name: str = Form(
-                    'sd_xl_base_1.0_0.9vae.safetensors'),
-                refiner_model_name: str = Form(
-                    'sd_xl_refiner_1.0_0.9vae.safetensors'),
-                l1: str | None = Form(
-                    'sd_xl_offset_example-lora_1.0.safetensors'),
-                w1: float = Form(default=0.5, ge=-2, le=2),
+                guidance_scale: float = Form(default=default_cfg_scale, ge=1.0, le=30.0),
+                base_model_name: str = Form(default_base_model_name),
+                refiner_model_name: str = Form(default_refiner_model_name),
+                l1: str | None = Form(default_lora),
+                w1: float = Form(default=default_lora_weight, ge=-2, le=2),
                 l2: str | None = Form(None),
-                w2: float = Form(default=0.5, ge=-2, le=2),
+                w2: float = Form(default=default_lora_weight, ge=-2, le=2),
                 l3: str | None = Form(None),
-                w3: float = Form(default=0.5, ge=-2, le=2),
+                w3: float = Form(default=default_lora_weight, ge=-2, le=2),
                 l4: str | None = Form(None),
-                w4: float = Form(default=0.5, ge=-2, le=2),
+                w4: float = Form(default=default_lora_weight, ge=-2, le=2),
                 l5: str | None = Form(None),
-                w5: float = Form(default=0.5, ge=-2, le=2),
+                w5: float = Form(default=default_lora_weight, ge=-2, le=2),
                 require_base64: bool = Form(default=False, description="Return base64 data of generated image"),
                 async_process: bool = Form(default=False, description="Set to true will run async and return job info for retrieve generataion result later"),
                 ):
