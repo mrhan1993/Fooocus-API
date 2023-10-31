@@ -15,7 +15,16 @@ task_queue = TaskQueue(queue_size=3, hisotry_size=6)
 @torch.no_grad()
 @torch.inference_mode()
 def process_generate(queue_task: QueueTask, params: ImageGenerationParams) -> List[ImageGenerationResult]:
-    import modules.default_pipeline as pipeline
+    try:
+        import modules.default_pipeline as pipeline
+    except Exception as e:
+        print('Import default pipeline error:', e)
+        if not queue_task.is_finished:
+            task_queue.finish_task(queue_task.seq)
+            queue_task.set_result([], True, str(e))
+            print(f"[Task Queue] Finish task with error, seq={queue_task.seq}")
+        return []
+
     import modules.patch as patch
     import modules.flags as flags
     import modules.core as core
@@ -23,7 +32,6 @@ def process_generate(queue_task: QueueTask, params: ImageGenerationParams) -> Li
     import modules.path as path
     import modules.advanced_parameters as advanced_parameters
     import modules.constants as constants
-    import fcbh.model_management as model_management
     import fooocus_extras.preprocessors as preprocessors
     import fooocus_extras.ip_adapter as ip_adapter
     from modules.util import join_prompts, remove_empty_str, resize_image, HWC3, set_image_shape_ceil, get_image_shape_ceil, get_shape_ceil
@@ -656,5 +664,8 @@ def process_generate(queue_task: QueueTask, params: ImageGenerationParams) -> Li
         return results
     except Exception as e:
         print('Worker error:', e)
-        queue_task.set_result([], True, str(e))
+        if not queue_task.is_finished:
+            task_queue.finish_task(queue_task.seq)
+            queue_task.set_result([], True, str(e))
+            print(f"[Task Queue] Finish task with error, seq={queue_task.seq}")
         return []
