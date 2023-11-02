@@ -43,6 +43,8 @@ python main.py -h
 ```
 
 ### Start with docker
+Before use docker with GPU, you should [install NVIDIA Container Toolkit](https://docs.nvidia.com/datacenter/cloud-native/container-toolkit/latest/install-guide.html) first.
+
 Run
 ```
 docker run --gpus=all -e NVIDIA_DRIVER_CAPABILITIES=compute,utility -e NVIDIA_VISIBLE_DEVICES=all -p 8888:8888 konieshadow/fooocus-api
@@ -60,6 +62,7 @@ docker run --gpus=all -e NVIDIA_DRIVER_CAPABILITIES=compute,utility -e NVIDIA_VI
 ```
 It will persistent the dependent repositories and pip cache.
 
+You can add `-e PIP_INDEX_URL={pypi-mirror-url}` to docker run command to change pip index url.
 
 ### Test API
 You can open the Swagger Document in "http://127.0.0.1:8888/docs", then click "Try it out" to send a request.
