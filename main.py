@@ -1,5 +1,4 @@
 import argparse
-import json
 import os
 import re
 import shutil
@@ -248,32 +247,6 @@ def prepare_environments(args) -> bool:
     if not skip_sync_repo:
         download_repositories()
 
-    preset_json = None
-    if args.preset is not None:
-        # Remove and copy preset folder
-        origin_preset_folder = os.path.abspath(os.path.join(script_path, dir_repos, fooocus_name, 'presets'))
-        preset_folder = os.path.abspath(os.path.join(script_path, 'presets'))
-        if os.path.exists(preset_folder):
-            shutil.rmtree(preset_folder)
-        shutil.copytree(origin_preset_folder, preset_folder)
-
-        preset_config = os.path.join(preset_folder, f"{args.preset}.json")
-        if os.path.exists(preset_config) and os.path.isfile(preset_config):
-            with open(preset_config, "r", encoding="utf-8") as json_file:
-                preset_json = json.load(json_file)
-                print(f"Using preset: {args.preset}")
-
-                import fooocusapi.parameters as parameters
-                parameters.defualt_styles = preset_json['default_styles']
-                parameters.default_base_model_name = preset_json['default_model']
-                parameters.default_refiner_model_name = preset_json['default_refiner']
-                parameters.default_lora = preset_json['default_lora']
-                parameters.default_lora_weight = preset_json['default_lora_weight']
-                parameters.default_cfg_scale = preset_json['default_cfg_scale']
-                parameters.default_prompt_negative = preset_json['default_prompt_negative']
-                if parameters.default_refiner_model_name == '':
-                    parameters.default_refiner_model_name = 'None'
-
     import fooocusapi.worker as worker
     worker.task_queue.queue_size = args.queue_size
     worker.task_queue.history_size = args.queue_history
@@ -294,12 +267,31 @@ def prepare_environments(args) -> bool:
     backend_path = os.path.join(fooocus_path, 'backend', 'headless')
     if backend_path not in sys.path:
         sys.path.append(backend_path)
-    os.environ["PYTORCH_ENABLE_MPS_FALLBACK"] = "1"
+    os.environ["PYTORCH_ENABLE_MPS_FALLBACK"] = "1"   
 
     sys.argv = [sys.argv[0]]
-    if preset_json is not None:
+    if args.preset is not None:
+        # Remove and copy preset folder
+        origin_preset_folder = os.path.abspath(os.path.join(script_path, dir_repos, fooocus_name, 'presets'))
+        preset_folder = os.path.abspath(os.path.join(script_path, 'presets'))
+        if os.path.exists(preset_folder):
+            shutil.rmtree(preset_folder)
+        shutil.copytree(origin_preset_folder, preset_folder)
+
         sys.argv.append('--preset')
         sys.argv.append(args.preset)
+
+    import modules.path as path
+    import fooocusapi.parameters as parameters
+    parameters.defualt_styles = path.default_styles
+    parameters.default_base_model_name = path.default_base_model_name
+    parameters.default_refiner_model_name = path.default_refiner_model_name
+    parameters.default_lora_name = path.default_lora_name
+    parameters.default_lora_weight = path.default_lora_weight
+    parameters.default_cfg_scale = path.default_cfg_scale
+    parameters.default_prompt_negative = path.default_prompt_negative
+    parameters.default_aspect_ratio = path.default_aspect_ratio.replace('*', '×')
+    parameters.available_aspect_ratios = [a.replace('*', '×') for a in path.available_aspect_ratios]
 
     ini_cbh_args()
 

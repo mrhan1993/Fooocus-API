@@ -6,7 +6,7 @@ import sys
 from typing import List
 from cog import BasePredictor, Input, Path
 
-from fooocusapi.parameters import GenerationFinishReason, ImageGenerationParams, aspect_ratios, uov_methods, outpaint_expansions, defualt_styles, default_base_model_name, default_refiner_model_name, default_lora, default_lora_weight, default_cfg_scale, default_prompt_negative
+from fooocusapi.parameters import GenerationFinishReason, ImageGenerationParams, available_aspect_ratios, uov_methods, outpaint_expansions, defualt_styles, default_base_model_name, default_refiner_model_name, default_lora_name, default_lora_weight, default_cfg_scale, default_prompt_negative
 from fooocusapi.task_queue import TaskType
 from fooocusapi.worker import process_generate, task_queue
 from fooocusapi.file_utils import output_dir
@@ -31,7 +31,7 @@ class Predictor(BasePredictor):
         performance_selection: str = Input(
             default='Speed', description="Performance selection", choices=['Speed', 'Quality']),
         aspect_ratios_selection: str = Input(
-            default='1152×896', description="The generated image's size", choices=aspect_ratios),
+            default='1152×896', description="The generated image's size", choices=available_aspect_ratios),
         image_number: int = Input(
             default=1, description="How many image to generate", ge=1, le=8),
         image_seed: int = Input(
@@ -86,7 +86,7 @@ class Predictor(BasePredictor):
 
         base_model_name = default_base_model_name
         refiner_model_name = default_refiner_model_name
-        loras = [(default_lora, default_lora_weight)]
+        loras = [(default_lora_name, default_lora_weight)]
 
         style_selections_arr = []
         for s in style_selections.strip().split(','):

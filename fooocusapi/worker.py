@@ -34,7 +34,7 @@ def process_generate(queue_task: QueueTask, params: ImageGenerationParams) -> Li
     import modules.constants as constants
     import fooocus_extras.preprocessors as preprocessors
     import fooocus_extras.ip_adapter as ip_adapter
-    from modules.util import join_prompts, remove_empty_str, resize_image, HWC3, set_image_shape_ceil, get_image_shape_ceil, get_shape_ceil
+    from modules.util import join_prompts, remove_empty_str, resize_image, HWC3, set_image_shape_ceil, get_image_shape_ceil, get_shape_ceil, resample_image
     from modules.private_logger import log
     from modules.upscaler import perform_upscale
     from modules.expansion import safe_str
@@ -106,6 +106,7 @@ def process_generate(queue_task: QueueTask, params: ImageGenerationParams) -> Li
         guidance_scale = params.guidance_scale
         base_model_name = params.base_model_name
         refiner_model_name = params.refiner_model_name
+        refiner_switch = path.default_refiner_switch
         loras = params.loras
         input_image_checkbox = params.uov_input_image is not None or params.inpaint_input_image is not None or len(params.image_prompts) > 0
         current_tab = 'uov' if params.uov_method != flags.disabled else 'inpaint' if params.inpaint_input_image is not None else 'ip' if len(params.image_prompts) > 0 else None
@@ -205,10 +206,8 @@ def process_generate(queue_task: QueueTask, params: ImageGenerationParams) -> Li
 
         if performance_selection == 'Speed':
             steps = 30
-            switch = 20
         else:
             steps = 60
-            switch = 40
 
         sampler_name = advanced_parameters.sampler_name
         scheduler_name = advanced_parameters.scheduler_name
@@ -229,10 +228,8 @@ def process_generate(queue_task: QueueTask, params: ImageGenerationParams) -> Li
                     else:
                         if performance_selection == 'Speed':
                             steps = 18
-                            switch = 12
                         else:
                             steps = 36
-                            switch = 24
                     progressbar(1, 'Downloading upscale models ...')
                     path.downloading_upscale_model()
             if (current_tab == 'inpaint' or (current_tab == 'ip' and advanced_parameters.mixing_image_prompt_and_inpaint))\
@@ -264,6 +261,8 @@ def process_generate(queue_task: QueueTask, params: ImageGenerationParams) -> Li
         pipeline.refresh_controlnets([controlnet_canny_path, controlnet_cpds_path])
         ip_adapter.load_ip_adapter(clip_vision_path, ip_negative_path, ip_adapter_path)
 
+        switch = int(round(steps * refiner_switch))
+
         if advanced_parameters.overwrite_step > 0:
             steps = advanced_parameters.overwrite_step
 
@@ -283,11 +282,15 @@ def process_generate(queue_task: QueueTask, params: ImageGenerationParams) -> Li
 
         if not skip_prompt_processing:
 
-            prompts = remove_empty_str([safe_str(p) for p in prompt.split('\n')], default='')
-            negative_prompts = remove_empty_str([safe_str(p) for p in negative_prompt.split('\n')], default='')
+            prompts = remove_empty_str([safe_str(p) for p in prompt.splitlines()], default='')
+            negative_prompts = remove_empty_str([safe_str(p) for p in negative_prompt.splitlines()], default='')
 
             prompt = prompts[0]
             negative_prompt = negative_prompts[0]
+
+            if prompt == '':
+                # disable expansion when empty since it is not meaningful and influences image prompt
+                use_expansion = False
 
             extra_positive_prompts = prompts[1:] if len(prompts) > 1 else []
             extra_negative_prompts = negative_prompts[1:] if len(negative_prompts) > 1 else []
@@ -312,8 +315,8 @@ def process_generate(queue_task: QueueTask, params: ImageGenerationParams) -> Li
                 if use_style:
                     for s in style_selections:
                         p, n = apply_style(s, positive=task_prompt)
-                        positive_basic_workloads.append(p)
-                        negative_basic_workloads.append(n)
+                        positive_basic_workloads = positive_basic_workloads + p
+                        negative_basic_workloads = negative_basic_workloads + n
                 else:
                     positive_basic_workloads.append(task_prompt)
 
@@ -402,10 +405,14 @@ def process_generate(queue_task: QueueTask, params: ImageGenerationParams) -> Li
                 f = 1.0
 
             shape_ceil = get_shape_ceil(H * f, W * f)
+
             if shape_ceil < 1024:
                 print(f'[Upscale] Image is resized because it is too small.')
+                uov_input_image = set_image_shape_ceil(uov_input_image, 1024)
                 shape_ceil = 1024
-            uov_input_image = set_image_shape_ceil(uov_input_image, shape_ceil)
+            else:
+                uov_input_image = resample_image(uov_input_image, width=W * f, height=H * f)
+
             image_is_super_large = shape_ceil > 2800
 
             if 'fast' in uov_method:

@@ -8,8 +8,8 @@ from fastapi import Response, UploadFile
 from PIL import Image
 from fooocusapi.file_utils import get_file_serve_url, output_file_to_base64img, output_file_to_bytesimg
 from fooocusapi.models import AsyncJobResponse, AsyncJobStage, GeneratedImageResult, GenerationFinishReason, ImgInpaintOrOutpaintRequest, ImgPromptRequest, ImgUpscaleOrVaryRequest, Text2ImgRequest
-from fooocusapi.parameters import ImageGenerationParams, ImageGenerationResult
-from fooocusapi.task_queue import QueueTask, TaskType
+from fooocusapi.parameters import ImageGenerationParams, ImageGenerationResult, available_aspect_ratios, default_aspect_ratio
+from fooocusapi.task_queue import QueueTask
 import modules.flags as flags
 from modules.sdxl_styles import legal_style_names
 
@@ -50,7 +50,7 @@ def req_to_params(req: Text2ImgRequest) -> ImageGenerationParams:
     style_selections = [
         s for s in req.style_selections if s in legal_style_names]
     performance_selection = req.performance_selection.value
-    aspect_ratios_selection = req.aspect_ratios_selection.value
+    aspect_ratios_selection = req.aspect_ratios_selection
     image_number = req.image_number
     image_seed = None if req.image_seed == -1 else req.image_seed
     sharpness = req.sharpness
@@ -64,6 +64,13 @@ def req_to_params(req: Text2ImgRequest) -> ImageGenerationParams:
         req, ImgUpscaleOrVaryRequest) else req.uov_method.value
     outpaint_selections = [] if not isinstance(req, ImgInpaintOrOutpaintRequest) else [
         s.value for s in req.outpaint_selections]
+    
+    if aspect_ratios_selection not in available_aspect_ratios:
+        print(f"Invalid aspect ratios selection, using default: {default_aspect_ratio}")
+        aspect_ratios_selection = default_aspect_ratio
+    
+    if refiner_model_name == '':
+        refiner_model_name = 'None'
 
     inpaint_input_image = None
     if isinstance(req, ImgInpaintOrOutpaintRequest):

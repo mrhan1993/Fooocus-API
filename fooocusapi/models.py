@@ -6,7 +6,7 @@ from typing import List
 from enum import Enum
 
 from pydantic_core import InitErrorDetails
-from fooocusapi.parameters import GenerationFinishReason, defualt_styles, default_base_model_name, default_refiner_model_name, default_lora, default_lora_weight, default_cfg_scale, default_prompt_negative
+from fooocusapi.parameters import GenerationFinishReason, defualt_styles, default_base_model_name, default_refiner_model_name, default_lora_name, default_lora_weight, default_cfg_scale, default_prompt_negative, default_aspect_ratio
 from fooocusapi.task_queue import TaskType
 import modules.flags as flags
 
@@ -23,36 +23,6 @@ class Lora(BaseModel):
 class PerfomanceSelection(str, Enum):
     speed = 'Speed'
     quality = 'Quality'
-
-
-class AspectRatio(str, Enum):
-    a_0_5 = '704×1408'
-    a_0_52 = '704×1344'
-    a_0_57 = '768×1344'
-    a_0_6 = '768×1280'
-    a_0_68 = '832×1216'
-    a_0_72 = '832×1152'
-    a_0_78 = '896×1152'
-    a_0_82 = '896×1088'
-    a_0_88 = '960×1088'
-    a_0_94 = '960×1024'
-    a_1_0 = '1024×1024'
-    a_1_07 = '1024×960'
-    a_1_13 = '1088×960'
-    a_1_21 = '1088×896'
-    a_1_29 = '1152×896'
-    a_1_38 = '1152×832'
-    a_1_46 = '1216×832'
-    a_1_67 = '1280×768'
-    a_1_75 = '1344×768'
-    a_1_91 = '1344×704'
-    a_2_0 = '1408×704'
-    a_2_09 = '1472×704'
-    a_2_4 = '1536×640'
-    a_2_5 = '1600×640'
-    a_2_89 = '1664×576'
-    a_3_0 = '1728×576'
-
 
 class UpscaleOrVaryMethod(str, Enum):
     subtle_variation = 'Vary (Subtle)'
@@ -88,7 +58,7 @@ class Text2ImgRequest(BaseModel):
     negative_prompt: str = default_prompt_negative
     style_selections: List[str] = defualt_styles
     performance_selection: PerfomanceSelection = PerfomanceSelection.speed
-    aspect_ratios_selection: AspectRatio = AspectRatio.a_1_29
+    aspect_ratios_selection: str = default_aspect_ratio
     image_number: int = Field(
         default=1, description="Image number", min=1, max=32)
     image_seed: int = Field(default=-1, description="Seed to generate image, -1 for random")
@@ -97,7 +67,7 @@ class Text2ImgRequest(BaseModel):
     base_model_name: str = default_base_model_name
     refiner_model_name: str = default_refiner_model_name
     loras: List[Lora] = Field(default=[
-        Lora(model_name=default_lora, weight=default_lora_weight)])
+        Lora(model_name=default_lora_name, weight=default_lora_weight)])
     require_base64: bool = Field(default=False, description="Return base64 data of generated image")
     async_process: bool = Field(default=False, description="Set to true will run async and return job info for retrieve generataion result later")
 
@@ -114,8 +84,7 @@ class ImgUpscaleOrVaryRequest(Text2ImgRequest):
                 style_selections: List[str] = Form(defualt_styles, description="Fooocus style selections, seperated by comma"),
                 performance_selection: PerfomanceSelection = Form(
                     PerfomanceSelection.speed),
-                aspect_ratios_selection: AspectRatio = Form(
-                    AspectRatio.a_1_29),
+                aspect_ratios_selection: str = Form(default_aspect_ratio),
                 image_number: int = Form(
                     default=1, description="Image number", ge=1, le=32),
                 image_seed: int = Form(default=-1, description="Seed to generate image, -1 for random"),
@@ -123,7 +92,7 @@ class ImgUpscaleOrVaryRequest(Text2ImgRequest):
                 guidance_scale: float = Form(default=default_cfg_scale, ge=1.0, le=30.0),
                 base_model_name: str = Form(default_base_model_name),
                 refiner_model_name: str = Form(default_refiner_model_name),
-                l1: str | None = Form(default_lora),
+                l1: str | None = Form(default_lora_name),
                 w1: float = Form(default=default_lora_weight, ge=-2, le=2),
                 l2: str | None = Form(None),
                 w2: float = Form(default=default_lora_weight, ge=-2, le=2),
@@ -173,8 +142,7 @@ class ImgInpaintOrOutpaintRequest(Text2ImgRequest):
                 style_selections: List[str] = Form(defualt_styles, description="Fooocus style selections, seperated by comma"),
                 performance_selection: PerfomanceSelection = Form(
                     PerfomanceSelection.speed),
-                aspect_ratios_selection: AspectRatio = Form(
-                    AspectRatio.a_1_29),
+                aspect_ratios_selection: str = Form(default_aspect_ratio),
                 image_number: int = Form(
                     default=1, description="Image number", ge=1, le=32),
                 image_seed: int = Form(default=-1, description="Seed to generate image, -1 for random"),
@@ -182,7 +150,7 @@ class ImgInpaintOrOutpaintRequest(Text2ImgRequest):
                 guidance_scale: float = Form(default=default_cfg_scale, ge=1.0, le=30.0),
                 base_model_name: str = Form(default_base_model_name),
                 refiner_model_name: str = Form(default_refiner_model_name),
-                l1: str | None = Form(default_lora),
+                l1: str | None = Form(default_lora_name),
                 w1: float = Form(default=default_lora_weight, ge=-2, le=2),
                 l2: str | None = Form(None),
                 w2: float = Form(default=default_lora_weight, ge=-2, le=2),
@@ -272,8 +240,7 @@ class ImgPromptRequest(Text2ImgRequest):
                 style_selections: List[str] = Form(defualt_styles, description="Fooocus style selections, seperated by comma"),
                 performance_selection: PerfomanceSelection = Form(
                     PerfomanceSelection.speed),
-                aspect_ratios_selection: AspectRatio = Form(
-                    AspectRatio.a_1_29),
+                aspect_ratios_selection: str = Form(default_aspect_ratio),
                 image_number: int = Form(
                     default=1, description="Image number", ge=1, le=32),
                 image_seed: int = Form(default=-1, description="Seed to generate image, -1 for random"),
@@ -281,7 +248,7 @@ class ImgPromptRequest(Text2ImgRequest):
                 guidance_scale: float = Form(default=default_cfg_scale, ge=1.0, le=30.0),
                 base_model_name: str = Form(default_base_model_name),
                 refiner_model_name: str = Form(default_refiner_model_name),
-                l1: str | None = Form(default_lora),
+                l1: str | None = Form(default_lora_name),
                 w1: float = Form(default=default_lora_weight, ge=-2, le=2),
                 l2: str | None = Form(None),
                 w2: float = Form(default=default_lora_weight, ge=-2, le=2),
@@ -369,3 +336,7 @@ class JobQueueInfo(BaseModel):
 class AllModelNamesResponse(BaseModel):
     model_filenames: List[str]
     lora_filenames: List[str]
+
+    model_config = ConfigDict(
+        protected_namespaces=('protect_me_', 'also_protect_')
+    )

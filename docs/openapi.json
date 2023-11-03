@@ -548,38 +548,6 @@
                 ],
                 "title": "AllModelNamesResponse"
             },
-            "AspectRatio": {
-                "type": "string",
-                "enum": [
-                    "704×1408",
-                    "704×1344",
-                    "768×1344",
-                    "768×1280",
-                    "832×1216",
-                    "832×1152",
-                    "896×1152",
-                    "896×1088",
-                    "960×1088",
-                    "960×1024",
-                    "1024×1024",
-                    "1024×960",
-                    "1088×960",
-                    "1088×896",
-                    "1152×896",
-                    "1152×832",
-                    "1216×832",
-                    "1280×768",
-                    "1344×768",
-                    "1344×704",
-                    "1408×704",
-                    "1472×704",
-                    "1536×640",
-                    "1600×640",
-                    "1664×576",
-                    "1728×576"
-                ],
-                "title": "AspectRatio"
-            },
             "AsyncJobResponse": {
                 "properties": {
                     "job_id": {
@@ -674,7 +642,7 @@
                     "negative_prompt": {
                         "type": "string",
                         "title": "Negative Prompt",
-                        "default": ""
+                        "default": "(embedding:unaestheticXLv31:0.8), low quality, watermark"
                     },
                     "style_selections": {
                         "items": {
@@ -685,7 +653,11 @@
                         "description": "Fooocus style selections, seperated by comma",
                         "default": [
                             "Fooocus V2",
-                            "Default (Slightly Cinematic)"
+                            "Fooocus Masterpiece",
+                            "SAI Anime",
+                            "SAI Digital Art",
+                            "SAI Enhance",
+                            "SAI Fantasy Art"
                         ]
                     },
                     "performance_selection": {
@@ -697,12 +669,9 @@
                         "default": "Speed"
                     },
                     "aspect_ratios_selection": {
-                        "allOf": [
-                            {
-                                "$ref": "#/components/schemas/AspectRatio"
-                            }
-                        ],
-                        "default": "1152×896"
+                        "type": "string",
+                        "title": "Aspect Ratios Selection",
+                        "default": "896×1152"
                     },
                     "image_number": {
                         "type": "integer",
@@ -735,12 +704,12 @@
                     "base_model_name": {
                         "type": "string",
                         "title": "Base Model Name",
-                        "default": "sd_xl_base_1.0_0.9vae.safetensors"
+                        "default": "bluePencilXL_v050.safetensors"
                     },
                     "refiner_model_name": {
                         "type": "string",
                         "title": "Refiner Model Name",
-                        "default": "sd_xl_refiner_1.0_0.9vae.safetensors"
+                        "default": "DreamShaper_8_pruned.safetensors"
                     },
                     "l1": {
                         "anyOf": [
@@ -1034,7 +1003,7 @@
                     "negative_prompt": {
                         "type": "string",
                         "title": "Negative Prompt",
-                        "default": ""
+                        "default": "(embedding:unaestheticXLv31:0.8), low quality, watermark"
                     },
                     "style_selections": {
                         "items": {
@@ -1045,7 +1014,11 @@
                         "description": "Fooocus style selections, seperated by comma",
                         "default": [
                             "Fooocus V2",
-                            "Default (Slightly Cinematic)"
+                            "Fooocus Masterpiece",
+                            "SAI Anime",
+                            "SAI Digital Art",
+                            "SAI Enhance",
+                            "SAI Fantasy Art"
                         ]
                     },
                     "performance_selection": {
@@ -1057,12 +1030,9 @@
                         "default": "Speed"
                     },
                     "aspect_ratios_selection": {
-                        "allOf": [
-                            {
-                                "$ref": "#/components/schemas/AspectRatio"
-                            }
-                        ],
-                        "default": "1152×896"
+                        "type": "string",
+                        "title": "Aspect Ratios Selection",
+                        "default": "896×1152"
                     },
                     "image_number": {
                         "type": "integer",
@@ -1095,12 +1065,12 @@
                     "base_model_name": {
                         "type": "string",
                         "title": "Base Model Name",
-                        "default": "sd_xl_base_1.0_0.9vae.safetensors"
+                        "default": "bluePencilXL_v050.safetensors"
                     },
                     "refiner_model_name": {
                         "type": "string",
                         "title": "Refiner Model Name",
-                        "default": "sd_xl_refiner_1.0_0.9vae.safetensors"
+                        "default": "DreamShaper_8_pruned.safetensors"
                     },
                     "l1": {
                         "anyOf": [
@@ -1228,7 +1198,7 @@
                     "negative_prompt": {
                         "type": "string",
                         "title": "Negative Prompt",
-                        "default": ""
+                        "default": "(embedding:unaestheticXLv31:0.8), low quality, watermark"
                     },
                     "style_selections": {
                         "items": {
@@ -1239,7 +1209,11 @@
                         "description": "Fooocus style selections, seperated by comma",
                         "default": [
                             "Fooocus V2",
-                            "Default (Slightly Cinematic)"
+                            "Fooocus Masterpiece",
+                            "SAI Anime",
+                            "SAI Digital Art",
+                            "SAI Enhance",
+                            "SAI Fantasy Art"
                         ]
                     },
                     "performance_selection": {
@@ -1251,12 +1225,9 @@
                         "default": "Speed"
                     },
                     "aspect_ratios_selection": {
-                        "allOf": [
-                            {
-                                "$ref": "#/components/schemas/AspectRatio"
-                            }
-                        ],
-                        "default": "1152×896"
+                        "type": "string",
+                        "title": "Aspect Ratios Selection",
+                        "default": "896×1152"
                     },
                     "image_number": {
                         "type": "integer",
@@ -1289,12 +1260,12 @@
                     "base_model_name": {
                         "type": "string",
                         "title": "Base Model Name",
-                        "default": "sd_xl_base_1.0_0.9vae.safetensors"
+                        "default": "bluePencilXL_v050.safetensors"
                     },
                     "refiner_model_name": {
                         "type": "string",
                         "title": "Refiner Model Name",
-                        "default": "sd_xl_refiner_1.0_0.9vae.safetensors"
+                        "default": "DreamShaper_8_pruned.safetensors"
                     },
                     "l1": {
                         "anyOf": [
@@ -1557,7 +1528,7 @@
                     "negative_prompt": {
                         "type": "string",
                         "title": "Negative Prompt",
-                        "default": ""
+                        "default": "(embedding:unaestheticXLv31:0.8), low quality, watermark"
                     },
                     "style_selections": {
                         "items": {
@@ -1567,7 +1538,11 @@
                         "title": "Style Selections",
                         "default": [
                             "Fooocus V2",
-                            "Default (Slightly Cinematic)"
+                            "Fooocus Masterpiece",
+                            "SAI Anime",
+                            "SAI Digital Art",
+                            "SAI Enhance",
+                            "SAI Fantasy Art"
                         ]
                     },
                     "performance_selection": {
@@ -1579,12 +1554,9 @@
                         "default": "Speed"
                     },
                     "aspect_ratios_selection": {
-                        "allOf": [
-                            {
-                                "$ref": "#/components/schemas/AspectRatio"
-                            }
-                        ],
-                        "default": "1152×896"
+                        "type": "string",
+                        "title": "Aspect Ratios Selection",
+                        "default": "896×1152"
                     },
                     "image_number": {
                         "type": "integer",
@@ -1617,12 +1589,12 @@
                     "base_model_name": {
                         "type": "string",
                         "title": "Base Model Name",
-                        "default": "sd_xl_base_1.0_0.9vae.safetensors"
+                        "default": "bluePencilXL_v050.safetensors"
                     },
                     "refiner_model_name": {
                         "type": "string",
                         "title": "Refiner Model Name",
-                        "default": "sd_xl_refiner_1.0_0.9vae.safetensors"
+                        "default": "DreamShaper_8_pruned.safetensors"
                     },
                     "loras": {
                         "items": {
