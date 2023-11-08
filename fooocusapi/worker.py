@@ -129,6 +129,7 @@ def process_generate(queue_task: QueueTask, params: ImageGenerationParams) -> Li
             adaptive_cfg = 7.0
             sampler_name = path.default_sampler
             scheduler_name = path.default_scheduler
+            generate_image_grid = False
             overwrite_step = -1
             overwrite_switch = -1
             overwrite_width = -1
@@ -146,7 +147,7 @@ def process_generate(queue_task: QueueTask, params: ImageGenerationParams) -> Li
             freeu_enabled = False
             freeu_b1, freeu_b2, freeu_s1, freeu_s2 = [None] * 4
             return [adm_scaler_positive, adm_scaler_negative, adm_scaler_end, adaptive_cfg, sampler_name,
-                               scheduler_name, overwrite_step, overwrite_switch, overwrite_width, overwrite_height,
+                               scheduler_name, generate_image_grid, overwrite_step, overwrite_switch, overwrite_width, overwrite_height,
                                overwrite_vary_strength, overwrite_upscale_strength,
                                mixing_image_prompt_and_vary_upscale, mixing_image_prompt_and_inpaint,
                                 debugging_cn_preprocessor, controlnet_softness, canny_low_threshold, canny_high_threshold, inpaint_engine,
@@ -301,7 +302,7 @@ def process_generate(queue_task: QueueTask, params: ImageGenerationParams) -> Li
             progressbar(3, 'Processing prompts ...')
             tasks = []
             for i in range(image_number):
-                task_seed = (seed + i) % (constants.MAX_SEED + 1) # randint is inclusive, % is not
+                task_seed = (seed + i) % (constants.MAX_SEED + 1)  # randint is inclusive, % is not
                 task_rng = random.Random(task_seed)  # may bind to inpaint noise in the future
 
                 task_prompt = apply_wildcards(prompt, task_rng)
@@ -347,9 +348,9 @@ def process_generate(queue_task: QueueTask, params: ImageGenerationParams) -> Li
                 for i, t in enumerate(tasks):
                     progressbar(5, f'Preparing Fooocus text #{i + 1} ...')
                     expansion = pipeline.final_expansion(t['task_prompt'], t['task_seed'])
-                    print(f'[Prompt Expansion] New suffix: {expansion}')
+                    print(f'[Prompt Expansion] {expansion}')
                     t['expansion'] = expansion
-                    t['positive'] = copy.deepcopy(t['positive']) + [join_prompts(t['task_prompt'], expansion)]  # Deep copy.
+                    t['positive'] = copy.deepcopy(t['positive']) + [expansion]  # Deep copy.
 
             for i, t in enumerate(tasks):
                 progressbar(7, f'Encoding positive #{i + 1} ...')
