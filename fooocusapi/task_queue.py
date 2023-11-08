@@ -1,6 +1,6 @@
 from enum import Enum
 import time
-from typing import List
+from typing import List, Tuple
 
 
 class TaskType(str, Enum):
@@ -102,3 +102,18 @@ class TaskQueue(object):
             if len(self.history) > self.history_size:
                 removed_task = self.history.pop(0)
                 print(f"Clean task history, remove task: {removed_task.seq}")
+
+
+class TaskOutputs:
+    outputs = []
+
+    def __init__(self, task: QueueTask):
+        self.task = task
+
+    def append(self, args: List[any]):
+        self.outputs.append(args)
+        if len(args) >= 2:
+            if args[0] == 'preview' and isinstance(args[1], Tuple) and len(args[1]) >= 2:
+                number = args[1][0]
+                text = args[1][1]
+                self.task.set_progress(number, text)

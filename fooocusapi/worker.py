@@ -6,7 +6,7 @@ import torch
 from typing import List
 from fooocusapi.file_utils import save_output_file
 from fooocusapi.parameters import inpaint_model_version, GenerationFinishReason, ImageGenerationParams, ImageGenerationResult
-from fooocusapi.task_queue import QueueTask, TaskQueue
+from fooocusapi.task_queue import QueueTask, TaskQueue, TaskOutputs
 
 save_log = True
 task_queue = TaskQueue(queue_size=3, hisotry_size=6)
@@ -34,13 +34,13 @@ def process_generate(queue_task: QueueTask, params: ImageGenerationParams) -> Li
     import modules.constants as constants
     import fooocus_extras.preprocessors as preprocessors
     import fooocus_extras.ip_adapter as ip_adapter
-    from modules.util import join_prompts, remove_empty_str, resize_image, HWC3, set_image_shape_ceil, get_image_shape_ceil, get_shape_ceil, resample_image
+    from modules.util import remove_empty_str, resize_image, HWC3, set_image_shape_ceil, get_image_shape_ceil, get_shape_ceil, resample_image
     from modules.private_logger import log
     from modules.upscaler import perform_upscale
     from modules.expansion import safe_str
     from modules.sdxl_styles import apply_style, fooocus_expansion, apply_wildcards
 
-    outputs = []
+    outputs = TaskOutputs(queue_task)
 
     def refresh_seed(r, seed_string):
         if r:
@@ -61,7 +61,7 @@ def process_generate(queue_task: QueueTask, params: ImageGenerationParams) -> Li
 
     def make_results_from_outputs():
         results: List[ImageGenerationResult] = []
-        for item in outputs:
+        for item in outputs.outputs:
             seed = -1 if len(item) < 3 else item[2]
             if item[0] == 'results':
                 for im in item[1]:
