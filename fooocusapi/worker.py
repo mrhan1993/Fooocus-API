@@ -106,7 +106,7 @@ def process_generate(queue_task: QueueTask, params: ImageGenerationParams) -> Li
         guidance_scale = params.guidance_scale
         base_model_name = params.base_model_name
         refiner_model_name = params.refiner_model_name
-        refiner_switch = path.default_refiner_switch
+        refiner_switch = params.refiner_switch
         loras = params.loras
         input_image_checkbox = params.uov_input_image is not None or params.inpaint_input_image is not None or len(params.image_prompts) > 0
         current_tab = 'uov' if params.uov_method != flags.disabled else 'inpaint' if params.inpaint_input_image is not None else 'ip' if len(params.image_prompts) > 0 else None

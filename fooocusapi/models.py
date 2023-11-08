@@ -6,7 +6,7 @@ from typing import List
 from enum import Enum
 
 from pydantic_core import InitErrorDetails
-from fooocusapi.parameters import GenerationFinishReason, defualt_styles, default_base_model_name, default_refiner_model_name, default_lora_name, default_lora_weight, default_cfg_scale, default_prompt_negative, default_aspect_ratio
+from fooocusapi.parameters import GenerationFinishReason, defualt_styles, default_base_model_name, default_refiner_model_name, default_refiner_switch, default_lora_name, default_lora_weight, default_cfg_scale, default_prompt_negative, default_aspect_ratio
 from fooocusapi.task_queue import TaskType
 import modules.flags as flags
 
@@ -66,6 +66,7 @@ class Text2ImgRequest(BaseModel):
     guidance_scale: float = Field(default=default_cfg_scale, min=1.0, max=30.0)
     base_model_name: str = default_base_model_name
     refiner_model_name: str = default_refiner_model_name
+    refiner_switch: float = Field(default=default_refiner_switch, description="Refiner Switch At", min=0.1, max=1.0)
     loras: List[Lora] = Field(default=[
         Lora(model_name=default_lora_name, weight=default_lora_weight)])
     require_base64: bool = Field(default=False, description="Return base64 data of generated image")
@@ -92,6 +93,7 @@ class ImgUpscaleOrVaryRequest(Text2ImgRequest):
                 guidance_scale: float = Form(default=default_cfg_scale, ge=1.0, le=30.0),
                 base_model_name: str = Form(default_base_model_name),
                 refiner_model_name: str = Form(default_refiner_model_name),
+                refiner_switch: float = Form(default=default_refiner_switch, description="Refiner Switch At", ge=0.1, le=1.0),
                 l1: str | None = Form(default_lora_name),
                 w1: float = Form(default=default_lora_weight, ge=-2, le=2),
                 l2: str | None = Form(None),
@@ -122,7 +124,7 @@ class ImgUpscaleOrVaryRequest(Text2ImgRequest):
         return cls(input_image=input_image, uov_method=uov_method, prompt=prompt, negative_prompt=negative_prompt, style_selections=style_selection_arr,
                    performance_selection=performance_selection, aspect_ratios_selection=aspect_ratios_selection,
                    image_number=image_number, image_seed=image_seed, sharpness=sharpness, guidance_scale=guidance_scale,
-                   base_model_name=base_model_name, refiner_model_name=refiner_model_name,
+                   base_model_name=base_model_name, refiner_model_name=refiner_model_name, refiner_switch=refiner_switch,
                    loras=loras, require_base64=require_base64, async_process=async_process)
 
 
@@ -150,6 +152,7 @@ class ImgInpaintOrOutpaintRequest(Text2ImgRequest):
                 guidance_scale: float = Form(default=default_cfg_scale, ge=1.0, le=30.0),
                 base_model_name: str = Form(default_base_model_name),
                 refiner_model_name: str = Form(default_refiner_model_name),
+                refiner_switch: float = Form(default=default_refiner_switch, description="Refiner Switch At", ge=0.1, le=1.0),
                 l1: str | None = Form(default_lora_name),
                 w1: float = Form(default=default_lora_weight, ge=-2, le=2),
                 l2: str | None = Form(None),
@@ -196,7 +199,7 @@ class ImgInpaintOrOutpaintRequest(Text2ImgRequest):
         return cls(input_image=input_image, input_mask=input_mask, outpaint_selections=outpaint_selections_arr, prompt=prompt, negative_prompt=negative_prompt, style_selections=style_selection_arr,
                    performance_selection=performance_selection, aspect_ratios_selection=aspect_ratios_selection,
                    image_number=image_number, image_seed=image_seed, sharpness=sharpness, guidance_scale=guidance_scale,
-                   base_model_name=base_model_name, refiner_model_name=refiner_model_name,
+                   base_model_name=base_model_name, refiner_model_name=refiner_model_name, refiner_switch=refiner_switch,
                    loras=loras, require_base64=require_base64, async_process=async_process)
 
 
@@ -248,6 +251,7 @@ class ImgPromptRequest(Text2ImgRequest):
                 guidance_scale: float = Form(default=default_cfg_scale, ge=1.0, le=30.0),
                 base_model_name: str = Form(default_base_model_name),
                 refiner_model_name: str = Form(default_refiner_model_name),
+                refiner_switch: float = Form(default=default_refiner_switch, description="Refiner Switch At", ge=0.1, le=1.0),
                 l1: str | None = Form(default_lora_name),
                 w1: float = Form(default=default_lora_weight, ge=-2, le=2),
                 l2: str | None = Form(None),
@@ -299,7 +303,7 @@ class ImgPromptRequest(Text2ImgRequest):
         return cls(image_prompts=image_prompts, prompt=prompt, negative_prompt=negative_prompt, style_selections=style_selection_arr,
                    performance_selection=performance_selection, aspect_ratios_selection=aspect_ratios_selection,
                    image_number=image_number, image_seed=image_seed, sharpness=sharpness, guidance_scale=guidance_scale,
-                   base_model_name=base_model_name, refiner_model_name=refiner_model_name,
+                   base_model_name=base_model_name, refiner_model_name=refiner_model_name, refiner_switch=refiner_switch,
                    loras=loras, require_base64=require_base64, async_process=async_process)
 
 

@@ -57,6 +57,7 @@ def req_to_params(req: Text2ImgRequest) -> ImageGenerationParams:
     guidance_scale = req.guidance_scale
     base_model_name = req.base_model_name
     refiner_model_name = req.refiner_model_name
+    refiner_switch = req.refiner_switch
     loras = [(lora.model_name, lora.weight) for lora in req.loras]
     uov_input_image = None if not isinstance(
         req, ImgUpscaleOrVaryRequest) else read_input_image(req.input_image)
@@ -103,6 +104,7 @@ def req_to_params(req: Text2ImgRequest) -> ImageGenerationParams:
                                  guidance_scale=guidance_scale,
                                  base_model_name=base_model_name,
                                  refiner_model_name=refiner_model_name,
+                                 refiner_switch=refiner_switch,
                                  loras=loras,
                                  uov_input_image=uov_input_image,
                                  uov_method=uov_method,

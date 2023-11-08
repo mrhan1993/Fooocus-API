@@ -6,7 +6,7 @@ import sys
 from typing import List
 from cog import BasePredictor, Input, Path
 
-from fooocusapi.parameters import GenerationFinishReason, ImageGenerationParams, available_aspect_ratios, uov_methods, outpaint_expansions, defualt_styles, default_base_model_name, default_refiner_model_name, default_lora_name, default_lora_weight, default_cfg_scale, default_prompt_negative
+from fooocusapi.parameters import GenerationFinishReason, ImageGenerationParams, available_aspect_ratios, uov_methods, outpaint_expansions, defualt_styles, default_base_model_name, default_refiner_model_name, default_lora_name, default_refiner_switch, default_lora_weight, default_cfg_scale, default_prompt_negative
 from fooocusapi.task_queue import TaskType
 from fooocusapi.worker import process_generate, task_queue
 from fooocusapi.file_utils import output_dir
@@ -38,6 +38,7 @@ class Predictor(BasePredictor):
             default=-1, description="Seed to generate image, -1 for random"),
         sharpness: float = Input(default=2.0, ge=0.0, le=30.0),
         guidance_scale: float = Input(default=default_cfg_scale, ge=1.0, le=30.0),
+        refiner_switch: float = Input(defalt=default_refiner_switch, ge=0.1, le=1.0),
         uov_input_image: Path = Input(
             default=None, description="Input image for upscale or variation, keep None for not upscale or variation"),
         uov_method: str = Input(default='Disabled', choices=uov_methods),
@@ -145,6 +146,7 @@ class Predictor(BasePredictor):
                                        guidance_scale=guidance_scale,
                                        base_model_name=base_model_name,
                                        refiner_model_name=refiner_model_name,
+                                       refiner_switch=refiner_switch,
                                        loras=loras,
                                        uov_input_image=uov_input_image,
                                        uov_method=uov_method,

@@ -286,6 +286,7 @@ def prepare_environments(args) -> bool:
     parameters.defualt_styles = path.default_styles
     parameters.default_base_model_name = path.default_base_model_name
     parameters.default_refiner_model_name = path.default_refiner_model_name
+    parameters.default_refiner_switch = path.default_refiner_switch
     parameters.default_lora_name = path.default_lora_name
     parameters.default_lora_weight = path.default_lora_weight
     parameters.default_cfg_scale = path.default_cfg_scale

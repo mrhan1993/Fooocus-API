@@ -11,6 +11,7 @@ inpaint_model_version = 'v1'
 defualt_styles = ['Fooocus V2', 'Fooocus Enhance', 'Fooocus Sharp']
 default_base_model_name = 'sd_xl_base_1.0_0.9vae.safetensors'
 default_refiner_model_name = 'sd_xl_refiner_1.0_0.9vae.safetensors'
+default_refiner_switch = 0.8
 default_lora_name = 'sd_xl_offset_example-lora_1.0.safetensors'
 default_lora_weight = 0.5
 default_cfg_scale = 7.0
@@ -83,6 +84,7 @@ class ImageGenerationParams(object):
                  guidance_scale: float,
                  base_model_name: str,
                  refiner_model_name: str,
+                 refiner_switch: float,
                  loras: List[Tuple[str, float]],
                  uov_input_image: np.ndarray | None,
                  uov_method: str,
@@ -100,6 +102,7 @@ class ImageGenerationParams(object):
         self.guidance_scale = guidance_scale
         self.base_model_name = base_model_name
         self.refiner_model_name = refiner_model_name
+        self.refiner_switch = refiner_switch
         self.loras = loras
         self.uov_input_image = uov_input_image
         self.uov_method = uov_method
