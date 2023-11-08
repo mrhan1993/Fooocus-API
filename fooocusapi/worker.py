@@ -122,38 +122,7 @@ def process_generate(queue_task: QueueTask, params: ImageGenerationParams) -> Li
             cn_img, cn_stop, cn_weight, cn_type = img_prompt
             cn_tasks[cn_type].append([cn_img, cn_stop, cn_weight])
 
-        def build_advanced_parameters():
-            adm_scaler_positive = 1.5
-            adm_scaler_negative = 0.8
-            adm_scaler_end = 0.3
-            adaptive_cfg = 7.0
-            sampler_name = path.default_sampler
-            scheduler_name = path.default_scheduler
-            generate_image_grid = False
-            overwrite_step = -1
-            overwrite_switch = -1
-            overwrite_width = -1
-            overwrite_height = -1
-            overwrite_vary_strength = -1
-            overwrite_upscale_strength = -1
-            mixing_image_prompt_and_vary_upscale = False
-            mixing_image_prompt_and_inpaint = False
-            debugging_cn_preprocessor = False
-            controlnet_softness = 0.25
-            canny_low_threshold = 64
-            canny_high_threshold = 128
-            inpaint_engine = inpaint_model_version
-            refiner_swap_method = 'joint'
-            freeu_enabled = False
-            freeu_b1, freeu_b2, freeu_s1, freeu_s2 = [None] * 4
-            return [adm_scaler_positive, adm_scaler_negative, adm_scaler_end, adaptive_cfg, sampler_name,
-                               scheduler_name, generate_image_grid, overwrite_step, overwrite_switch, overwrite_width, overwrite_height,
-                               overwrite_vary_strength, overwrite_upscale_strength,
-                               mixing_image_prompt_and_vary_upscale, mixing_image_prompt_and_inpaint,
-                                debugging_cn_preprocessor, controlnet_softness, canny_low_threshold, canny_high_threshold, inpaint_engine,
-                                refiner_swap_method, freeu_enabled, freeu_b1, freeu_b2, freeu_s1, freeu_s2]
-        
-        advanced_parameters.set_all_advanced_parameters(*build_advanced_parameters())
+        advanced_parameters.set_all_advanced_parameters(*params.advanced_params)
 
         # Fooocus async_worker.py code start
 

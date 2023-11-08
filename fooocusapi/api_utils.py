@@ -8,9 +8,10 @@ from fastapi import Response, UploadFile
 from PIL import Image
 from fooocusapi.file_utils import get_file_serve_url, output_file_to_base64img, output_file_to_bytesimg
 from fooocusapi.models import AsyncJobResponse, AsyncJobStage, GeneratedImageResult, GenerationFinishReason, ImgInpaintOrOutpaintRequest, ImgPromptRequest, ImgUpscaleOrVaryRequest, Text2ImgRequest
-from fooocusapi.parameters import ImageGenerationParams, ImageGenerationResult, available_aspect_ratios, default_aspect_ratio
+from fooocusapi.parameters import ImageGenerationParams, ImageGenerationResult, available_aspect_ratios, default_aspect_ratio, inpaint_model_version, default_sampler, default_scheduler, default_base_model_name, default_refiner_model_name
 from fooocusapi.task_queue import QueueTask
 import modules.flags as flags
+import modules.path as path
 from modules.sdxl_styles import legal_style_names
 
 
@@ -45,6 +46,21 @@ def read_input_image(input_image: UploadFile) -> np.ndarray:
 
 
 def req_to_params(req: Text2ImgRequest) -> ImageGenerationParams:
+    if req.base_model_name is not None:
+        if req.base_model_name not in path.model_filenames:
+            print(f"[Warning] Wrong base_model_name input: {req.base_model_name}, using default")
+            req.base_model_name = default_base_model_name
+
+    if req.refiner_model_name is not None and req.refiner_model_name != 'None':
+        if req.refiner_model_name not in path.model_filenames:
+            print(f"[Warning] Wrong refiner_model_name input: {req.refiner_model_name}, using default")
+            req.refiner_model_name = default_refiner_model_name
+
+    for l in req.loras:
+        if l.model_name != 'None' and l.model_name not in path.lora_filenames:
+            print(f"[Warning] Wrong lora model_name input: {l.model_name}, using 'None'")
+            l.model_name = 'None'
+
     prompt = req.prompt
     negative_prompt = req.negative_prompt
     style_selections = [
@@ -67,7 +83,7 @@ def req_to_params(req: Text2ImgRequest) -> ImageGenerationParams:
         s.value for s in req.outpaint_selections]
     
     if aspect_ratios_selection not in available_aspect_ratios:
-        print(f"Invalid aspect ratios selection, using default: {default_aspect_ratio}")
+        print(f"[Warning] Invalid aspect ratios selection, using default: {default_aspect_ratio}")
         aspect_ratios_selection = default_aspect_ratio
     
     if refiner_model_name == '':
@@ -92,6 +108,33 @@ def req_to_params(req: Text2ImgRequest) -> ImageGenerationParams:
                 cn_img = read_input_image(img_prompt.cn_img)
                 image_prompts.append(
                     (cn_img, img_prompt.cn_stop, img_prompt.cn_weight, img_prompt.cn_type.value))
+                
+    advanced_params = None
+    if req.advanced_params is not None:
+        adp = req.advanced_params
+
+        if adp.refiner_swap_method not in ['joint', 'separate', 'vae']:
+            print(f"[Warning] Wrong refiner_swap_method input: {adp.refiner_swap_method}, using default")
+            adp.refiner_swap_method = 'joint'
+
+        if adp.sampler_name not in flags.sampler_list:
+            print(f"[Warning] Wrong sampler_name input: {adp.sampler_name}, using default")
+            adp.sampler_name = default_sampler
+
+        if adp.scheduler_name not in flags.scheduler_list:
+            print(f"[Warning] Wrong scheduler_name input: {adp.scheduler_name}, using default")
+            adp.scheduler_name = default_scheduler
+
+        if adp.inpaint_engine not in ['v1', 'v2.5']:
+            print(f"[Warning] Wrong inpaint_engine input: {adp.inpaint_engine}, using default")
+            adp.inpaint_engine = inpaint_model_version
+        
+        advanced_params = [adp.adm_scaler_positive, adp.adm_scaler_negative, adp.adm_scaler_end, adp.adaptive_cfg, adp.sampler_name,
+                                adp.scheduler_name, False, adp.overwrite_step, adp.overwrite_switch, adp.overwrite_width, adp.overwrite_height,
+                                adp.overwrite_vary_strength, adp.overwrite_upscale_strength,
+                                adp.mixing_image_prompt_and_vary_upscale, adp.mixing_image_prompt_and_inpaint,
+                                adp.debugging_cn_preprocessor, adp.controlnet_softness, adp.canny_low_threshold, adp.canny_high_threshold, adp.inpaint_engine,
+                                adp.refiner_swap_method, adp.freeu_enabled, adp.freeu_b1, adp.freeu_b2, adp.freeu_s1, adp.freeu_s2]
 
     return ImageGenerationParams(prompt=prompt,
                                  negative_prompt=negative_prompt,
@@ -110,7 +153,8 @@ def req_to_params(req: Text2ImgRequest) -> ImageGenerationParams:
                                  uov_method=uov_method,
                                  outpaint_selections=outpaint_selections,
                                  inpaint_input_image=inpaint_input_image,
-                                 image_prompts=image_prompts
+                                 image_prompts=image_prompts,
+                                 advanced_params=advanced_params,
                                  )
 
 

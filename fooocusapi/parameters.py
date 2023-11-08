@@ -17,6 +17,8 @@ default_lora_weight = 0.5
 default_cfg_scale = 7.0
 default_prompt_negative = ''
 default_aspect_ratio = '1152×896'
+default_sampler = 'dpmpp_2m_sde_gpu'
+default_scheduler = 'karras'
 
 
 available_aspect_ratios = [
@@ -90,7 +92,8 @@ class ImageGenerationParams(object):
                  uov_method: str,
                  outpaint_selections: List[str],
                  inpaint_input_image: Dict[str, np.ndarray] | None,
-                 image_prompts: List[Tuple[np.ndarray, float, float, str]]):
+                 image_prompts: List[Tuple[np.ndarray, float, float, str]],
+                 advanced_params: List[any] | None):
         self.prompt = prompt
         self.negative_prompt = negative_prompt
         self.style_selections = style_selections
@@ -109,3 +112,35 @@ class ImageGenerationParams(object):
         self.outpaint_selections = outpaint_selections
         self.inpaint_input_image = inpaint_input_image
         self.image_prompts = image_prompts
+        if advanced_params is None:
+            adm_scaler_positive = 1.5
+            adm_scaler_negative = 0.8
+            adm_scaler_end = 0.3
+            adaptive_cfg = 7.0
+            sampler_name = default_sampler
+            scheduler_name = default_scheduler
+            generate_image_grid = False
+            overwrite_step = -1
+            overwrite_switch = -1
+            overwrite_width = -1
+            overwrite_height = -1
+            overwrite_vary_strength = -1
+            overwrite_upscale_strength = -1
+            mixing_image_prompt_and_vary_upscale = False
+            mixing_image_prompt_and_inpaint = False
+            debugging_cn_preprocessor = False
+            controlnet_softness = 0.25
+            canny_low_threshold = 64
+            canny_high_threshold = 128
+            inpaint_engine = inpaint_model_version
+            refiner_swap_method = 'joint'
+            freeu_enabled = False
+            freeu_b1, freeu_b2, freeu_s1, freeu_s2 = [None] * 4
+            self.advanced_params = [adm_scaler_positive, adm_scaler_negative, adm_scaler_end, adaptive_cfg, sampler_name,
+                               scheduler_name, generate_image_grid, overwrite_step, overwrite_switch, overwrite_width, overwrite_height,
+                               overwrite_vary_strength, overwrite_upscale_strength,
+                               mixing_image_prompt_and_vary_upscale, mixing_image_prompt_and_inpaint,
+                                debugging_cn_preprocessor, controlnet_softness, canny_low_threshold, canny_high_threshold, inpaint_engine,
+                                refiner_swap_method, freeu_enabled, freeu_b1, freeu_b2, freeu_s1, freeu_s2]
+        else:
+            self.advanced_params = advanced_params
