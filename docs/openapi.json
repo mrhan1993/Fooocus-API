@@ -524,6 +524,188 @@
     },
     "components": {
         "schemas": {
+            "AdvancedParams": {
+                "properties": {
+                    "adm_scaler_positive": {
+                        "type": "number",
+                        "maximum": 3,
+                        "minimum": 0.1,
+                        "title": "Adm Scaler Positive",
+                        "description": "Positive ADM Guidance Scaler",
+                        "default": 1.5
+                    },
+                    "adm_scaler_negative": {
+                        "type": "number",
+                        "maximum": 3,
+                        "minimum": 0.1,
+                        "title": "Adm Scaler Negative",
+                        "description": "Negative ADM Guidance Scaler",
+                        "default": 0.8
+                    },
+                    "adm_scaler_end": {
+                        "type": "number",
+                        "maximum": 1,
+                        "minimum": 0,
+                        "title": "Adm Scaler End",
+                        "description": "ADM Guidance End At Step",
+                        "default": 0.3
+                    },
+                    "refiner_swap_method": {
+                        "type": "string",
+                        "title": "Refiner Swap Method",
+                        "description": "Refiner swap method",
+                        "default": "joint"
+                    },
+                    "adaptive_cfg": {
+                        "type": "number",
+                        "maximum": 30,
+                        "minimum": 1,
+                        "title": "Adaptive Cfg",
+                        "description": "CFG Mimicking from TSNR",
+                        "default": 7
+                    },
+                    "sampler_name": {
+                        "type": "string",
+                        "title": "Sampler Name",
+                        "description": "Sampler",
+                        "default": "dpmpp_2m_sde_gpu"
+                    },
+                    "scheduler_name": {
+                        "type": "string",
+                        "title": "Scheduler Name",
+                        "description": "Scheduler",
+                        "default": "karras"
+                    },
+                    "overwrite_step": {
+                        "type": "integer",
+                        "maximum": 200,
+                        "minimum": -1,
+                        "title": "Overwrite Step",
+                        "description": "Forced Overwrite of Sampling Step",
+                        "default": -1
+                    },
+                    "overwrite_switch": {
+                        "type": "integer",
+                        "maximum": 200,
+                        "minimum": -1,
+                        "title": "Overwrite Switch",
+                        "description": "Forced Overwrite of Refiner Switch Step",
+                        "default": -1
+                    },
+                    "overwrite_width": {
+                        "type": "integer",
+                        "maximum": 2048,
+                        "minimum": -1,
+                        "title": "Overwrite Width",
+                        "description": "Forced Overwrite of Generating Width",
+                        "default": -1
+                    },
+                    "overwrite_height": {
+                        "type": "integer",
+                        "maximum": 2048,
+                        "minimum": -1,
+                        "title": "Overwrite Height",
+                        "description": "Forced Overwrite of Generating Height",
+                        "default": -1
+                    },
+                    "overwrite_vary_strength": {
+                        "type": "number",
+                        "maximum": 1,
+                        "minimum": -1,
+                        "title": "Overwrite Vary Strength",
+                        "description": "Forced Overwrite of Denoising Strength of \"Vary\"",
+                        "default": -1
+                    },
+                    "overwrite_upscale_strength": {
+                        "type": "number",
+                        "maximum": 1,
+                        "minimum": -1,
+                        "title": "Overwrite Upscale Strength",
+                        "description": "Forced Overwrite of Denoising Strength of \"Upscale\"",
+                        "default": -1
+                    },
+                    "mixing_image_prompt_and_vary_upscale": {
+                        "type": "boolean",
+                        "title": "Mixing Image Prompt And Vary Upscale",
+                        "description": "Mixing Image Prompt and Vary/Upscale",
+                        "default": false
+                    },
+                    "mixing_image_prompt_and_inpaint": {
+                        "type": "boolean",
+                        "title": "Mixing Image Prompt And Inpaint",
+                        "description": "Mixing Image Prompt and Inpaint",
+                        "default": false
+                    },
+                    "debugging_cn_preprocessor": {
+                        "type": "boolean",
+                        "title": "Debugging Cn Preprocessor",
+                        "description": "Debug Preprocessors",
+                        "default": false
+                    },
+                    "controlnet_softness": {
+                        "type": "number",
+                        "maximum": 1,
+                        "minimum": 0,
+                        "title": "Controlnet Softness",
+                        "description": "Softness of ControlNet",
+                        "default": 0.25
+                    },
+                    "canny_low_threshold": {
+                        "type": "integer",
+                        "maximum": 255,
+                        "minimum": 1,
+                        "title": "Canny Low Threshold",
+                        "description": "Canny Low Threshold",
+                        "default": 64
+                    },
+                    "canny_high_threshold": {
+                        "type": "integer",
+                        "maximum": 255,
+                        "minimum": 1,
+                        "title": "Canny High Threshold",
+                        "description": "Canny High Threshold",
+                        "default": 128
+                    },
+                    "inpaint_engine": {
+                        "type": "string",
+                        "title": "Inpaint Engine",
+                        "description": "Inpaint Engine",
+                        "default": "v1"
+                    },
+                    "freeu_enabled": {
+                        "type": "boolean",
+                        "title": "Freeu Enabled",
+                        "description": "FreeU enabled",
+                        "default": false
+                    },
+                    "freeu_b1": {
+                        "type": "number",
+                        "title": "Freeu B1",
+                        "description": "FreeU B1",
+                        "default": 1.01
+                    },
+                    "freeu_b2": {
+                        "type": "number",
+                        "title": "Freeu B2",
+                        "description": "FreeU B2",
+                        "default": 1.02
+                    },
+                    "freeu_s1": {
+                        "type": "number",
+                        "title": "Freeu S1",
+                        "description": "FreeU B3",
+                        "default": 0.99
+                    },
+                    "freeu_s2": {
+                        "type": "number",
+                        "title": "Freeu S2",
+                        "description": "FreeU B4",
+                        "default": 0.95
+                    }
+                },
+                "type": "object",
+                "title": "AdvancedParams"
+            },
             "AllModelNamesResponse": {
                 "properties": {
                     "model_filenames": {
@@ -642,7 +824,7 @@
                     "negative_prompt": {
                         "type": "string",
                         "title": "Negative Prompt",
-                        "default": "(embedding:unaestheticXLv31:0.8), low quality, watermark"
+                        "default": ""
                     },
                     "style_selections": {
                         "items": {
@@ -653,11 +835,8 @@
                         "description": "Fooocus style selections, seperated by comma",
                         "default": [
                             "Fooocus V2",
-                            "Fooocus Masterpiece",
-                            "SAI Anime",
-                            "SAI Digital Art",
-                            "SAI Enhance",
-                            "SAI Fantasy Art"
+                            "Fooocus Enhance",
+                            "Fooocus Sharp"
                         ]
                     },
                     "performance_selection": {
@@ -671,7 +850,7 @@
                     "aspect_ratios_selection": {
                         "type": "string",
                         "title": "Aspect Ratios Selection",
-                        "default": "896×1152"
+                        "default": "1152×896"
                     },
                     "image_number": {
                         "type": "integer",
@@ -699,17 +878,25 @@
                         "maximum": 30,
                         "minimum": 1,
                         "title": "Guidance Scale",
-                        "default": 7
+                        "default": 4
                     },
                     "base_model_name": {
                         "type": "string",
                         "title": "Base Model Name",
-                        "default": "bluePencilXL_v050.safetensors"
+                        "default": "juggernautXL_version6Rundiffusion.safetensors"
                     },
                     "refiner_model_name": {
                         "type": "string",
                         "title": "Refiner Model Name",
-                        "default": "DreamShaper_8_pruned.safetensors"
+                        "default": "None"
+                    },
+                    "refiner_switch": {
+                        "type": "number",
+                        "maximum": 1,
+                        "minimum": 0.1,
+                        "title": "Refiner Switch",
+                        "description": "Refiner Switch At",
+                        "default": 0.8
                     },
                     "l1": {
                         "anyOf": [
@@ -728,7 +915,7 @@
                         "maximum": 2,
                         "minimum": -2,
                         "title": "W1",
-                        "default": 0.5
+                        "default": 0.1
                     },
                     "l2": {
                         "anyOf": [
@@ -746,7 +933,7 @@
                         "maximum": 2,
                         "minimum": -2,
                         "title": "W2",
-                        "default": 0.5
+                        "default": 0.1
                     },
                     "l3": {
                         "anyOf": [
@@ -764,7 +951,7 @@
                         "maximum": 2,
                         "minimum": -2,
                         "title": "W3",
-                        "default": 0.5
+                        "default": 0.1
                     },
                     "l4": {
                         "anyOf": [
@@ -782,7 +969,7 @@
                         "maximum": 2,
                         "minimum": -2,
                         "title": "W4",
-                        "default": 0.5
+                        "default": 0.1
                     },
                     "l5": {
                         "anyOf": [
@@ -800,7 +987,19 @@
                         "maximum": 2,
                         "minimum": -2,
                         "title": "W5",
-                        "default": 0.5
+                        "default": 0.1
+                    },
+                    "advanced_params": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Advanced Params",
+                        "description": "Advanced parameters in JSON"
                     },
                     "require_base64": {
                         "type": "boolean",
@@ -1003,7 +1202,7 @@
                     "negative_prompt": {
                         "type": "string",
                         "title": "Negative Prompt",
-                        "default": "(embedding:unaestheticXLv31:0.8), low quality, watermark"
+                        "default": ""
                     },
                     "style_selections": {
                         "items": {
@@ -1014,11 +1213,8 @@
                         "description": "Fooocus style selections, seperated by comma",
                         "default": [
                             "Fooocus V2",
-                            "Fooocus Masterpiece",
-                            "SAI Anime",
-                            "SAI Digital Art",
-                            "SAI Enhance",
-                            "SAI Fantasy Art"
+                            "Fooocus Enhance",
+                            "Fooocus Sharp"
                         ]
                     },
                     "performance_selection": {
@@ -1032,7 +1228,7 @@
                     "aspect_ratios_selection": {
                         "type": "string",
                         "title": "Aspect Ratios Selection",
-                        "default": "896×1152"
+                        "default": "1152×896"
                     },
                     "image_number": {
                         "type": "integer",
@@ -1060,17 +1256,25 @@
                         "maximum": 30,
                         "minimum": 1,
                         "title": "Guidance Scale",
-                        "default": 7
+                        "default": 4
                     },
                     "base_model_name": {
                         "type": "string",
                         "title": "Base Model Name",
-                        "default": "bluePencilXL_v050.safetensors"
+                        "default": "juggernautXL_version6Rundiffusion.safetensors"
                     },
                     "refiner_model_name": {
                         "type": "string",
                         "title": "Refiner Model Name",
-                        "default": "DreamShaper_8_pruned.safetensors"
+                        "default": "None"
+                    },
+                    "refiner_switch": {
+                        "type": "number",
+                        "maximum": 1,
+                        "minimum": 0.1,
+                        "title": "Refiner Switch",
+                        "description": "Refiner Switch At",
+                        "default": 0.8
                     },
                     "l1": {
                         "anyOf": [
@@ -1089,7 +1293,7 @@
                         "maximum": 2,
                         "minimum": -2,
                         "title": "W1",
-                        "default": 0.5
+                        "default": 0.1
                     },
                     "l2": {
                         "anyOf": [
@@ -1107,7 +1311,7 @@
                         "maximum": 2,
                         "minimum": -2,
                         "title": "W2",
-                        "default": 0.5
+                        "default": 0.1
                     },
                     "l3": {
                         "anyOf": [
@@ -1125,7 +1329,7 @@
                         "maximum": 2,
                         "minimum": -2,
                         "title": "W3",
-                        "default": 0.5
+                        "default": 0.1
                     },
                     "l4": {
                         "anyOf": [
@@ -1143,7 +1347,7 @@
                         "maximum": 2,
                         "minimum": -2,
                         "title": "W4",
-                        "default": 0.5
+                        "default": 0.1
                     },
                     "l5": {
                         "anyOf": [
@@ -1161,7 +1365,19 @@
                         "maximum": 2,
                         "minimum": -2,
                         "title": "W5",
-                        "default": 0.5
+                        "default": 0.1
+                    },
+                    "advanced_params": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Advanced Params",
+                        "description": "Advanced parameters in JSON"
                     },
                     "require_base64": {
                         "type": "boolean",
@@ -1198,7 +1414,7 @@
                     "negative_prompt": {
                         "type": "string",
                         "title": "Negative Prompt",
-                        "default": "(embedding:unaestheticXLv31:0.8), low quality, watermark"
+                        "default": ""
                     },
                     "style_selections": {
                         "items": {
@@ -1209,11 +1425,8 @@
                         "description": "Fooocus style selections, seperated by comma",
                         "default": [
                             "Fooocus V2",
-                            "Fooocus Masterpiece",
-                            "SAI Anime",
-                            "SAI Digital Art",
-                            "SAI Enhance",
-                            "SAI Fantasy Art"
+                            "Fooocus Enhance",
+                            "Fooocus Sharp"
                         ]
                     },
                     "performance_selection": {
@@ -1227,7 +1440,7 @@
                     "aspect_ratios_selection": {
                         "type": "string",
                         "title": "Aspect Ratios Selection",
-                        "default": "896×1152"
+                        "default": "1152×896"
                     },
                     "image_number": {
                         "type": "integer",
@@ -1255,17 +1468,25 @@
                         "maximum": 30,
                         "minimum": 1,
                         "title": "Guidance Scale",
-                        "default": 7
+                        "default": 4
                     },
                     "base_model_name": {
                         "type": "string",
                         "title": "Base Model Name",
-                        "default": "bluePencilXL_v050.safetensors"
+                        "default": "juggernautXL_version6Rundiffusion.safetensors"
                     },
                     "refiner_model_name": {
                         "type": "string",
                         "title": "Refiner Model Name",
-                        "default": "DreamShaper_8_pruned.safetensors"
+                        "default": "None"
+                    },
+                    "refiner_switch": {
+                        "type": "number",
+                        "maximum": 1,
+                        "minimum": 0.1,
+                        "title": "Refiner Switch",
+                        "description": "Refiner Switch At",
+                        "default": 0.8
                     },
                     "l1": {
                         "anyOf": [
@@ -1284,7 +1505,7 @@
                         "maximum": 2,
                         "minimum": -2,
                         "title": "W1",
-                        "default": 0.5
+                        "default": 0.1
                     },
                     "l2": {
                         "anyOf": [
@@ -1302,7 +1523,7 @@
                         "maximum": 2,
                         "minimum": -2,
                         "title": "W2",
-                        "default": 0.5
+                        "default": 0.1
                     },
                     "l3": {
                         "anyOf": [
@@ -1320,7 +1541,7 @@
                         "maximum": 2,
                         "minimum": -2,
                         "title": "W3",
-                        "default": 0.5
+                        "default": 0.1
                     },
                     "l4": {
                         "anyOf": [
@@ -1338,7 +1559,7 @@
                         "maximum": 2,
                         "minimum": -2,
                         "title": "W4",
-                        "default": 0.5
+                        "default": 0.1
                     },
                     "l5": {
                         "anyOf": [
@@ -1356,7 +1577,19 @@
                         "maximum": 2,
                         "minimum": -2,
                         "title": "W5",
-                        "default": 0.5
+                        "default": 0.1
+                    },
+                    "advanced_params": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Advanced Params",
+                        "description": "Advanced parameters in JSON"
                     },
                     "require_base64": {
                         "type": "boolean",
@@ -1488,10 +1721,10 @@
                     },
                     "weight": {
                         "type": "number",
+                        "maximum": 2,
+                        "minimum": -2,
                         "title": "Weight",
-                        "default": 0.5,
-                        "max": 2,
-                        "min": -2
+                        "default": 0.5
                     }
                 },
                 "type": "object",
@@ -1528,7 +1761,7 @@
                     "negative_prompt": {
                         "type": "string",
                         "title": "Negative Prompt",
-                        "default": "(embedding:unaestheticXLv31:0.8), low quality, watermark"
+                        "default": ""
                     },
                     "style_selections": {
                         "items": {
@@ -1538,11 +1771,8 @@
                         "title": "Style Selections",
                         "default": [
                             "Fooocus V2",
-                            "Fooocus Masterpiece",
-                            "SAI Anime",
-                            "SAI Digital Art",
-                            "SAI Enhance",
-                            "SAI Fantasy Art"
+                            "Fooocus Enhance",
+                            "Fooocus Sharp"
                         ]
                     },
                     "performance_selection": {
@@ -1556,15 +1786,15 @@
                     "aspect_ratios_selection": {
                         "type": "string",
                         "title": "Aspect Ratios Selection",
-                        "default": "896×1152"
+                        "default": "1152×896"
                     },
                     "image_number": {
                         "type": "integer",
+                        "maximum": 32,
+                        "minimum": 1,
                         "title": "Image Number",
                         "description": "Image number",
-                        "default": 1,
-                        "max": 32,
-                        "min": 1
+                        "default": 1
                     },
                     "image_seed": {
                         "type": "integer",
@@ -1574,27 +1804,35 @@
                     },
                     "sharpness": {
                         "type": "number",
+                        "maximum": 30,
+                        "minimum": 0,
                         "title": "Sharpness",
-                        "default": 2,
-                        "max": 30,
-                        "min": 0
+                        "default": 2
                     },
                     "guidance_scale": {
                         "type": "number",
+                        "maximum": 30,
+                        "minimum": 1,
                         "title": "Guidance Scale",
-                        "default": 7,
-                        "max": 30,
-                        "min": 1
+                        "default": 4
                     },
                     "base_model_name": {
                         "type": "string",
                         "title": "Base Model Name",
-                        "default": "bluePencilXL_v050.safetensors"
+                        "default": "juggernautXL_version6Rundiffusion.safetensors"
                     },
                     "refiner_model_name": {
                         "type": "string",
                         "title": "Refiner Model Name",
-                        "default": "DreamShaper_8_pruned.safetensors"
+                        "default": "None"
+                    },
+                    "refiner_switch": {
+                        "type": "number",
+                        "maximum": 1,
+                        "minimum": 0.1,
+                        "title": "Refiner Switch",
+                        "description": "Refiner Switch At",
+                        "default": 0.8
                     },
                     "loras": {
                         "items": {
@@ -1605,9 +1843,20 @@
                         "default": [
                             {
                                 "model_name": "sd_xl_offset_example-lora_1.0.safetensors",
-                                "weight": 0.5
+                                "weight": 0.1
                             }
                         ]
+                    },
+                    "advanced_params": {
+                        "anyOf": [
+                            {
+                                "$ref": "#/components/schemas/AdvancedParams"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "description": "Advanced parameters"
                     },
                     "require_base64": {
                         "type": "boolean",
@@ -1623,6 +1872,9 @@
                     }
                 },
                 "type": "object",
+                "required": [
+                    "advanced_params"
+                ],
                 "title": "Text2ImgRequest"
             },
             "UpscaleOrVaryMethod": {
