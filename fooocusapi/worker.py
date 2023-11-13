@@ -29,7 +29,7 @@ def process_generate(queue_task: QueueTask, params: ImageGenerationParams) -> Li
     import modules.flags as flags
     import modules.core as core
     import modules.inpaint_worker as inpaint_worker
-    import modules.path as path
+    import modules.config as path
     import modules.advanced_parameters as advanced_parameters
     import modules.constants as constants
     import fooocus_extras.preprocessors as preprocessors

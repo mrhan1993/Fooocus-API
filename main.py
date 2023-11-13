@@ -195,8 +195,8 @@ def download_models():
     ]
 
     from modules.model_loader import load_file_from_url
-    from modules.path import modelfile_path, lorafile_path, vae_approx_path, fooocus_expansion_path, \
-        checkpoint_downloads, embeddings_path, embeddings_downloads, lora_downloads
+    from modules.config import path_checkpoints as modelfile_path, path_loras as lorafile_path,path_vae_approx as vae_approx_path,path_fooocus_expansion as fooocus_expansion_path, \
+        checkpoint_downloads, path_embeddings as embeddings_path, embeddings_downloads, lora_downloads
 
     for file_name, url in checkpoint_downloads.items():
         load_file_from_url(url=url, model_dir=modelfile_path, file_name=file_name)
@@ -263,7 +263,7 @@ def prepare_environments(args) -> bool:
     # Add dependent repositories to import path
     sys.path.append(script_path)
     fooocus_path = os.path.join(script_path, dir_repos, fooocus_name)
-    sys.path.append(fooocus_path)
+    sys.path.insert(0, fooocus_path) # need add __init__.py in folder "modules"
     backend_path = os.path.join(fooocus_path, 'backend', 'headless')
     if backend_path not in sys.path:
         sys.path.append(backend_path)
@@ -280,8 +280,7 @@ def prepare_environments(args) -> bool:
 
         sys.argv.append('--preset')
         sys.argv.append(args.preset)
-
-    import modules.path as path
+    import modules.config as path
     import fooocusapi.parameters as parameters
     parameters.defualt_styles = path.default_styles
     parameters.default_base_model_name = path.default_base_model_name
@@ -328,7 +327,7 @@ def pre_setup(skip_sync_repo: bool=False, disable_private_log: bool=False, skip_
     prepare_environments(args)
 
     if load_all_models:
-        import modules.path as path
+        import modules.config as path
         from fooocusapi.parameters import inpaint_model_version
         path.downloading_upscale_model()
         path.downloading_inpaint_models(inpaint_model_version)
