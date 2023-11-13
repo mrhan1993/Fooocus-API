@@ -12,6 +12,10 @@ save_log = True
 task_queue = TaskQueue(queue_size=3, hisotry_size=6)
 
 
+def process_top():
+    import fcbh.model_management
+    fcbh.model_management.interrupt_current_processing()
+
 @torch.no_grad()
 @torch.inference_mode()
 def process_generate(queue_task: QueueTask, params: ImageGenerationParams) -> List[ImageGenerationResult]:
