@@ -460,6 +460,25 @@
                 }
             }
         },
+        "/v1/generation/stop": {
+            "post": {
+                "summary": "Stop",
+                "description": "Job stoping",
+                "operationId": "stop_v1_generation_stop_post",
+                "responses": {
+                    "200": {
+                        "description": "Successful Response",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/StopResponse"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
         "/v1/engines/all-models": {
             "get": {
                 "summary": "All Models",
@@ -640,6 +659,12 @@
                         "type": "boolean",
                         "title": "Debugging Cn Preprocessor",
                         "description": "Debug Preprocessors",
+                        "default": false
+                    },
+                    "skipping_cn_preprocessor": {
+                        "type": "boolean",
+                        "title": "Skipping Cn Preprocessor",
+                        "description": "Skip Preprocessors",
                         "default": false
                     },
                     "controlnet_softness": {
@@ -896,7 +921,7 @@
                         "minimum": 0.1,
                         "title": "Refiner Switch",
                         "description": "Refiner Switch At",
-                        "default": 0.8
+                        "default": 0.5
                     },
                     "l1": {
                         "anyOf": [
@@ -1063,7 +1088,7 @@
                             }
                         ],
                         "description": "ControlNet type for image prompt",
-                        "default": "Image Prompt"
+                        "default": "ImagePrompt"
                     },
                     "cn_img2": {
                         "type": "string",
@@ -1106,7 +1131,7 @@
                             }
                         ],
                         "description": "ControlNet type for image prompt",
-                        "default": "Image Prompt"
+                        "default": "ImagePrompt"
                     },
                     "cn_img3": {
                         "type": "string",
@@ -1149,7 +1174,7 @@
                             }
                         ],
                         "description": "ControlNet type for image prompt",
-                        "default": "Image Prompt"
+                        "default": "ImagePrompt"
                     },
                     "cn_img4": {
                         "type": "string",
@@ -1192,7 +1217,7 @@
                             }
                         ],
                         "description": "ControlNet type for image prompt",
-                        "default": "Image Prompt"
+                        "default": "ImagePrompt"
                     },
                     "prompt": {
                         "type": "string",
@@ -1274,7 +1299,7 @@
                         "minimum": 0.1,
                         "title": "Refiner Switch",
                         "description": "Refiner Switch At",
-                        "default": 0.8
+                        "default": 0.5
                     },
                     "l1": {
                         "anyOf": [
@@ -1486,7 +1511,7 @@
                         "minimum": 0.1,
                         "title": "Refiner Switch",
                         "description": "Refiner Switch At",
-                        "default": 0.8
+                        "default": 0.5
                     },
                     "l1": {
                         "anyOf": [
@@ -1614,7 +1639,8 @@
             "ControlNetType": {
                 "type": "string",
                 "enum": [
-                    "Image Prompt",
+                    "ImagePrompt",
+                    "FaceSwap",
                     "PyraCanny",
                     "CPDS"
                 ],
@@ -1737,9 +1763,23 @@
                 "type": "string",
                 "enum": [
                     "Speed",
-                    "Quality"
+                    "Quality",
+                    "Extreme Speed"
                 ],
                 "title": "PerfomanceSelection"
+            },
+            "StopResponse": {
+                "properties": {
+                    "msg": {
+                        "type": "string",
+                        "title": "Msg"
+                    }
+                },
+                "type": "object",
+                "required": [
+                    "msg"
+                ],
+                "title": "StopResponse"
             },
             "TaskType": {
                 "type": "string",
@@ -1832,7 +1872,7 @@
                         "minimum": 0.1,
                         "title": "Refiner Switch",
                         "description": "Refiner Switch At",
-                        "default": 0.8
+                        "default": 0.5
                     },
                     "loras": {
                         "items": {
