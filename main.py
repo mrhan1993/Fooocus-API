@@ -5,6 +5,7 @@ import shutil
 import subprocess
 import sys
 from importlib.util import find_spec
+from threading import Thread
 
 from fooocus_api_version import version
 from fooocusapi.repositories_versions import fooocus_commit_hash
@@ -280,26 +281,27 @@ def prepare_environments(args) -> bool:
 
         sys.argv.append('--preset')
         sys.argv.append(args.preset)
-    import modules.config as path
+    import modules.config as config
+    import modules.flags as flags
     import fooocusapi.parameters as parameters
-    parameters.defualt_styles = path.default_styles
-    parameters.default_base_model_name = path.default_base_model_name
-    parameters.default_refiner_model_name = path.default_refiner_model_name
-    parameters.default_refiner_switch = path.default_refiner_switch
-    parameters.default_lora_name = path.default_lora_name
-    parameters.default_lora_weight = path.default_lora_weight
-    parameters.default_cfg_scale = path.default_cfg_scale
-    parameters.default_prompt_negative = path.default_prompt_negative
-    parameters.default_aspect_ratio = path.default_aspect_ratio.replace('*', '×')
-    parameters.available_aspect_ratios = [a.replace('*', '×') for a in path.available_aspect_ratios]
+    parameters.default_inpaint_engine_version = flags.default_inpaint_engine_version
+    parameters.defualt_styles = config.default_styles
+    parameters.default_base_model_name = config.default_base_model_name
+    parameters.default_refiner_model_name = config.default_refiner_model_name
+    parameters.default_refiner_switch = config.default_refiner_switch
+    parameters.default_lora_name = config.default_lora_name
+    parameters.default_lora_weight = config.default_lora_weight
+    parameters.default_cfg_scale = config.default_cfg_scale
+    parameters.default_prompt_negative = config.default_prompt_negative
+    parameters.default_aspect_ratio = config.default_aspect_ratio.replace('*', '×')
+    parameters.available_aspect_ratios = [a.replace('*', '×') for a in config.available_aspect_ratios]
 
     ini_cbh_args()
 
     download_models()
 
     if args.preload_pipeline:
-        print("Preload pipeline")
-        import modules.default_pipeline as _
+        preplaod_pipeline()
 
     return True
 
@@ -327,13 +329,13 @@ def pre_setup(skip_sync_repo: bool=False, disable_private_log: bool=False, skip_
     prepare_environments(args)
 
     if load_all_models:
-        import modules.config as path
-        from fooocusapi.parameters import inpaint_model_version
-        path.downloading_upscale_model()
-        path.downloading_inpaint_models(inpaint_model_version)
-        path.downloading_controlnet_canny()
-        path.downloading_controlnet_cpds()
-        path.downloading_ip_adapters()
+        import modules.config as config
+        from fooocusapi.parameters import default_inpaint_engine_version
+        config.downloading_upscale_model()
+        config.downloading_inpaint_models(default_inpaint_engine_version)
+        config.downloading_controlnet_canny()
+        config.downloading_controlnet_cpds()
+        config.downloading_ip_adapters()
     print("[Pre Setup] Finished")
 
 
@@ -341,6 +343,11 @@ def pre_setup(skip_sync_repo: bool=False, disable_private_log: bool=False, skip_
 def ini_cbh_args():
     from args_manager import args
     return args
+
+
+def preplaod_pipeline():
+    print("Preload pipeline")
+    import modules.default_pipeline as _
 
 
 if __name__ == "__main__":
@@ -369,6 +376,10 @@ if __name__ == "__main__":
 
     if prepare_environments(args):
         sys.argv = [sys.argv[0]]
+
+        # Load pipeline in new thread
+        t = Thread(target=preplaod_pipeline)
+        t.start()
 
         # Start api server
         from fooocusapi.api import start_app

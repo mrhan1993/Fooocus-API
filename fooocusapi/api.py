@@ -160,17 +160,23 @@ def job_queue():
     return JobQueueInfo(running_size=len(task_queue.queue), finished_size=len(task_queue.history), last_job_id=task_queue.last_seq)
 
 
+@app.post("/v1/generation/stop", response_model=StopResponse, description="Job stoping")
+def stop():
+    stop_worker()
+    return StopResponse(msg="success")
+
+
 @app.get("/v1/engines/all-models", response_model=AllModelNamesResponse, description="Get all filenames of base model and lora")
 def all_models():
-    import modules.path as path
-    return AllModelNamesResponse(model_filenames=path.model_filenames, lora_filenames=path.lora_filenames)
+    import modules.config as config
+    return AllModelNamesResponse(model_filenames=config.model_filenames, lora_filenames=config.lora_filenames)
 
 
 @app.post("/v1/engines/refresh-models", response_model=AllModelNamesResponse, description="Refresh local files and get all filenames of base model and lora")
 def refresh_models():
-    import modules.path as path
-    path.update_all_model_names()
-    return AllModelNamesResponse(model_filenames=path.model_filenames, lora_filenames=path.lora_filenames)
+    import modules.config as config
+    config.update_all_model_names()
+    return AllModelNamesResponse(model_filenames=config.model_filenames, lora_filenames=config.lora_filenames)
 
 
 @app.get("/v1/engines/styles", response_model=List[str], description="Get all legal Fooocus styles")
@@ -178,10 +184,6 @@ def all_styles():
     from modules.sdxl_styles import legal_style_names
     return legal_style_names
 
-@app.get("/v1/generation/stop", response_model=StopResponse, description="Job stoping")
-def stop():
-    stop_worker()
-    return StopResponse(msg="success")
 
 app.mount("/files", StaticFiles(directory=file_utils.output_dir), name="files")
 

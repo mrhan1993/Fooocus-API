@@ -1,0 +1,72 @@
+You can modify your "/home/featurize/work/Fooocus-API/config.txt" using the below keys, formats, and examples.
+Do not modify this file. Modifications in this file will not take effect.
+This file is a tutorial and example. Please edit "/home/featurize/work/Fooocus-API/config.txt" to really change any settings.
+Remember to split the paths with "\\" rather than "\".
+
+
+{
+    "path_checkpoints": "/home/featurize/work/Fooocus/models/checkpoints",
+    "path_loras": "/home/featurize/work/Fooocus/models/loras",
+    "path_embeddings": "/home/featurize/work/Fooocus/models/embeddings",
+    "path_vae_approx": "/home/featurize/work/Fooocus/models/vae_approx",
+    "path_upscale_models": "/home/featurize/work/Fooocus/models/upscale_models",
+    "path_inpaint": "/home/featurize/work/Fooocus/models/inpaint",
+    "path_controlnet": "/home/featurize/work/Fooocus/models/controlnet",
+    "path_clip_vision": "/home/featurize/work/Fooocus/models/clip_vision",
+    "path_fooocus_expansion": "/home/featurize/work/Fooocus/models/prompt_expansion/fooocus_expansion",
+    "path_outputs": "/home/featurize/work/Fooocus/outputs",
+    "default_model": "juggernautXL_version6Rundiffusion.safetensors",
+    "default_refiner": "None",
+    "default_refiner_switch": 0.5,
+    "default_lora": "sd_xl_offset_example-lora_1.0.safetensors",
+    "default_lora_weight": 0.1,
+    "default_cfg_scale": 4.0,
+    "default_sample_sharpness": 2,
+    "default_sampler": "dpmpp_2m_sde_gpu",
+    "default_scheduler": "karras",
+    "default_styles": [
+        "Fooocus V2",
+        "Fooocus Enhance",
+        "Fooocus Sharp"
+    ],
+    "default_prompt_negative": "",
+    "default_prompt": "",
+    "default_advanced_checkbox": false,
+    "default_image_number": 2,
+    "checkpoint_downloads": {
+        "juggernautXL_version6Rundiffusion.safetensors": "https://huggingface.co/lllyasviel/fav_models/resolve/main/fav/juggernautXL_version6Rundiffusion.safetensors"
+    },
+    "lora_downloads": {
+        "sd_xl_offset_example-lora_1.0.safetensors": "https://huggingface.co/stabilityai/stable-diffusion-xl-base-1.0/resolve/main/sd_xl_offset_example-lora_1.0.safetensors"
+    },
+    "embeddings_downloads": {},
+    "available_aspect_ratios": [
+        "704*1408",
+        "704*1344",
+        "768*1344",
+        "768*1280",
+        "832*1216",
+        "832*1152",
+        "896*1152",
+        "896*1088",
+        "960*1088",
+        "960*1024",
+        "1024*1024",
+        "1024*960",
+        "1088*960",
+        "1088*896",
+        "1152*896",
+        "1152*832",
+        "1216*832",
+        "1280*768",
+        "1344*768",
+        "1344*704",
+        "1408*704",
+        "1472*704",
+        "1536*640",
+        "1600*640",
+        "1664*576",
+        "1728*576"
+    ],
+    "default_aspect_ratio": "1152*896"
+}

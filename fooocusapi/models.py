@@ -24,6 +24,7 @@ class Lora(BaseModel):
 class PerfomanceSelection(str, Enum):
     speed = 'Speed'
     quality = 'Quality'
+    extreme_speed = 'Extreme Speed'
     
 
 class UpscaleOrVaryMethod(str, Enum):
@@ -42,9 +43,10 @@ class OutpaintExpansion(str, Enum):
 
 
 class ControlNetType(str, Enum):
-    cn_ip = 'Image Prompt'
-    cn_canny = 'PyraCanny'
-    cn_cpds = 'CPDS'
+    cn_ip = "ImagePrompt"
+    cn_ip_face = "FaceSwap"
+    cn_canny = "PyraCanny"
+    cn_cpds = "CPDS"
 
 
 class ImagePrompt(BaseModel):
@@ -72,6 +74,7 @@ class AdvancedParams(BaseModel):
     mixing_image_prompt_and_vary_upscale: bool = Field(False, description="Mixing Image Prompt and Vary/Upscale")
     mixing_image_prompt_and_inpaint: bool = Field(False, description="Mixing Image Prompt and Inpaint")
     debugging_cn_preprocessor: bool = Field(False, description="Debug Preprocessors")
+    skipping_cn_preprocessor: bool = Field(False, description="Skip Preprocessors")
     controlnet_softness: float = Field(0.25, description="Softness of ControlNet", ge=0.0, le=1.0)
     canny_low_threshold: int = Field(64, description="Canny Low Threshold", ge=1, le=255)
     canny_high_threshold: int = Field(128, description="Canny High Threshold", ge=1, le=255)

@@ -5,7 +5,7 @@ import numpy as np
 from fooocusapi.task_queue import TaskType
 
 
-inpaint_model_version = 'v1'
+default_inpaint_engine_version = 'v2.6'
 
 
 defualt_styles = ['Fooocus V2', 'Fooocus Enhance', 'Fooocus Sharp']
@@ -78,7 +78,7 @@ class ImageGenerationParams(object):
     def __init__(self, prompt: str,
                  negative_prompt: str,
                  style_selections: List[str],
-                 performance_selection: List[str],
+                 performance_selection: str,
                  aspect_ratios_selection: str,
                  image_number: int,
                  image_seed: int | None,
@@ -129,10 +129,11 @@ class ImageGenerationParams(object):
             mixing_image_prompt_and_vary_upscale = False
             mixing_image_prompt_and_inpaint = False
             debugging_cn_preprocessor = False
+            skipping_cn_preprocessor = False
             controlnet_softness = 0.25
             canny_low_threshold = 64
             canny_high_threshold = 128
-            inpaint_engine = inpaint_model_version
+            inpaint_engine = default_inpaint_engine_version
             refiner_swap_method = 'joint'
             freeu_enabled = False
             freeu_b1, freeu_b2, freeu_s1, freeu_s2 = [None] * 4
@@ -140,7 +141,7 @@ class ImageGenerationParams(object):
                                scheduler_name, generate_image_grid, overwrite_step, overwrite_switch, overwrite_width, overwrite_height,
                                overwrite_vary_strength, overwrite_upscale_strength,
                                mixing_image_prompt_and_vary_upscale, mixing_image_prompt_and_inpaint,
-                                debugging_cn_preprocessor, controlnet_softness, canny_low_threshold, canny_high_threshold, inpaint_engine,
+                                debugging_cn_preprocessor, skipping_cn_preprocessor, controlnet_softness, canny_low_threshold, canny_high_threshold, inpaint_engine,
                                 refiner_swap_method, freeu_enabled, freeu_b1, freeu_b2, freeu_s1, freeu_s2]
         else:
             self.advanced_params = advanced_params

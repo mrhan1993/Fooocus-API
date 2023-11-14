@@ -1,0 +1,12 @@
+{
+    "path_checkpoints": "/home/featurize/work/Fooocus/models/checkpoints",
+    "path_loras": "/home/featurize/work/Fooocus/models/loras",
+    "path_embeddings": "/home/featurize/work/Fooocus/models/embeddings",
+    "path_vae_approx": "/home/featurize/work/Fooocus/models/vae_approx",
+    "path_upscale_models": "/home/featurize/work/Fooocus/models/upscale_models",
+    "path_inpaint": "/home/featurize/work/Fooocus/models/inpaint",
+    "path_controlnet": "/home/featurize/work/Fooocus/models/controlnet",
+    "path_clip_vision": "/home/featurize/work/Fooocus/models/clip_vision",
+    "path_fooocus_expansion": "/home/featurize/work/Fooocus/models/prompt_expansion/fooocus_expansion",
+    "path_outputs": "/home/featurize/work/Fooocus/outputs"
+}

@@ -29,7 +29,7 @@ class Predictor(BasePredictor):
         style_selections: str = Input(default=','.join(defualt_styles),
                                       description="Fooocus styles applied for image generation, seperated by comma"),
         performance_selection: str = Input(
-            default='Speed', description="Performance selection", choices=['Speed', 'Quality']),
+            default='Speed', description="Performance selection", choices=['Speed', 'Quality', 'Extreme Speed']),
         aspect_ratios_selection: str = Input(
             default='1152×896', description="The generated image's size", choices=available_aspect_ratios),
         image_number: int = Input(

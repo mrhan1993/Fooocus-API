@@ -4,7 +4,7 @@
 
 FastAPI powered API for [Fooocus](https://github.com/lllyasviel/Fooocus)
 
-Currently loaded Fooocus version: 2.1.781
+Currently loaded Fooocus version: 2.1.806
 
 ### Run with Replicate
 Now you can use Fooocus-API by Replicate, the model is in [konieshadow/fooocus-api](https://replicate.com/konieshadow/fooocus-api).
@@ -16,7 +16,7 @@ With preset:
 I believe this is the easiest way to generate image with Fooocus's power.
 
 ### Reuse model files from Fooocus
-You can simple copy `user_path_config.txt` file from your local Fooocus folder to Fooocus-API's root folder. See [Customization](https://github.com/lllyasviel/Fooocus#customization) for details.
+You can simple copy `config.txt` file from your local Fooocus folder to Fooocus-API's root folder. See [Customization](https://github.com/lllyasviel/Fooocus#customization) for details.
 
 ### Start app
 Need python version >= 3.10, or use conda to create a new env.
@@ -109,6 +109,11 @@ Query async generation request results, return job progress and generation resul
 > GET /v1/generation/job-queue
 
 Query job queue info, include running job count, finished job count and last job id.
+
+#### Stop Generation task
+> POST /v1/generation/stop
+
+Stop current generation task.
 
 #### Get All Model Names
 > GET /v1/engines/all-models

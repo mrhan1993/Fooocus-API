@@ -8,10 +8,10 @@ from fastapi import Response, UploadFile
 from PIL import Image
 from fooocusapi.file_utils import get_file_serve_url, output_file_to_base64img, output_file_to_bytesimg
 from fooocusapi.models import AsyncJobResponse, AsyncJobStage, GeneratedImageResult, GenerationFinishReason, ImgInpaintOrOutpaintRequest, ImgPromptRequest, ImgUpscaleOrVaryRequest, Text2ImgRequest
-from fooocusapi.parameters import ImageGenerationParams, ImageGenerationResult, available_aspect_ratios, default_aspect_ratio, inpaint_model_version, default_sampler, default_scheduler, default_base_model_name, default_refiner_model_name
+from fooocusapi.parameters import ImageGenerationParams, ImageGenerationResult, available_aspect_ratios, default_aspect_ratio, default_inpaint_engine_version, default_sampler, default_scheduler, default_base_model_name, default_refiner_model_name
 from fooocusapi.task_queue import QueueTask
 import modules.flags as flags
-import modules.config as path
+import modules.config as config
 from modules.sdxl_styles import legal_style_names
 
 
@@ -47,17 +47,17 @@ def read_input_image(input_image: UploadFile) -> np.ndarray:
 
 def req_to_params(req: Text2ImgRequest) -> ImageGenerationParams:
     if req.base_model_name is not None:
-        if req.base_model_name not in path.model_filenames:
+        if req.base_model_name not in config.model_filenames:
             print(f"[Warning] Wrong base_model_name input: {req.base_model_name}, using default")
             req.base_model_name = default_base_model_name
 
     if req.refiner_model_name is not None and req.refiner_model_name != 'None':
-        if req.refiner_model_name not in path.model_filenames:
+        if req.refiner_model_name not in config.model_filenames:
             print(f"[Warning] Wrong refiner_model_name input: {req.refiner_model_name}, using default")
             req.refiner_model_name = default_refiner_model_name
 
     for l in req.loras:
-        if l.model_name != 'None' and l.model_name not in path.lora_filenames:
+        if l.model_name != 'None' and l.model_name not in config.lora_filenames:
             print(f"[Warning] Wrong lora model_name input: {l.model_name}, using 'None'")
             l.model_name = 'None'
 
@@ -125,15 +125,15 @@ def req_to_params(req: Text2ImgRequest) -> ImageGenerationParams:
             print(f"[Warning] Wrong scheduler_name input: {adp.scheduler_name}, using default")
             adp.scheduler_name = default_scheduler
 
-        if adp.inpaint_engine not in ['v1', 'v2.5']:
+        if adp.inpaint_engine not in flags.inpaint_engine_versions:
             print(f"[Warning] Wrong inpaint_engine input: {adp.inpaint_engine}, using default")
-            adp.inpaint_engine = inpaint_model_version
+            adp.inpaint_engine = flags.default_inpaint_engine_version
         
         advanced_params = [adp.adm_scaler_positive, adp.adm_scaler_negative, adp.adm_scaler_end, adp.adaptive_cfg, adp.sampler_name,
                                 adp.scheduler_name, False, adp.overwrite_step, adp.overwrite_switch, adp.overwrite_width, adp.overwrite_height,
                                 adp.overwrite_vary_strength, adp.overwrite_upscale_strength,
                                 adp.mixing_image_prompt_and_vary_upscale, adp.mixing_image_prompt_and_inpaint,
-                                adp.debugging_cn_preprocessor, adp.controlnet_softness, adp.canny_low_threshold, adp.canny_high_threshold, adp.inpaint_engine,
+                                adp.debugging_cn_preprocessor, adp.skipping_cn_preprocessor, adp.controlnet_softness, adp.canny_low_threshold, adp.canny_high_threshold, adp.inpaint_engine,
                                 adp.refiner_swap_method, adp.freeu_enabled, adp.freeu_b1, adp.freeu_b2, adp.freeu_s1, adp.freeu_s2]
 
     return ImageGenerationParams(prompt=prompt,
@@ -184,8 +184,16 @@ def generation_output(results: QueueTask | List[ImageGenerationResult], streamin
                                 job_result=job_result)
 
     if streaming_output:
-        if len(results) == 0 or results[0].finish_reason != GenerationFinishReason.success:
+        if len(results) == 0:
             return Response(status_code=500)
+        result = results[0]
+        if result.finish_reason == GenerationFinishReason.queue_is_full:
+            return Response(status_code=409, content=result.finish_reason.value)
+        elif result.finish_reason == GenerationFinishReason.user_cancel:
+            return Response(status_code=400, content=result.finish_reason.value)
+        elif result.finish_reason == GenerationFinishReason.error:
+            return Response(status_code=500, content=result.finish_reason.value)
+        
         bytes = output_file_to_bytesimg(results[0].im)
         return Response(bytes, media_type='image/png')
     else:
