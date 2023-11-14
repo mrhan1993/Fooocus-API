@@ -11,7 +11,7 @@ from fooocusapi.models import AsyncJobResponse, AsyncJobStage, GeneratedImageRes
 from fooocusapi.parameters import ImageGenerationParams, ImageGenerationResult, available_aspect_ratios, default_aspect_ratio, inpaint_model_version, default_sampler, default_scheduler, default_base_model_name, default_refiner_model_name
 from fooocusapi.task_queue import QueueTask
 import modules.flags as flags
-import modules.path as path
+import modules.config as path
 from modules.sdxl_styles import legal_style_names
 
 

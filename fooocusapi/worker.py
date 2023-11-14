@@ -12,6 +12,10 @@ save_log = True
 task_queue = TaskQueue(queue_size=3, hisotry_size=6)
 
 
+def process_top():
+    import fcbh.model_management
+    fcbh.model_management.interrupt_current_processing()
+
 @torch.no_grad()
 @torch.inference_mode()
 def process_generate(queue_task: QueueTask, params: ImageGenerationParams) -> List[ImageGenerationResult]:
@@ -29,7 +33,7 @@ def process_generate(queue_task: QueueTask, params: ImageGenerationParams) -> Li
     import modules.flags as flags
     import modules.core as core
     import modules.inpaint_worker as inpaint_worker
-    import modules.path as path
+    import modules.config as path
     import modules.advanced_parameters as advanced_parameters
     import modules.constants as constants
     import fooocus_extras.preprocessors as preprocessors

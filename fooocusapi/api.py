@@ -5,10 +5,10 @@ from fastapi.staticfiles import StaticFiles
 import uvicorn
 from fooocusapi.api_utils import generation_output, req_to_params
 import fooocusapi.file_utils as file_utils
-from fooocusapi.models import AllModelNamesResponse, AsyncJobResponse, GeneratedImageResult, ImgInpaintOrOutpaintRequest, ImgPromptRequest, ImgUpscaleOrVaryRequest, JobQueueInfo, Text2ImgRequest
+from fooocusapi.models import AllModelNamesResponse, AsyncJobResponse,StopResponse , GeneratedImageResult, ImgInpaintOrOutpaintRequest, ImgPromptRequest, ImgUpscaleOrVaryRequest, JobQueueInfo, Text2ImgRequest
 from fooocusapi.parameters import GenerationFinishReason, ImageGenerationResult
 from fooocusapi.task_queue import TaskType
-from fooocusapi.worker import process_generate, task_queue
+from fooocusapi.worker import process_generate, task_queue, process_top
 from concurrent.futures import ThreadPoolExecutor
 
 app = FastAPI()
@@ -66,6 +66,8 @@ def call_worker(req: Text2ImgRequest, accept: str):
 
     return results
 
+def stop_worker():
+    process_top()
 
 @app.get("/")
 def home():
@@ -176,6 +178,10 @@ def all_styles():
     from modules.sdxl_styles import legal_style_names
     return legal_style_names
 
+@app.get("/v1/generation/stop", response_model=StopResponse, description="Job stoping")
+def stop():
+    stop_worker()
+    return StopResponse(msg="success")
 
 app.mount("/files", StaticFiles(directory=file_utils.output_dir), name="files")
 

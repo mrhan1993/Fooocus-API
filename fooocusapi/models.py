@@ -402,3 +402,6 @@ class AllModelNamesResponse(BaseModel):
     model_config = ConfigDict(
         protected_namespaces=('protect_me_', 'also_protect_')
     )
+    
+class StopResponse(BaseModel):
+    msg: str
