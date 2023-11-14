@@ -54,32 +54,32 @@ class Predictor(BasePredictor):
             default=None, ge=0, le=1, description="Stop at for image prompt, None for default value"),
         cn_weight1: float = Input(
             default=None, ge=0, le=2, description="Weight for image prompt, None for default value"),
-        cn_type1: str = Input(default='Image Prompt', description="ControlNet type for image prompt", choices=[
-                              'Image Prompt', 'PyraCanny', 'CPDS']),
+        cn_type1: str = Input(default='ImagePrompt', description="ControlNet type for image prompt", choices=[
+                              'ImagePrompt', 'FaceSwap', 'PyraCanny', 'CPDS']),
         cn_img2: Path = Input(
             default=None, description="Input image for image prompt. If all cn_img[n] are None, image prompt will not applied."),
         cn_stop2: float = Input(
             default=None, ge=0, le=1, description="Stop at for image prompt, None for default value"),
         cn_weight2: float = Input(
             default=None, ge=0, le=2, description="Weight for image prompt, None for default value"),
-        cn_type2: str = Input(default='Image Prompt', description="ControlNet type for image prompt", choices=[
-                              'Image Prompt', 'PyraCanny', 'CPDS']),
+        cn_type2: str = Input(default='ImagePrompt', description="ControlNet type for image prompt", choices=[
+                              'ImagePrompt', 'FaceSwap', 'PyraCanny', 'CPDS']),
         cn_img3: Path = Input(
             default=None, description="Input image for image prompt. If all cn_img[n] are None, image prompt will not applied."),
         cn_stop3: float = Input(
             default=None, ge=0, le=1, description="Stop at for image prompt, None for default value"),
         cn_weight3: float = Input(
             default=None, ge=0, le=2, description="Weight for image prompt, None for default value"),
-        cn_type3: str = Input(default='Image Prompt', description="ControlNet type for image prompt", choices=[
-                              'Image Prompt', 'PyraCanny', 'CPDS']),
+        cn_type3: str = Input(default='ImagePrompt', description="ControlNet type for image prompt", choices=[
+                              'ImagePrompt', 'FaceSwap', 'PyraCanny', 'CPDS']),
         cn_img4: Path = Input(
             default=None, description="Input image for image prompt. If all cn_img[n] are None, image prompt will not applied."),
         cn_stop4: float = Input(
             default=None, ge=0, le=1, description="Stop at for image prompt, None for default value"),
         cn_weight4: float = Input(
             default=None, ge=0, le=2, description="Weight for image prompt, None for default value"),
-        cn_type4: str = Input(default='Image Prompt', description="ControlNet type for image prompt", choices=[
-                              'Image Prompt', 'PyraCanny', 'CPDS']),
+        cn_type4: str = Input(default='ImagePrompt', description="ControlNet type for image prompt", choices=[
+                              'ImagePrompt', 'FaceSwap', 'PyraCanny', 'CPDS']),
     ) -> List[Path]:
         """Run a single prediction on the model"""
         import modules.flags as flags
