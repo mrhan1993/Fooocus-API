@@ -378,7 +378,7 @@ if __name__ == "__main__":
         sys.argv = [sys.argv[0]]
 
         # Load pipeline in new thread
-        t = Thread(target=preplaod_pipeline)
+        t = Thread(target=preplaod_pipeline, daemon=True)
         t.start()
 
         # Start api server
