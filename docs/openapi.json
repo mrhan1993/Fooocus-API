@@ -415,6 +415,16 @@
                             "type": "integer",
                             "title": "Job Id"
                         }
+                    },
+                    {
+                        "name": "require_step_preivew",
+                        "in": "query",
+                        "required": false,
+                        "schema": {
+                            "type": "boolean",
+                            "default": false,
+                            "title": "Require Step Preivew"
+                        }
                     }
                 ],
                 "responses": {
@@ -795,7 +805,7 @@
                             }
                         ],
                         "title": "Job Status",
-                        "description": "Job status in text"
+                        "description": "Job running status in text"
                     },
                     "job_step_preview": {
                         "anyOf": [
@@ -807,7 +817,7 @@
                             }
                         ],
                         "title": "Job Step Preview",
-                        "description": "Preview result in each generation step, as base64 image"
+                        "description": "Preview image of generation steps at current time, as base64 image"
                     },
                     "job_result": {
                         "anyOf": [

@@ -125,7 +125,7 @@ def req_to_params(req: Text2ImgRequest) -> ImageGenerationParams:
                                  )
 
 
-def generation_output(results: QueueTask | List[ImageGenerationResult], streaming_output: bool, require_base64: bool) -> Response | List[GeneratedImageResult] | AsyncJobResponse:
+def generation_output(results: QueueTask | List[ImageGenerationResult], streaming_output: bool, require_base64: bool, require_step_preivew: bool=False) -> Response | List[GeneratedImageResult] | AsyncJobResponse:
     if isinstance(results, QueueTask):
         task = results
         job_stage = AsyncJobStage.running
@@ -143,12 +143,13 @@ def generation_output(results: QueueTask | List[ImageGenerationResult], streamin
                         task_result_require_base64 = True
 
                     job_result = generation_output(task.task_result, False, task_result_require_base64)
+        job_step_preview = None if not require_step_preivew else task.task_step_preview
         return AsyncJobResponse(job_id=task.seq,
                                 job_type=task.type,
                                 job_stage=job_stage,
                                 job_progess=task.finish_progess,
                                 job_status=task.task_status,
-                                job_step_preview=task.task_step_preview,
+                                job_step_preview=job_step_preview,
                                 job_result=job_result)
 
     if streaming_output:

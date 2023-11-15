@@ -5,7 +5,7 @@ from fastapi.staticfiles import StaticFiles
 import uvicorn
 from fooocusapi.api_utils import generation_output, req_to_params
 import fooocusapi.file_utils as file_utils
-from fooocusapi.models import AllModelNamesResponse, AsyncJobResponse,StopResponse , GeneratedImageResult, ImgInpaintOrOutpaintRequest, ImgPromptRequest, ImgUpscaleOrVaryRequest, JobQueueInfo, Text2ImgRequest
+from fooocusapi.models import AllModelNamesResponse, AsyncJobResponse, QueryJobRequest,StopResponse , GeneratedImageResult, ImgInpaintOrOutpaintRequest, ImgPromptRequest, ImgUpscaleOrVaryRequest, JobQueueInfo, Text2ImgRequest
 from fooocusapi.parameters import GenerationFinishReason, ImageGenerationResult
 from fooocusapi.task_queue import TaskType
 from fooocusapi.worker import process_generate, task_queue, process_top
@@ -147,12 +147,12 @@ def img_prompt(cn_img1: Optional[UploadFile] = File(None),
 
 
 @app.get("/v1/generation/query-job", response_model=AsyncJobResponse, description="Query async generation job")
-def query_job(job_id: int):
-    queue_task = task_queue.get_task(job_id, True)
+def query_job(req: QueryJobRequest=Depends()):
+    queue_task = task_queue.get_task(req.job_id, True)
     if queue_task is None:
         return Response(content="Job not found", status_code=404)
 
-    return generation_output(queue_task, False, False)
+    return generation_output(queue_task, streaming_output=False, require_base64=False, require_step_preivew=req.require_step_preivew)
 
 
 @app.get("/v1/generation/job-queue", response_model=JobQueueInfo, description="Query job queue info")
