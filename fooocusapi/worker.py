@@ -701,6 +701,8 @@ def process_generate(queue_task: QueueTask, params: ImageGenerationParams) -> Li
                         log(x, d, single_line_number=3)
                 
                 # Fooocus async_worker.py code end
+                
+                results += imgs
             except model_management.InterruptProcessingException as e:
                 print("User stopped")
                 results.append(ImageGenerationResult(
@@ -720,7 +722,7 @@ def process_generate(queue_task: QueueTask, params: ImageGenerationParams) -> Li
         if queue_task.finish_with_error:
             task_queue.finish_task(queue_task.seq)
             return queue_task.task_result
-        return yield_result(imgs, tasks)
+        return yield_result(results, tasks)
     except Exception as e:
         print('Worker error:', e)
         if not queue_task.is_finished:
