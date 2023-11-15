@@ -38,7 +38,7 @@ class Predictor(BasePredictor):
             default=-1, description="Seed to generate image, -1 for random"),
         sharpness: float = Input(default=2.0, ge=0.0, le=30.0),
         guidance_scale: float = Input(default=default_cfg_scale, ge=1.0, le=30.0),
-        refiner_switch: float = Input(defalt=default_refiner_switch, ge=0.1, le=1.0),
+        refiner_switch: float = Input(default=default_refiner_switch, ge=0.1, le=1.0),
         uov_input_image: Path = Input(
             default=None, description="Input image for upscale or variation, keep None for not upscale or variation"),
         uov_method: str = Input(default='Disabled', choices=uov_methods),
@@ -135,6 +135,8 @@ class Predictor(BasePredictor):
                     cn_weight = flags.default_parameters[cn_type][1]
                 image_prompts.append((cn_img, cn_stop, cn_weight, cn_type))
 
+        advanced_params = None
+
         params = ImageGenerationParams(prompt=prompt,
                                        negative_prompt=negative_prompt,
                                        style_selections=style_selections_arr,
@@ -152,7 +154,8 @@ class Predictor(BasePredictor):
                                        uov_method=uov_method,
                                        outpaint_selections=outpaint_selections_arr,
                                        inpaint_input_image=inpaint_input_image_dict,
-                                       image_prompts=image_prompts
+                                       image_prompts=image_prompts,
+                                       advanced_params=advanced_params
                                        )
 
         print(f"[Predictor Predict] Params: {params.__dict__}")
