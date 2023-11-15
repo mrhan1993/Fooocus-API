@@ -1,6 +1,9 @@
 from enum import Enum
 import time
+import numpy as np
 from typing import List, Tuple
+
+from fooocusapi.img_utils import narray_to_base64img
 
 
 class TaskType(str, Enum):
@@ -17,6 +20,7 @@ class QueueTask(object):
     finish_millis: int = 0
     finish_with_error: bool = False
     task_status: str | None = None
+    task_step_preview: str | None = None
     task_result: any = None
     error_message: str | None = None
 
@@ -31,6 +35,9 @@ class QueueTask(object):
             progress = 100
         self.finish_progess = progress
         self.task_status = status
+
+    def set_step_preview(self, task_step_preview: str | None):
+        self.task_step_preview = task_step_preview
 
     def set_result(self, task_result: any, finish_with_error: bool, error_message: str | None = None):
         if not finish_with_error:
@@ -117,3 +124,6 @@ class TaskOutputs:
                 number = args[1][0]
                 text = args[1][1]
                 self.task.set_progress(number, text)
+                if len(args[1]) >= 3 and isinstance(args[1][2], np.ndarray):
+                    base64_preview_img = narray_to_base64img(args[1][2])
+                    self.task.set_step_preview(base64_preview_img)

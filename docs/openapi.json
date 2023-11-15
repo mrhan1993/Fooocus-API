@@ -738,14 +738,16 @@
                             "type": "string"
                         },
                         "type": "array",
-                        "title": "Model Filenames"
+                        "title": "Model Filenames",
+                        "description": "All available model filenames"
                     },
                     "lora_filenames": {
                         "items": {
                             "type": "string"
                         },
                         "type": "array",
-                        "title": "Lora Filenames"
+                        "title": "Lora Filenames",
+                        "description": "All available lora filenames"
                     }
                 },
                 "type": "object",
@@ -759,17 +761,29 @@
                 "properties": {
                     "job_id": {
                         "type": "integer",
-                        "title": "Job Id"
+                        "title": "Job Id",
+                        "description": "Job ID"
                     },
                     "job_type": {
-                        "$ref": "#/components/schemas/TaskType"
+                        "allOf": [
+                            {
+                                "$ref": "#/components/schemas/TaskType"
+                            }
+                        ],
+                        "description": "Job type"
                     },
                     "job_stage": {
-                        "$ref": "#/components/schemas/AsyncJobStage"
+                        "allOf": [
+                            {
+                                "$ref": "#/components/schemas/AsyncJobStage"
+                            }
+                        ],
+                        "description": "Job running stage"
                     },
                     "job_progess": {
                         "type": "integer",
-                        "title": "Job Progess"
+                        "title": "Job Progess",
+                        "description": "Job running progress, 100 is for finished."
                     },
                     "job_status": {
                         "anyOf": [
@@ -780,7 +794,20 @@
                                 "type": "null"
                             }
                         ],
-                        "title": "Job Status"
+                        "title": "Job Status",
+                        "description": "Job status in text"
+                    },
+                    "job_step_preview": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Job Step Preview",
+                        "description": "Preview result in each generation step, as base64 image"
                     },
                     "job_result": {
                         "anyOf": [
@@ -794,7 +821,8 @@
                                 "type": "null"
                             }
                         ],
-                        "title": "Job Result"
+                        "title": "Job Result",
+                        "description": "Job generation result"
                     }
                 },
                 "type": "object",
@@ -802,9 +830,7 @@
                     "job_id",
                     "job_type",
                     "job_stage",
-                    "job_progess",
-                    "job_status",
-                    "job_result"
+                    "job_progess"
                 ],
                 "title": "AsyncJobResponse"
             },

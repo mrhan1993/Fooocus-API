@@ -384,12 +384,13 @@ class AsyncJobStage(str, Enum):
 
 
 class AsyncJobResponse(BaseModel):
-    job_id: int
-    job_type: TaskType
-    job_stage: AsyncJobStage
-    job_progess: int
-    job_status: str | None
-    job_result: List[GeneratedImageResult] | None
+    job_id: int = Field(description="Job ID")
+    job_type: TaskType = Field(description="Job type")
+    job_stage: AsyncJobStage = Field(description="Job running stage")
+    job_progess: int = Field(description="Job running progress, 100 is for finished.")
+    job_status: str | None = Field(None, description="Job running status in text")
+    job_step_preview: str | None = Field(None, description="Preview result in each generation step, as base64 image")
+    job_result: List[GeneratedImageResult] | None = Field(None, description="Job generation result")
 
 
 class JobQueueInfo(BaseModel):
@@ -399,8 +400,8 @@ class JobQueueInfo(BaseModel):
 
 
 class AllModelNamesResponse(BaseModel):
-    model_filenames: List[str]
-    lora_filenames: List[str]
+    model_filenames: List[str] = Field(description="All available model filenames")
+    lora_filenames: List[str] = Field(description="All available lora filenames")
 
     model_config = ConfigDict(
         protected_namespaces=('protect_me_', 'also_protect_')

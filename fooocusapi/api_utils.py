@@ -1,48 +1,15 @@
-import base64
-import io
-from io import BytesIO
 from typing import List
 
 import numpy as np
-from fastapi import Response, UploadFile
-from PIL import Image
+from fastapi import Response
 from fooocusapi.file_utils import get_file_serve_url, output_file_to_base64img, output_file_to_bytesimg
+from fooocusapi.img_utils import read_input_image
 from fooocusapi.models import AsyncJobResponse, AsyncJobStage, GeneratedImageResult, GenerationFinishReason, ImgInpaintOrOutpaintRequest, ImgPromptRequest, ImgUpscaleOrVaryRequest, Text2ImgRequest
 from fooocusapi.parameters import ImageGenerationParams, ImageGenerationResult, available_aspect_ratios, default_aspect_ratio, default_inpaint_engine_version, default_sampler, default_scheduler, default_base_model_name, default_refiner_model_name
 from fooocusapi.task_queue import QueueTask
 import modules.flags as flags
 import modules.config as config
 from modules.sdxl_styles import legal_style_names
-
-
-def narray_to_base64img(narray: np.ndarray) -> str:
-    if narray is None:
-        return None
-
-    img = Image.fromarray(narray)
-    output_buffer = BytesIO()
-    img.save(output_buffer, format='PNG')
-    byte_data = output_buffer.getvalue()
-    base64_str = base64.b64encode(byte_data)
-    return base64_str
-
-
-def narray_to_bytesimg(narray) -> bytes:
-    if narray is None:
-        return None
-
-    img = Image.fromarray(narray)
-    output_buffer = BytesIO()
-    img.save(output_buffer, format='PNG')
-    byte_data = output_buffer.getvalue()
-    return byte_data
-
-
-def read_input_image(input_image: UploadFile) -> np.ndarray:
-    input_image_bytes = input_image.file.read()
-    pil_image = Image.open(io.BytesIO(input_image_bytes))
-    image = np.array(pil_image)
-    return image
 
 
 def req_to_params(req: Text2ImgRequest) -> ImageGenerationParams:
@@ -181,6 +148,7 @@ def generation_output(results: QueueTask | List[ImageGenerationResult], streamin
                                 job_stage=job_stage,
                                 job_progess=task.finish_progess,
                                 job_status=task.task_status,
+                                job_step_preview=task.task_step_preview,
                                 job_result=job_result)
 
     if streaming_output:
