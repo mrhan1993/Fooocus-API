@@ -555,6 +555,12 @@
         "schemas": {
             "AdvancedParams": {
                 "properties": {
+                    "disable_preview": {
+                        "type": "boolean",
+                        "title": "Disable Preview",
+                        "description": "Disable preview during generation",
+                        "default": false
+                    },
                     "adm_scaler_positive": {
                         "type": "number",
                         "maximum": 3,
@@ -896,8 +902,7 @@
                         "description": "Fooocus style selections, seperated by comma",
                         "default": [
                             "Fooocus V2",
-                            "Fooocus Enhance",
-                            "Fooocus Sharp"
+                            "Fooocus Cinematic"
                         ]
                     },
                     "performance_selection": {
@@ -939,17 +944,17 @@
                         "maximum": 30,
                         "minimum": 1,
                         "title": "Guidance Scale",
-                        "default": 4
+                        "default": 7
                     },
                     "base_model_name": {
                         "type": "string",
                         "title": "Base Model Name",
-                        "default": "juggernautXL_version6Rundiffusion.safetensors"
+                        "default": "sd_xl_base_1.0_0.9vae.safetensors"
                     },
                     "refiner_model_name": {
                         "type": "string",
                         "title": "Refiner Model Name",
-                        "default": "None"
+                        "default": "sd_xl_refiner_1.0_0.9vae.safetensors"
                     },
                     "refiner_switch": {
                         "type": "number",
@@ -957,9 +962,9 @@
                         "minimum": 0.1,
                         "title": "Refiner Switch",
                         "description": "Refiner Switch At",
-                        "default": 0.5
+                        "default": 0.667
                     },
-                    "l1": {
+                    "loras": {
                         "anyOf": [
                             {
                                 "type": "string"
@@ -968,87 +973,9 @@
                                 "type": "null"
                             }
                         ],
-                        "title": "L1",
-                        "default": "sd_xl_offset_example-lora_1.0.safetensors"
-                    },
-                    "w1": {
-                        "type": "number",
-                        "maximum": 2,
-                        "minimum": -2,
-                        "title": "W1",
-                        "default": 0.1
-                    },
-                    "l2": {
-                        "anyOf": [
-                            {
-                                "type": "string"
-                            },
-                            {
-                                "type": "null"
-                            }
-                        ],
-                        "title": "L2"
-                    },
-                    "w2": {
-                        "type": "number",
-                        "maximum": 2,
-                        "minimum": -2,
-                        "title": "W2",
-                        "default": 0.1
-                    },
-                    "l3": {
-                        "anyOf": [
-                            {
-                                "type": "string"
-                            },
-                            {
-                                "type": "null"
-                            }
-                        ],
-                        "title": "L3"
-                    },
-                    "w3": {
-                        "type": "number",
-                        "maximum": 2,
-                        "minimum": -2,
-                        "title": "W3",
-                        "default": 0.1
-                    },
-                    "l4": {
-                        "anyOf": [
-                            {
-                                "type": "string"
-                            },
-                            {
-                                "type": "null"
-                            }
-                        ],
-                        "title": "L4"
-                    },
-                    "w4": {
-                        "type": "number",
-                        "maximum": 2,
-                        "minimum": -2,
-                        "title": "W4",
-                        "default": 0.1
-                    },
-                    "l5": {
-                        "anyOf": [
-                            {
-                                "type": "string"
-                            },
-                            {
-                                "type": "null"
-                            }
-                        ],
-                        "title": "L5"
-                    },
-                    "w5": {
-                        "type": "number",
-                        "maximum": 2,
-                        "minimum": -2,
-                        "title": "W5",
-                        "default": 0.1
+                        "title": "Loras",
+                        "description": "Lora config in JSON. Format as [{\"model_name\": \"sd_xl_offset_example-lora_1.0.safetensors\", \"weight\": 0.5}]",
+                        "default": "[{\"model_name\":\"sd_xl_offset_example-lora_1.0.safetensors\",\"weight\":0.5}]"
                     },
                     "advanced_params": {
                         "anyOf": [
@@ -1274,8 +1201,7 @@
                         "description": "Fooocus style selections, seperated by comma",
                         "default": [
                             "Fooocus V2",
-                            "Fooocus Enhance",
-                            "Fooocus Sharp"
+                            "Fooocus Cinematic"
                         ]
                     },
                     "performance_selection": {
@@ -1317,17 +1243,17 @@
                         "maximum": 30,
                         "minimum": 1,
                         "title": "Guidance Scale",
-                        "default": 4
+                        "default": 7
                     },
                     "base_model_name": {
                         "type": "string",
                         "title": "Base Model Name",
-                        "default": "juggernautXL_version6Rundiffusion.safetensors"
+                        "default": "sd_xl_base_1.0_0.9vae.safetensors"
                     },
                     "refiner_model_name": {
                         "type": "string",
                         "title": "Refiner Model Name",
-                        "default": "None"
+                        "default": "sd_xl_refiner_1.0_0.9vae.safetensors"
                     },
                     "refiner_switch": {
                         "type": "number",
@@ -1335,9 +1261,9 @@
                         "minimum": 0.1,
                         "title": "Refiner Switch",
                         "description": "Refiner Switch At",
-                        "default": 0.5
+                        "default": 0.667
                     },
-                    "l1": {
+                    "loras": {
                         "anyOf": [
                             {
                                 "type": "string"
@@ -1346,87 +1272,9 @@
                                 "type": "null"
                             }
                         ],
-                        "title": "L1",
-                        "default": "sd_xl_offset_example-lora_1.0.safetensors"
-                    },
-                    "w1": {
-                        "type": "number",
-                        "maximum": 2,
-                        "minimum": -2,
-                        "title": "W1",
-                        "default": 0.1
-                    },
-                    "l2": {
-                        "anyOf": [
-                            {
-                                "type": "string"
-                            },
-                            {
-                                "type": "null"
-                            }
-                        ],
-                        "title": "L2"
-                    },
-                    "w2": {
-                        "type": "number",
-                        "maximum": 2,
-                        "minimum": -2,
-                        "title": "W2",
-                        "default": 0.1
-                    },
-                    "l3": {
-                        "anyOf": [
-                            {
-                                "type": "string"
-                            },
-                            {
-                                "type": "null"
-                            }
-                        ],
-                        "title": "L3"
-                    },
-                    "w3": {
-                        "type": "number",
-                        "maximum": 2,
-                        "minimum": -2,
-                        "title": "W3",
-                        "default": 0.1
-                    },
-                    "l4": {
-                        "anyOf": [
-                            {
-                                "type": "string"
-                            },
-                            {
-                                "type": "null"
-                            }
-                        ],
-                        "title": "L4"
-                    },
-                    "w4": {
-                        "type": "number",
-                        "maximum": 2,
-                        "minimum": -2,
-                        "title": "W4",
-                        "default": 0.1
-                    },
-                    "l5": {
-                        "anyOf": [
-                            {
-                                "type": "string"
-                            },
-                            {
-                                "type": "null"
-                            }
-                        ],
-                        "title": "L5"
-                    },
-                    "w5": {
-                        "type": "number",
-                        "maximum": 2,
-                        "minimum": -2,
-                        "title": "W5",
-                        "default": 0.1
+                        "title": "Loras",
+                        "description": "Lora config in JSON. Format as [{\"model_name\": \"sd_xl_offset_example-lora_1.0.safetensors\", \"weight\": 0.5}]",
+                        "default": "[{\"model_name\":\"sd_xl_offset_example-lora_1.0.safetensors\",\"weight\":0.5}]"
                     },
                     "advanced_params": {
                         "anyOf": [
@@ -1486,8 +1334,7 @@
                         "description": "Fooocus style selections, seperated by comma",
                         "default": [
                             "Fooocus V2",
-                            "Fooocus Enhance",
-                            "Fooocus Sharp"
+                            "Fooocus Cinematic"
                         ]
                     },
                     "performance_selection": {
@@ -1529,17 +1376,17 @@
                         "maximum": 30,
                         "minimum": 1,
                         "title": "Guidance Scale",
-                        "default": 4
+                        "default": 7
                     },
                     "base_model_name": {
                         "type": "string",
                         "title": "Base Model Name",
-                        "default": "juggernautXL_version6Rundiffusion.safetensors"
+                        "default": "sd_xl_base_1.0_0.9vae.safetensors"
                     },
                     "refiner_model_name": {
                         "type": "string",
                         "title": "Refiner Model Name",
-                        "default": "None"
+                        "default": "sd_xl_refiner_1.0_0.9vae.safetensors"
                     },
                     "refiner_switch": {
                         "type": "number",
@@ -1547,9 +1394,9 @@
                         "minimum": 0.1,
                         "title": "Refiner Switch",
                         "description": "Refiner Switch At",
-                        "default": 0.5
+                        "default": 0.667
                     },
-                    "l1": {
+                    "loras": {
                         "anyOf": [
                             {
                                 "type": "string"
@@ -1558,87 +1405,9 @@
                                 "type": "null"
                             }
                         ],
-                        "title": "L1",
-                        "default": "sd_xl_offset_example-lora_1.0.safetensors"
-                    },
-                    "w1": {
-                        "type": "number",
-                        "maximum": 2,
-                        "minimum": -2,
-                        "title": "W1",
-                        "default": 0.1
-                    },
-                    "l2": {
-                        "anyOf": [
-                            {
-                                "type": "string"
-                            },
-                            {
-                                "type": "null"
-                            }
-                        ],
-                        "title": "L2"
-                    },
-                    "w2": {
-                        "type": "number",
-                        "maximum": 2,
-                        "minimum": -2,
-                        "title": "W2",
-                        "default": 0.1
-                    },
-                    "l3": {
-                        "anyOf": [
-                            {
-                                "type": "string"
-                            },
-                            {
-                                "type": "null"
-                            }
-                        ],
-                        "title": "L3"
-                    },
-                    "w3": {
-                        "type": "number",
-                        "maximum": 2,
-                        "minimum": -2,
-                        "title": "W3",
-                        "default": 0.1
-                    },
-                    "l4": {
-                        "anyOf": [
-                            {
-                                "type": "string"
-                            },
-                            {
-                                "type": "null"
-                            }
-                        ],
-                        "title": "L4"
-                    },
-                    "w4": {
-                        "type": "number",
-                        "maximum": 2,
-                        "minimum": -2,
-                        "title": "W4",
-                        "default": 0.1
-                    },
-                    "l5": {
-                        "anyOf": [
-                            {
-                                "type": "string"
-                            },
-                            {
-                                "type": "null"
-                            }
-                        ],
-                        "title": "L5"
-                    },
-                    "w5": {
-                        "type": "number",
-                        "maximum": 2,
-                        "minimum": -2,
-                        "title": "W5",
-                        "default": 0.1
+                        "title": "Loras",
+                        "description": "Lora config in JSON. Format as [{\"model_name\": \"sd_xl_offset_example-lora_1.0.safetensors\", \"weight\": 0.5}]",
+                        "default": "[{\"model_name\":\"sd_xl_offset_example-lora_1.0.safetensors\",\"weight\":0.5}]"
                     },
                     "advanced_params": {
                         "anyOf": [
@@ -1847,8 +1616,7 @@
                         "title": "Style Selections",
                         "default": [
                             "Fooocus V2",
-                            "Fooocus Enhance",
-                            "Fooocus Sharp"
+                            "Fooocus Cinematic"
                         ]
                     },
                     "performance_selection": {
@@ -1890,17 +1658,17 @@
                         "maximum": 30,
                         "minimum": 1,
                         "title": "Guidance Scale",
-                        "default": 4
+                        "default": 7
                     },
                     "base_model_name": {
                         "type": "string",
                         "title": "Base Model Name",
-                        "default": "juggernautXL_version6Rundiffusion.safetensors"
+                        "default": "sd_xl_base_1.0_0.9vae.safetensors"
                     },
                     "refiner_model_name": {
                         "type": "string",
                         "title": "Refiner Model Name",
-                        "default": "None"
+                        "default": "sd_xl_refiner_1.0_0.9vae.safetensors"
                     },
                     "refiner_switch": {
                         "type": "number",
@@ -1908,7 +1676,7 @@
                         "minimum": 0.1,
                         "title": "Refiner Switch",
                         "description": "Refiner Switch At",
-                        "default": 0.5
+                        "default": 0.667
                     },
                     "loras": {
                         "items": {
@@ -1919,7 +1687,7 @@
                         "default": [
                             {
                                 "model_name": "sd_xl_offset_example-lora_1.0.safetensors",
-                                "weight": 0.1
+                                "weight": 0.5
                             }
                         ]
                     },
