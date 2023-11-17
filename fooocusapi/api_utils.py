@@ -49,6 +49,7 @@ def req_to_params(req: Text2ImgRequest) -> ImageGenerationParams:
     outpaint_selections = [] if not isinstance(req, ImgInpaintOrOutpaintRequest) else [
         s.value for s in req.outpaint_selections]
     
+    aspect_ratios_selection = aspect_ratios_selection.replace('x', '×').replace('*', '×')
     if aspect_ratios_selection not in available_aspect_ratios:
         print(f"[Warning] Invalid aspect ratios selection, using default: {default_aspect_ratio}")
         aspect_ratios_selection = default_aspect_ratio
