@@ -59,10 +59,9 @@ def req_to_params(req: Text2ImgRequest) -> ImageGenerationParams:
     inpaint_input_image = None
     if isinstance(req, ImgInpaintOrOutpaintRequest):
         input_image = read_input_image(req.input_image)
+        input_mask = None
         if req.input_mask is not None:
             input_mask = read_input_image(req.input_mask)
-        else:
-            input_mask = np.zeros(input_image.shape)
         inpaint_input_image = {
             'image': input_image,
             'mask': input_mask

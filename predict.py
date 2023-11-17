@@ -107,8 +107,6 @@ class Predictor(BasePredictor):
             if inpaint_input_mask is not None:
                 im = Image.open(str(inpaint_input_mask))
                 inpaint_input_mask = np.array(im)
-            else:
-                inpaint_input_mask = np.zeros(inpaint_input_image.shape)
 
             inpaint_input_image_dict = {
                 'image': inpaint_input_image,

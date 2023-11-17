@@ -124,6 +124,15 @@ def process_generate(queue_task: QueueTask, params: ImageGenerationParams) -> Li
         outpaint_selections = params.outpaint_selections
         inpaint_input_image = params.inpaint_input_image
 
+        if inpaint_input_image is not None and inpaint_input_image['image'] is not None:
+            if inpaint_input_image['mask'] is None:
+                inpaint_input_image['mask'] = np.zeros(inpaint_input_image['image'].shape, dtype=np.uint8)
+            inpaint_input_image['mask'] = HWC3(inpaint_input_image['mask'])
+            inpaint_image_size = inpaint_input_image['image'].shape[:2]
+            if inpaint_input_image['mask'].shape[:2] != inpaint_image_size:
+                # Reset inpaint mask
+                inpaint_input_image['mask'] = resize_image(inpaint_input_image['mask'], width=inpaint_image_size[1], height=inpaint_image_size[0], resize_mode=0)
+
         image_seed = refresh_seed(image_seed is None, image_seed)
 
         cn_tasks = {x: [] for x in flags.ip_list}
