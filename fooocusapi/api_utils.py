@@ -96,7 +96,7 @@ def req_to_params(req: Text2ImgRequest) -> ImageGenerationParams:
             print(f"[Warning] Wrong inpaint_engine input: {adp.inpaint_engine}, using default")
             adp.inpaint_engine = flags.default_inpaint_engine_version
         
-        advanced_params = [adp.adm_scaler_positive, adp.adm_scaler_negative, adp.adm_scaler_end, adp.adaptive_cfg, adp.sampler_name,
+        advanced_params = [adp.disable_preview, adp.adm_scaler_positive, adp.adm_scaler_negative, adp.adm_scaler_end, adp.adaptive_cfg, adp.sampler_name,
                                 adp.scheduler_name, False, adp.overwrite_step, adp.overwrite_switch, adp.overwrite_width, adp.overwrite_height,
                                 adp.overwrite_vary_strength, adp.overwrite_upscale_strength,
                                 adp.mixing_image_prompt_and_vary_upscale, adp.mixing_image_prompt_and_inpaint,

@@ -284,17 +284,16 @@ def prepare_environments(args) -> bool:
     import modules.config as config
     import modules.flags as flags
     import fooocusapi.parameters as parameters
-    parameters.default_inpaint_engine_version = flags.default_inpaint_engine_version
+    parameters.default_inpaint_engine_version = config.default_inpaint_engine_version
     parameters.defualt_styles = config.default_styles
     parameters.default_base_model_name = config.default_base_model_name
     parameters.default_refiner_model_name = config.default_refiner_model_name
     parameters.default_refiner_switch = config.default_refiner_switch
-    parameters.default_lora_name = config.default_lora_name
-    parameters.default_lora_weight = config.default_lora_weight
+    parameters.default_loras = config.default_loras
     parameters.default_cfg_scale = config.default_cfg_scale
     parameters.default_prompt_negative = config.default_prompt_negative
-    parameters.default_aspect_ratio = config.default_aspect_ratio.replace('*', '×')
-    parameters.available_aspect_ratios = [a.replace('*', '×') for a in config.available_aspect_ratios]
+    parameters.default_aspect_ratio = parameters.get_aspect_ratio_value(config.default_aspect_ratio)
+    parameters.available_aspect_ratios = [parameters.get_aspect_ratio_value(a) for a in config.available_aspect_ratios]
 
     ini_cbh_args()
 
@@ -364,7 +363,7 @@ if __name__ == "__main__":
                         default='info', help="Log info for Uvicorn, default: info")
     parser.add_argument("--sync-repo", default=None,
                         help="Sync dependent git repositories to local, 'skip' for skip sync action, 'only' for only do the sync action and not launch app")
-    parser.add_argument("--disable-private-log", default=False, action="store_true", help="Disable Fooocus private log, won't save output files (include generated image files)")
+    parser.add_argument("--disable-private-log", default=False, action="store_true", help="Disable Fooocus image log, won't save output files (include generated image files)")
     parser.add_argument("--skip-pip", default=False, action="store_true", help="Skip automatic pip install when setup")
     parser.add_argument("--preload-pipeline", default=False, action="store_true", help="Preload pipeline before start http server")
     parser.add_argument("--queue-size", type=int, default=3, help="Working queue size, default: 3, generation requests exceeding working queue size will return failure")

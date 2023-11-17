@@ -2,14 +2,15 @@ import json
 from fastapi import Form, UploadFile
 from fastapi.params import File
 from fastapi.exceptions import RequestValidationError
-from pydantic import BaseModel, ConfigDict, Field, ValidationError, parse_obj_as
+from pydantic import BaseModel, ConfigDict, Field, TypeAdapter, ValidationError, parse_obj_as
 from typing import List
 from enum import Enum
 
 from pydantic_core import InitErrorDetails
-from fooocusapi.parameters import GenerationFinishReason, defualt_styles, default_base_model_name, default_refiner_model_name, default_refiner_switch, default_lora_name, default_lora_weight, default_cfg_scale, default_prompt_negative, default_aspect_ratio, default_sampler, default_scheduler
+from fooocusapi.parameters import GenerationFinishReason, defualt_styles, default_base_model_name, default_refiner_model_name, default_refiner_switch, default_loras, default_cfg_scale, default_prompt_negative, default_aspect_ratio, default_sampler, default_scheduler
 from fooocusapi.task_queue import TaskType
 import modules.flags as flags
+
 
 
 class Lora(BaseModel):
@@ -19,6 +20,11 @@ class Lora(BaseModel):
     model_config = ConfigDict(
         protected_namespaces=('protect_me_', 'also_protect_')
     )
+
+
+LoraList = TypeAdapter(List[Lora])
+default_loras_model = [Lora(model_name=l[0], weight=l[1]) for l in default_loras if l[0] != 'None']
+default_loras_json = LoraList.dump_json(default_loras_model)
 
 
 class PerfomanceSelection(str, Enum):
@@ -58,6 +64,7 @@ class ImagePrompt(BaseModel):
 
 
 class AdvancedParams(BaseModel):
+    disable_preview: bool = Field(False, description="Disable preview during generation")
     adm_scaler_positive: float = Field(1.5, description="Positive ADM Guidance Scaler", ge=0.1, le=3.0)
     adm_scaler_negative: float = Field(0.8, description="Negative ADM Guidance Scaler", ge=0.1, le=3.0)
     adm_scaler_end: float = Field(0.3, description="ADM Guidance End At Step", ge=0.0, le=1.0)
@@ -100,8 +107,7 @@ class Text2ImgRequest(BaseModel):
     base_model_name: str = default_base_model_name
     refiner_model_name: str = default_refiner_model_name
     refiner_switch: float = Field(default=default_refiner_switch, description="Refiner Switch At", ge=0.1, le=1.0)
-    loras: List[Lora] = Field(default=[
-        Lora(model_name=default_lora_name, weight=default_lora_weight)])
+    loras: List[Lora] = Field(default=default_loras_model)
     advanced_params: AdvancedParams | None = Field(deafult=None, description="Advanced parameters")
     require_base64: bool = Field(default=False, description="Return base64 data of generated image")
     async_process: bool = Field(default=False, description="Set to true will run async and return job info for retrieve generataion result later")
@@ -128,17 +134,8 @@ class ImgUpscaleOrVaryRequest(Text2ImgRequest):
                 base_model_name: str = Form(default_base_model_name),
                 refiner_model_name: str = Form(default_refiner_model_name),
                 refiner_switch: float = Form(default=default_refiner_switch, description="Refiner Switch At", ge=0.1, le=1.0),
-                l1: str | None = Form(default_lora_name),
-                w1: float = Form(default=default_lora_weight, ge=-2, le=2),
-                l2: str | None = Form(None),
-                w2: float = Form(default=default_lora_weight, ge=-2, le=2),
-                l3: str | None = Form(None),
-                w3: float = Form(default=default_lora_weight, ge=-2, le=2),
-                l4: str | None = Form(None),
-                w4: float = Form(default=default_lora_weight, ge=-2, le=2),
-                l5: str | None = Form(None),
-                w5: float = Form(default=default_lora_weight, ge=-2, le=2),
-                advanced_params: str| None = Form(default=None, description="Advanced parameters in JSON"),
+                loras: str | None = Form(default=default_loras_json, description='Lora config in JSON. Format as [{"model_name": "sd_xl_offset_example-lora_1.0.safetensors", "weight": 0.5}]'),
+                advanced_params: str | None = Form(default=None, description="Advanced parameters in JSON"),
                 require_base64: bool = Form(default=False, description="Return base64 data of generated image"),
                 async_process: bool = Form(default=False, description="Set to true will run async and return job info for retrieve generataion result later"),
                 ):
@@ -149,15 +146,16 @@ class ImgUpscaleOrVaryRequest(Text2ImgRequest):
                     style = s.strip()
                     style_selection_arr.append(style)
 
-        loras: List[Lora] = []
-        lora_config = [(l1, w1), (l2, w2), (l3, w3), (l4, w4), (l5, w5)]
-        for config in lora_config:
-            lora_model, lora_weight = config
-            if lora_model is not None and len(lora_model) > 0:
-                loras.append(Lora(model_name=lora_model, weight=lora_weight))
+        loras_model: List[Lora] = []
+        if loras is not None and len(loras) > 0:
+            try:
+                loras_model = LoraList.validate_json(loras)
+            except ValidationError as ve:
+                errs = ve.errors()
+                raise RequestValidationError(errors=[errs])
 
         advanced_params_obj = None
-        if advanced_params != None and len(advanced_params) > 0:
+        if advanced_params is not None and len(advanced_params) > 0:
             try:
                 advanced_params_obj = AdvancedParams.__pydantic_validator__.validate_json(advanced_params)
             except ValidationError as ve:
@@ -168,7 +166,7 @@ class ImgUpscaleOrVaryRequest(Text2ImgRequest):
                    performance_selection=performance_selection, aspect_ratios_selection=aspect_ratios_selection,
                    image_number=image_number, image_seed=image_seed, sharpness=sharpness, guidance_scale=guidance_scale,
                    base_model_name=base_model_name, refiner_model_name=refiner_model_name, refiner_switch=refiner_switch,
-                   loras=loras, advanced_params=advanced_params_obj, require_base64=require_base64, async_process=async_process)
+                   loras=loras_model, advanced_params=advanced_params_obj, require_base64=require_base64, async_process=async_process)
 
 
 class ImgInpaintOrOutpaintRequest(Text2ImgRequest):
@@ -196,16 +194,7 @@ class ImgInpaintOrOutpaintRequest(Text2ImgRequest):
                 base_model_name: str = Form(default_base_model_name),
                 refiner_model_name: str = Form(default_refiner_model_name),
                 refiner_switch: float = Form(default=default_refiner_switch, description="Refiner Switch At", ge=0.1, le=1.0),
-                l1: str | None = Form(default_lora_name),
-                w1: float = Form(default=default_lora_weight, ge=-2, le=2),
-                l2: str | None = Form(None),
-                w2: float = Form(default=default_lora_weight, ge=-2, le=2),
-                l3: str | None = Form(None),
-                w3: float = Form(default=default_lora_weight, ge=-2, le=2),
-                l4: str | None = Form(None),
-                w4: float = Form(default=default_lora_weight, ge=-2, le=2),
-                l5: str | None = Form(None),
-                w5: float = Form(default=default_lora_weight, ge=-2, le=2),
+                loras: str | None = Form(default=default_loras_json, description='Lora config in JSON. Format as [{"model_name": "sd_xl_offset_example-lora_1.0.safetensors", "weight": 0.5}]'),
                 advanced_params: str| None = Form(default=None, description="Advanced parameters in JSON"),
                 require_base64: bool = Form(default=False, description="Return base64 data of generated image"),
                 async_process: bool = Form(default=False, description="Set to true will run async and return job info for retrieve generataion result later"),
@@ -233,15 +222,16 @@ class ImgInpaintOrOutpaintRequest(Text2ImgRequest):
                     style = s.strip()
                     style_selection_arr.append(style)
 
-        loras: List[Lora] = []
-        lora_config = [(l1, w1), (l2, w2), (l3, w3), (l4, w4), (l5, w5)]
-        for config in lora_config:
-            lora_model, lora_weight = config
-            if lora_model is not None and len(lora_model) > 0:
-                loras.append(Lora(model_name=lora_model, weight=lora_weight))
+        loras_model: List[Lora] = []
+        if loras is not None and len(loras) > 0:
+            try:
+                loras_model = LoraList.validate_json(loras)
+            except ValidationError as ve:
+                errs = ve.errors()
+                raise RequestValidationError(errors=[errs])
 
         advanced_params_obj = None
-        if advanced_params != None and len(advanced_params) > 0:
+        if advanced_params is not None and len(advanced_params) > 0:
             try:
                 advanced_params_obj = AdvancedParams.__pydantic_validator__.validate_json(advanced_params)
             except ValidationError as ve:
@@ -252,7 +242,7 @@ class ImgInpaintOrOutpaintRequest(Text2ImgRequest):
                    performance_selection=performance_selection, aspect_ratios_selection=aspect_ratios_selection,
                    image_number=image_number, image_seed=image_seed, sharpness=sharpness, guidance_scale=guidance_scale,
                    base_model_name=base_model_name, refiner_model_name=refiner_model_name, refiner_switch=refiner_switch,
-                   loras=loras, advanced_params=advanced_params_obj, require_base64=require_base64, async_process=async_process)
+                   loras=loras_model, advanced_params=advanced_params_obj, require_base64=require_base64, async_process=async_process)
 
 
 class ImgPromptRequest(Text2ImgRequest):
@@ -304,16 +294,7 @@ class ImgPromptRequest(Text2ImgRequest):
                 base_model_name: str = Form(default_base_model_name),
                 refiner_model_name: str = Form(default_refiner_model_name),
                 refiner_switch: float = Form(default=default_refiner_switch, description="Refiner Switch At", ge=0.1, le=1.0),
-                l1: str | None = Form(default_lora_name),
-                w1: float = Form(default=default_lora_weight, ge=-2, le=2),
-                l2: str | None = Form(None),
-                w2: float = Form(default=default_lora_weight, ge=-2, le=2),
-                l3: str | None = Form(None),
-                w3: float = Form(default=default_lora_weight, ge=-2, le=2),
-                l4: str | None = Form(None),
-                w4: float = Form(default=default_lora_weight, ge=-2, le=2),
-                l5: str | None = Form(None),
-                w5: float = Form(default=default_lora_weight, ge=-2, le=2),
+                loras: str | None = Form(default=default_loras_json, description='Lora config in JSON. Format as [{"model_name": "sd_xl_offset_example-lora_1.0.safetensors", "weight": 0.5}]'),
                 advanced_params: str| None = Form(default=None, description="Advanced parameters in JSON"),
                 require_base64: bool = Form(default=False, description="Return base64 data of generated image"),
                 async_process: bool = Form(default=False, description="Set to true will run async and return job info for retrieve generataion result later"),
@@ -346,15 +327,16 @@ class ImgPromptRequest(Text2ImgRequest):
                     style = s.strip()
                     style_selection_arr.append(style)
 
-        loras: List[Lora] = []
-        lora_config = [(l1, w1), (l2, w2), (l3, w3), (l4, w4), (l5, w5)]
-        for config in lora_config:
-            lora_model, lora_weight = config
-            if lora_model is not None and len(lora_model) > 0:
-                loras.append(Lora(model_name=lora_model, weight=lora_weight))
+        loras_model: List[Lora] = []
+        if loras is not None and len(loras) > 0:
+            try:
+                loras_model = LoraList.validate_json(loras)
+            except ValidationError as ve:
+                errs = ve.errors()
+                raise RequestValidationError(errors=[errs])
 
         advanced_params_obj = None
-        if advanced_params != None and len(advanced_params) > 0:
+        if advanced_params is not None and len(advanced_params) > 0:
             try:
                 advanced_params_obj = AdvancedParams.__pydantic_validator__.validate_json(advanced_params)
             except ValidationError as ve:
@@ -365,7 +347,7 @@ class ImgPromptRequest(Text2ImgRequest):
                    performance_selection=performance_selection, aspect_ratios_selection=aspect_ratios_selection,
                    image_number=image_number, image_seed=image_seed, sharpness=sharpness, guidance_scale=guidance_scale,
                    base_model_name=base_model_name, refiner_model_name=refiner_model_name, refiner_switch=refiner_switch,
-                   loras=loras, advanced_params=advanced_params_obj, require_base64=require_base64, async_process=async_process)
+                   loras=loras_model, advanced_params=advanced_params_obj, require_base64=require_base64, async_process=async_process)
 
 
 class GeneratedImageResult(BaseModel):

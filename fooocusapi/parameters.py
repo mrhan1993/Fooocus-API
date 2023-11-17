@@ -12,6 +12,7 @@ defualt_styles = ['Fooocus V2', 'Fooocus Enhance', 'Fooocus Sharp']
 default_base_model_name = 'juggernautXL_version6Rundiffusion.safetensors'
 default_refiner_model_name = 'None'
 default_refiner_switch = 0.5
+default_loras = [['sd_xl_offset_example-lora_1.0.safetensors', 0.1]]
 default_lora_name = 'sd_xl_offset_example-lora_1.0.safetensors'
 default_lora_weight = 0.1
 default_cfg_scale = 4.0
@@ -58,6 +59,10 @@ uov_methods = [
 outpaint_expansions = [
     'Left', 'Right', 'Top', 'Bottom'
 ]
+
+
+def get_aspect_ratio_value(label: str) -> str:
+    return label.split(' ')[0].replace('*', '×')
 
 
 class GenerationFinishReason(str, Enum):
@@ -113,6 +118,7 @@ class ImageGenerationParams(object):
         self.inpaint_input_image = inpaint_input_image
         self.image_prompts = image_prompts
         if advanced_params is None:
+            disable_preview = False
             adm_scaler_positive = 1.5
             adm_scaler_negative = 0.8
             adm_scaler_end = 0.3
@@ -137,7 +143,7 @@ class ImageGenerationParams(object):
             refiner_swap_method = 'joint'
             freeu_enabled = False
             freeu_b1, freeu_b2, freeu_s1, freeu_s2 = [None] * 4
-            self.advanced_params = [adm_scaler_positive, adm_scaler_negative, adm_scaler_end, adaptive_cfg, sampler_name,
+            self.advanced_params = [disable_preview, adm_scaler_positive, adm_scaler_negative, adm_scaler_end, adaptive_cfg, sampler_name,
                                scheduler_name, generate_image_grid, overwrite_step, overwrite_switch, overwrite_width, overwrite_height,
                                overwrite_vary_strength, overwrite_upscale_strength,
                                mixing_image_prompt_and_vary_upscale, mixing_image_prompt_and_inpaint,

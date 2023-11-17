@@ -6,7 +6,7 @@ import sys
 from typing import List
 from cog import BasePredictor, Input, Path
 
-from fooocusapi.parameters import GenerationFinishReason, ImageGenerationParams, available_aspect_ratios, uov_methods, outpaint_expansions, defualt_styles, default_base_model_name, default_refiner_model_name, default_lora_name, default_refiner_switch, default_lora_weight, default_cfg_scale, default_prompt_negative
+from fooocusapi.parameters import GenerationFinishReason, ImageGenerationParams, available_aspect_ratios, uov_methods, outpaint_expansions, defualt_styles, default_base_model_name, default_refiner_model_name, default_loras, default_refiner_switch, default_cfg_scale, default_prompt_negative
 from fooocusapi.task_queue import TaskType
 from fooocusapi.worker import process_generate, task_queue
 from fooocusapi.file_utils import output_dir
@@ -87,7 +87,7 @@ class Predictor(BasePredictor):
 
         base_model_name = default_base_model_name
         refiner_model_name = default_refiner_model_name
-        loras = [(default_lora_name, default_lora_weight)]
+        loras = default_loras
 
         style_selections_arr = []
         for s in style_selections.strip().split(','):
