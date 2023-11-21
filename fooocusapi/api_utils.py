@@ -58,7 +58,9 @@ def req_to_params(req: Text2ImgRequest) -> ImageGenerationParams:
         refiner_model_name = 'None'
 
     inpaint_input_image = None
+    inpaint_additional_prompt = None
     if isinstance(req, ImgInpaintOrOutpaintRequest):
+        inpaint_additional_prompt = req.inpaint_additional_prompt
         input_image = read_input_image(req.input_image)
         input_mask = None
         if req.input_mask is not None:
@@ -96,12 +98,16 @@ def req_to_params(req: Text2ImgRequest) -> ImageGenerationParams:
             print(f"[Warning] Wrong inpaint_engine input: {adp.inpaint_engine}, using default")
             adp.inpaint_engine = flags.default_inpaint_engine_version
         
-        advanced_params = [adp.disable_preview, adp.adm_scaler_positive, adp.adm_scaler_negative, adp.adm_scaler_end, adp.adaptive_cfg, adp.sampler_name,
-                                adp.scheduler_name, False, adp.overwrite_step, adp.overwrite_switch, adp.overwrite_width, adp.overwrite_height,
-                                adp.overwrite_vary_strength, adp.overwrite_upscale_strength,
-                                adp.mixing_image_prompt_and_vary_upscale, adp.mixing_image_prompt_and_inpaint,
-                                adp.debugging_cn_preprocessor, adp.skipping_cn_preprocessor, adp.controlnet_softness, adp.canny_low_threshold, adp.canny_high_threshold, adp.inpaint_engine,
-                                adp.refiner_swap_method, adp.freeu_enabled, adp.freeu_b1, adp.freeu_b2, adp.freeu_s1, adp.freeu_s2]
+        advanced_params = [
+            adp.disable_preview, adp.adm_scaler_positive, adp.adm_scaler_negative, adp.adm_scaler_end, adp.adaptive_cfg, adp.sampler_name, \
+            adp.scheduler_name, False, adp.overwrite_step, adp.overwrite_switch, adp.overwrite_width, adp.overwrite_height, \
+            adp.overwrite_vary_strength, adp.overwrite_upscale_strength, \
+            adp.mixing_image_prompt_and_vary_upscale, adp.mixing_image_prompt_and_inpaint, \
+            adp.debugging_cn_preprocessor, adp.skipping_cn_preprocessor, adp.controlnet_softness, adp.canny_low_threshold, adp.canny_high_threshold, \
+            adp.refiner_swap_method, \
+            adp.freeu_enabled, adp.freeu_b1, adp.freeu_b2, adp.freeu_s1, adp.freeu_s2, \
+            adp.debugging_inpaint_preprocessor, adp.inpaint_disable_initial_latent, adp.inpaint_engine, adp.inpaint_strength, adp.inpaint_respective_field
+        ]
 
     return ImageGenerationParams(prompt=prompt,
                                  negative_prompt=negative_prompt,
@@ -120,6 +126,7 @@ def req_to_params(req: Text2ImgRequest) -> ImageGenerationParams:
                                  uov_method=uov_method,
                                  outpaint_selections=outpaint_selections,
                                  inpaint_input_image=inpaint_input_image,
+                                 inpaint_additional_prompt=inpaint_additional_prompt,
                                  image_prompts=image_prompts,
                                  advanced_params=advanced_params,
                                  )

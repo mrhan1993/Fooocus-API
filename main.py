@@ -252,9 +252,6 @@ def prepare_environments(args) -> bool:
     worker.task_queue.queue_size = args.queue_size
     worker.task_queue.history_size = args.queue_history
 
-    if args.disable_private_log:
-        worker.save_log = False
-
     if args.base_url is None or len(args.base_url.strip()) == 0:
         host = args.host
         if host == '0.0.0.0':
@@ -268,9 +265,13 @@ def prepare_environments(args) -> bool:
     backend_path = os.path.join(fooocus_path, 'backend', 'headless')
     if backend_path not in sys.path:
         sys.path.append(backend_path)
-    os.environ["PYTORCH_ENABLE_MPS_FALLBACK"] = "1"   
+    os.environ["PYTORCH_ENABLE_MPS_FALLBACK"] = "1"
 
     sys.argv = [sys.argv[0]]
+
+    if args.disable_private_log:
+        sys.argv.append('--disable-image-log')
+
     if args.preset is not None:
         # Remove and copy preset folder
         origin_preset_folder = os.path.abspath(os.path.join(script_path, dir_repos, fooocus_name, 'presets'))

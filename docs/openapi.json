@@ -707,12 +707,6 @@
                         "description": "Canny High Threshold",
                         "default": 128
                     },
-                    "inpaint_engine": {
-                        "type": "string",
-                        "title": "Inpaint Engine",
-                        "description": "Inpaint Engine",
-                        "default": "v1"
-                    },
                     "freeu_enabled": {
                         "type": "boolean",
                         "title": "Freeu Enabled",
@@ -742,6 +736,40 @@
                         "title": "Freeu S2",
                         "description": "FreeU B4",
                         "default": 0.95
+                    },
+                    "debugging_inpaint_preprocessor": {
+                        "type": "boolean",
+                        "title": "Debugging Inpaint Preprocessor",
+                        "description": "Debug Inpaint Preprocessing",
+                        "default": false
+                    },
+                    "inpaint_disable_initial_latent": {
+                        "type": "boolean",
+                        "title": "Inpaint Disable Initial Latent",
+                        "description": "Disable initial latent in inpaint",
+                        "default": false
+                    },
+                    "inpaint_engine": {
+                        "type": "string",
+                        "title": "Inpaint Engine",
+                        "description": "Inpaint Engine",
+                        "default": "v1"
+                    },
+                    "inpaint_strength": {
+                        "type": "number",
+                        "maximum": 1,
+                        "minimum": 0,
+                        "title": "Inpaint Strength",
+                        "description": "Inpaint Denoising Strength",
+                        "default": 1
+                    },
+                    "inpaint_respective_field": {
+                        "type": "number",
+                        "maximum": 1,
+                        "minimum": 0,
+                        "title": "Inpaint Respective Field",
+                        "description": "Inpaint Respective Field",
+                        "default": 1
                     }
                 },
                 "type": "object",
@@ -874,6 +902,18 @@
                         "title": "Input Mask",
                         "description": "Inpaint or outpaint mask"
                     },
+                    "inpaint_additional_prompt": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Inpaint Additional Prompt",
+                        "description": "Describe what you want to inpaint"
+                    },
                     "outpaint_selections": {
                         "items": {
                             "type": "string"
@@ -902,7 +942,8 @@
                         "description": "Fooocus style selections, seperated by comma",
                         "default": [
                             "Fooocus V2",
-                            "Fooocus Cinematic"
+                            "Fooocus Enhance",
+                            "Fooocus Sharp"
                         ]
                     },
                     "performance_selection": {
@@ -944,17 +985,17 @@
                         "maximum": 30,
                         "minimum": 1,
                         "title": "Guidance Scale",
-                        "default": 7
+                        "default": 4
                     },
                     "base_model_name": {
                         "type": "string",
                         "title": "Base Model Name",
-                        "default": "sd_xl_base_1.0_0.9vae.safetensors"
+                        "default": "juggernautXL_version6Rundiffusion.safetensors"
                     },
                     "refiner_model_name": {
                         "type": "string",
                         "title": "Refiner Model Name",
-                        "default": "sd_xl_refiner_1.0_0.9vae.safetensors"
+                        "default": "None"
                     },
                     "refiner_switch": {
                         "type": "number",
@@ -962,7 +1003,7 @@
                         "minimum": 0.1,
                         "title": "Refiner Switch",
                         "description": "Refiner Switch At",
-                        "default": 0.667
+                        "default": 0.5
                     },
                     "loras": {
                         "anyOf": [
@@ -975,7 +1016,7 @@
                         ],
                         "title": "Loras",
                         "description": "Lora config in JSON. Format as [{\"model_name\": \"sd_xl_offset_example-lora_1.0.safetensors\", \"weight\": 0.5}]",
-                        "default": "[{\"model_name\":\"sd_xl_offset_example-lora_1.0.safetensors\",\"weight\":0.5}]"
+                        "default": "[{\"model_name\":\"sd_xl_offset_example-lora_1.0.safetensors\",\"weight\":0.1}]"
                     },
                     "advanced_params": {
                         "anyOf": [
@@ -1201,7 +1242,8 @@
                         "description": "Fooocus style selections, seperated by comma",
                         "default": [
                             "Fooocus V2",
-                            "Fooocus Cinematic"
+                            "Fooocus Enhance",
+                            "Fooocus Sharp"
                         ]
                     },
                     "performance_selection": {
@@ -1243,17 +1285,17 @@
                         "maximum": 30,
                         "minimum": 1,
                         "title": "Guidance Scale",
-                        "default": 7
+                        "default": 4
                     },
                     "base_model_name": {
                         "type": "string",
                         "title": "Base Model Name",
-                        "default": "sd_xl_base_1.0_0.9vae.safetensors"
+                        "default": "juggernautXL_version6Rundiffusion.safetensors"
                     },
                     "refiner_model_name": {
                         "type": "string",
                         "title": "Refiner Model Name",
-                        "default": "sd_xl_refiner_1.0_0.9vae.safetensors"
+                        "default": "None"
                     },
                     "refiner_switch": {
                         "type": "number",
@@ -1261,7 +1303,7 @@
                         "minimum": 0.1,
                         "title": "Refiner Switch",
                         "description": "Refiner Switch At",
-                        "default": 0.667
+                        "default": 0.5
                     },
                     "loras": {
                         "anyOf": [
@@ -1274,7 +1316,7 @@
                         ],
                         "title": "Loras",
                         "description": "Lora config in JSON. Format as [{\"model_name\": \"sd_xl_offset_example-lora_1.0.safetensors\", \"weight\": 0.5}]",
-                        "default": "[{\"model_name\":\"sd_xl_offset_example-lora_1.0.safetensors\",\"weight\":0.5}]"
+                        "default": "[{\"model_name\":\"sd_xl_offset_example-lora_1.0.safetensors\",\"weight\":0.1}]"
                     },
                     "advanced_params": {
                         "anyOf": [
@@ -1334,7 +1376,8 @@
                         "description": "Fooocus style selections, seperated by comma",
                         "default": [
                             "Fooocus V2",
-                            "Fooocus Cinematic"
+                            "Fooocus Enhance",
+                            "Fooocus Sharp"
                         ]
                     },
                     "performance_selection": {
@@ -1376,17 +1419,17 @@
                         "maximum": 30,
                         "minimum": 1,
                         "title": "Guidance Scale",
-                        "default": 7
+                        "default": 4
                     },
                     "base_model_name": {
                         "type": "string",
                         "title": "Base Model Name",
-                        "default": "sd_xl_base_1.0_0.9vae.safetensors"
+                        "default": "juggernautXL_version6Rundiffusion.safetensors"
                     },
                     "refiner_model_name": {
                         "type": "string",
                         "title": "Refiner Model Name",
-                        "default": "sd_xl_refiner_1.0_0.9vae.safetensors"
+                        "default": "None"
                     },
                     "refiner_switch": {
                         "type": "number",
@@ -1394,7 +1437,7 @@
                         "minimum": 0.1,
                         "title": "Refiner Switch",
                         "description": "Refiner Switch At",
-                        "default": 0.667
+                        "default": 0.5
                     },
                     "loras": {
                         "anyOf": [
@@ -1407,7 +1450,7 @@
                         ],
                         "title": "Loras",
                         "description": "Lora config in JSON. Format as [{\"model_name\": \"sd_xl_offset_example-lora_1.0.safetensors\", \"weight\": 0.5}]",
-                        "default": "[{\"model_name\":\"sd_xl_offset_example-lora_1.0.safetensors\",\"weight\":0.5}]"
+                        "default": "[{\"model_name\":\"sd_xl_offset_example-lora_1.0.safetensors\",\"weight\":0.1}]"
                     },
                     "advanced_params": {
                         "anyOf": [
@@ -1616,7 +1659,8 @@
                         "title": "Style Selections",
                         "default": [
                             "Fooocus V2",
-                            "Fooocus Cinematic"
+                            "Fooocus Enhance",
+                            "Fooocus Sharp"
                         ]
                     },
                     "performance_selection": {
@@ -1658,17 +1702,17 @@
                         "maximum": 30,
                         "minimum": 1,
                         "title": "Guidance Scale",
-                        "default": 7
+                        "default": 4
                     },
                     "base_model_name": {
                         "type": "string",
                         "title": "Base Model Name",
-                        "default": "sd_xl_base_1.0_0.9vae.safetensors"
+                        "default": "juggernautXL_version6Rundiffusion.safetensors"
                     },
                     "refiner_model_name": {
                         "type": "string",
                         "title": "Refiner Model Name",
-                        "default": "sd_xl_refiner_1.0_0.9vae.safetensors"
+                        "default": "None"
                     },
                     "refiner_switch": {
                         "type": "number",
@@ -1676,7 +1720,7 @@
                         "minimum": 0.1,
                         "title": "Refiner Switch",
                         "description": "Refiner Switch At",
-                        "default": 0.667
+                        "default": 0.5
                     },
                     "loras": {
                         "items": {
@@ -1687,7 +1731,7 @@
                         "default": [
                             {
                                 "model_name": "sd_xl_offset_example-lora_1.0.safetensors",
-                                "weight": 0.5
+                                "weight": 0.1
                             }
                         ]
                     },

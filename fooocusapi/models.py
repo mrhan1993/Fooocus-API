@@ -85,12 +85,16 @@ class AdvancedParams(BaseModel):
     controlnet_softness: float = Field(0.25, description="Softness of ControlNet", ge=0.0, le=1.0)
     canny_low_threshold: int = Field(64, description="Canny Low Threshold", ge=1, le=255)
     canny_high_threshold: int = Field(128, description="Canny High Threshold", ge=1, le=255)
-    inpaint_engine: str = Field('v1', description="Inpaint Engine")
     freeu_enabled: bool = Field(False, description="FreeU enabled")
     freeu_b1: float = Field(1.01, description="FreeU B1")
     freeu_b2: float = Field(1.02, description="FreeU B2")
     freeu_s1: float = Field(0.99, description="FreeU B3")
     freeu_s2: float = Field(0.95, description="FreeU B4")
+    debugging_inpaint_preprocessor: bool = Field(False, description="Debug Inpaint Preprocessing")
+    inpaint_disable_initial_latent: bool = Field(False, description="Disable initial latent in inpaint")
+    inpaint_engine: str = Field('v1', description="Inpaint Engine")
+    inpaint_strength: float = Field(1.0, description="Inpaint Denoising Strength", ge=0.0, le=1.0)
+    inpaint_respective_field: float = Field(1.0, description="Inpaint Respective Field", ge=0.0, le=1.0)
 
 
 class Text2ImgRequest(BaseModel):
@@ -172,12 +176,14 @@ class ImgUpscaleOrVaryRequest(Text2ImgRequest):
 class ImgInpaintOrOutpaintRequest(Text2ImgRequest):
     input_image: UploadFile
     input_mask: UploadFile | None
+    inpaint_additional_prompt: str | None
     outpaint_selections: List[OutpaintExpansion]
 
     @classmethod
     def as_form(cls, input_image: UploadFile = Form(description="Init image for inpaint or outpaint"),
                 input_mask: UploadFile = Form(
                     File(None), description="Inpaint or outpaint mask"),
+                inpaint_additional_prompt: str | None = Form(None, description="Describe what you want to inpaint"),
                 outpaint_selections: List[str] = Form(
                     [], description="Outpaint expansion selections, literal 'Left', 'Right', 'Top', 'Bottom' seperated by comma"),
                 prompt: str = Form(''),
@@ -238,7 +244,7 @@ class ImgInpaintOrOutpaintRequest(Text2ImgRequest):
                 errs = ve.errors()
                 raise RequestValidationError(errors=[errs])
 
-        return cls(input_image=input_image, input_mask=input_mask, outpaint_selections=outpaint_selections_arr, prompt=prompt, negative_prompt=negative_prompt, style_selections=style_selection_arr,
+        return cls(input_image=input_image, input_mask=input_mask, inpaint_additional_prompt=inpaint_additional_prompt, outpaint_selections=outpaint_selections_arr, prompt=prompt, negative_prompt=negative_prompt, style_selections=style_selection_arr,
                    performance_selection=performance_selection, aspect_ratios_selection=aspect_ratios_selection,
                    image_number=image_number, image_seed=image_seed, sharpness=sharpness, guidance_scale=guidance_scale,
                    base_model_name=base_model_name, refiner_model_name=refiner_model_name, refiner_switch=refiner_switch,
