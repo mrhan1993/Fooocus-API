@@ -57,4 +57,4 @@ def output_file_to_bytesimg(filename: str | None) -> bytes | None:
 def get_file_serve_url(filename: str | None) -> str | None:
     if filename is None:
         return None
-    return static_serve_base_url + filename
+    return static_serve_base_url + filename.replace('\\', '/')
