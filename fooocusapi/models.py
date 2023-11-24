@@ -15,7 +15,6 @@ from fooocusapi.task_queue import TaskType
 
 from modules import flags
 
-
 class Lora(BaseModel):
     model_name: str
     weight: float = Field(default=0.5, ge=-2, le=2)
@@ -181,6 +180,10 @@ class ImgInpaintOrOutpaintRequest(Text2ImgRequest):
     input_mask: UploadFile | None
     inpaint_additional_prompt: str | None
     outpaint_selections: List[OutpaintExpansion]
+    outpaint_distance_left: int
+    outpaint_distance_right: int
+    outpaint_distance_top: int
+    outpaint_distance_bottom: int
 
     @classmethod
     def as_form(cls, input_image: UploadFile = Form(description="Init image for inpaint or outpaint"),
@@ -189,6 +192,11 @@ class ImgInpaintOrOutpaintRequest(Text2ImgRequest):
                 inpaint_additional_prompt: str | None = Form(None, description="Describe what you want to inpaint"),
                 outpaint_selections: List[str] = Form(
                     [], description="Outpaint expansion selections, literal 'Left', 'Right', 'Top', 'Bottom' seperated by comma"),
+                
+                outpaint_distance_left: int = Form(default=0, description="Set outpaint left distance"),
+                outpaint_distance_right: int = Form(default=0, description="Set outpaint right distance"),
+                outpaint_distance_top: int = Form(default=0, description="Set outpaint top distance"),
+                outpaint_distance_bottom: int = Form(default=0, description="Set outpaint bottom distance"),
                 prompt: str = Form(''),
                 negative_prompt: str = Form(default_prompt_negative),
                 style_selections: List[str] = Form(defualt_styles, description="Fooocus style selections, seperated by comma"),
@@ -247,7 +255,7 @@ class ImgInpaintOrOutpaintRequest(Text2ImgRequest):
                 errs = ve.errors()
                 raise RequestValidationError(errors=[errs])
 
-        return cls(input_image=input_image, input_mask=input_mask, inpaint_additional_prompt=inpaint_additional_prompt, outpaint_selections=outpaint_selections_arr, prompt=prompt, negative_prompt=negative_prompt, style_selections=style_selection_arr,
+        return cls(input_image=input_image, input_mask=input_mask, inpaint_additional_prompt=inpaint_additional_prompt, outpaint_selections=outpaint_selections_arr,outpaint_distance_left=outpaint_distance_left,outpaint_distance_right=outpaint_distance_right,outpaint_distance_top=outpaint_distance_top,outpaint_distance_bottom=outpaint_distance_bottom,  prompt=prompt, negative_prompt=negative_prompt, style_selections=style_selection_arr,
                    performance_selection=performance_selection, aspect_ratios_selection=aspect_ratios_selection,
                    image_number=image_number, image_seed=image_seed, sharpness=sharpness, guidance_scale=guidance_scale,
                    base_model_name=base_model_name, refiner_model_name=refiner_model_name, refiner_switch=refiner_switch,

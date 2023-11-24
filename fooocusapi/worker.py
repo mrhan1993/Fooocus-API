@@ -123,6 +123,10 @@ def process_generate(async_task: QueueTask, params: ImageGenerationParams) -> Li
         uov_method = params.uov_method
         uov_input_image = params.uov_input_image
         outpaint_selections = params.outpaint_selections
+        outpaint_distance_left = params.outpaint_distance_left
+        outpaint_distance_top = params.outpaint_distance_top
+        outpaint_distance_right = params.outpaint_distance_right
+        outpaint_distance_bottom = params.outpaint_distance_bottom
         inpaint_input_image = params.inpaint_input_image
         inpaint_additional_prompt = params.inpaint_additional_prompt
         if inpaint_additional_prompt is None:
@@ -523,22 +527,38 @@ def process_generate(async_task: QueueTask, params: ImageGenerationParams) -> Li
             if len(outpaint_selections) > 0:
                 H, W, C = inpaint_image.shape
                 if 'top' in outpaint_selections:
-                    inpaint_image = np.pad(inpaint_image, [[int(H * 0.3), 0], [0, 0], [0, 0]], mode='edge')
-                    inpaint_mask = np.pad(inpaint_mask, [[int(H * 0.3), 0], [0, 0]], mode='constant',
+                    distance_top = int(H * 0.3)
+                    if outpaint_distance_top > 0:
+                        distance_top = outpaint_distance_top
+
+                    inpaint_image = np.pad(inpaint_image, [[distance_top, 0], [0, 0], [0, 0]], mode='edge')
+                    inpaint_mask = np.pad(inpaint_mask, [[distance_top, 0], [0, 0]], mode='constant',
                                           constant_values=255)
                 if 'bottom' in outpaint_selections:
-                    inpaint_image = np.pad(inpaint_image, [[0, int(H * 0.3)], [0, 0], [0, 0]], mode='edge')
-                    inpaint_mask = np.pad(inpaint_mask, [[0, int(H * 0.3)], [0, 0]], mode='constant',
+                    distance_bottom = int(H * 0.3)
+                    if outpaint_distance_bottom > 0:
+                        distance_bottom = outpaint_distance_bottom
+
+                    inpaint_image = np.pad(inpaint_image, [[0, distance_bottom], [0, 0], [0, 0]], mode='edge')
+                    inpaint_mask = np.pad(inpaint_mask, [[0, distance_bottom], [0, 0]], mode='constant',
                                           constant_values=255)
 
                 H, W, C = inpaint_image.shape
                 if 'left' in outpaint_selections:
-                    inpaint_image = np.pad(inpaint_image, [[0, 0], [int(H * 0.3), 0], [0, 0]], mode='edge')
-                    inpaint_mask = np.pad(inpaint_mask, [[0, 0], [int(H * 0.3), 0]], mode='constant',
+                    distance_left = int(W * 0.3)
+                    if outpaint_distance_left > 0:
+                        distance_left = outpaint_distance_left
+                    
+                    inpaint_image = np.pad(inpaint_image, [[0, 0], [distance_left, 0], [0, 0]], mode='edge')
+                    inpaint_mask = np.pad(inpaint_mask, [[0, 0], [distance_left, 0]], mode='constant',
                                           constant_values=255)
                 if 'right' in outpaint_selections:
-                    inpaint_image = np.pad(inpaint_image, [[0, 0], [0, int(H * 0.3)], [0, 0]], mode='edge')
-                    inpaint_mask = np.pad(inpaint_mask, [[0, 0], [0, int(H * 0.3)]], mode='constant',
+                    distance_right = int(W * 0.3)
+                    if outpaint_distance_right > 0:
+                        distance_right = outpaint_distance_right
+                    
+                    inpaint_image = np.pad(inpaint_image, [[0, 0], [0, distance_right], [0, 0]], mode='edge')
+                    inpaint_mask = np.pad(inpaint_mask, [[0, 0], [0, distance_right]], mode='constant',
                                           constant_values=255)
 
                 inpaint_image = np.ascontiguousarray(inpaint_image.copy())

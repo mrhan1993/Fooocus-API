@@ -50,7 +50,11 @@ def req_to_params(req: Text2ImgRequest) -> ImageGenerationParams:
     outpaint_selections = [] if not (isinstance(
         req, ImgInpaintOrOutpaintRequest) or isinstance(req, ImgInpaintOrOutpaintRequestJson)) else [
         s.value for s in req.outpaint_selections]
-    
+    outpaint_distance_left = None if not isinstance(req, ImgInpaintOrOutpaintRequest) else req.outpaint_distance_left
+    outpaint_distance_right = None if not isinstance(req, ImgInpaintOrOutpaintRequest) else req.outpaint_distance_right
+    outpaint_distance_top = None if not isinstance(req, ImgInpaintOrOutpaintRequest) else req.outpaint_distance_top
+    outpaint_distance_bottom = None if not isinstance(req, ImgInpaintOrOutpaintRequest) else req.outpaint_distance_bottom
+
     aspect_ratios_selection = aspect_ratios_selection.replace('x', '×').replace('*', '×')
     if aspect_ratios_selection not in available_aspect_ratios:
         print(f"[Warning] Invalid aspect ratios selection, using default: {default_aspect_ratio}")
@@ -131,6 +135,10 @@ def req_to_params(req: Text2ImgRequest) -> ImageGenerationParams:
                                  uov_input_image=uov_input_image,
                                  uov_method=uov_method,
                                  outpaint_selections=outpaint_selections,
+                                 outpaint_distance_left=outpaint_distance_left,
+                                 outpaint_distance_right=outpaint_distance_right,
+                                 outpaint_distance_top=outpaint_distance_top,
+                                 outpaint_distance_bottom=outpaint_distance_bottom,
                                  inpaint_input_image=inpaint_input_image,
                                  inpaint_additional_prompt=inpaint_additional_prompt,
                                  image_prompts=image_prompts,
