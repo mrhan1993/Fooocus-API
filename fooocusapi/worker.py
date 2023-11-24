@@ -129,10 +129,10 @@ def process_generate(async_task: QueueTask, params: ImageGenerationParams) -> Li
             inpaint_additional_prompt = ''
 
         if inpaint_input_image is not None and inpaint_input_image['image'] is not None:
-            if inpaint_input_image['mask'] is None:
-                inpaint_input_image['mask'] = np.zeros(inpaint_input_image['image'].shape, dtype=np.uint8)
-            inpaint_input_image['mask'] = HWC3(inpaint_input_image['mask'])
             inpaint_image_size = inpaint_input_image['image'].shape[:2]
+            if inpaint_input_image['mask'] is None:
+                inpaint_input_image['mask'] = np.zeros(inpaint_image_size, dtype=np.uint8)
+            inpaint_input_image['mask'] = HWC3(inpaint_input_image['mask'])
             if inpaint_input_image['mask'].shape[:2] != inpaint_image_size:
                 # Reset inpaint mask
                 inpaint_input_image['mask'] = resize_image(inpaint_input_image['mask'], width=inpaint_image_size[1], height=inpaint_image_size[0], resize_mode=0)
