@@ -1,6 +1,7 @@
 import base64
-from io import BytesIO
 import numpy as np
+
+from io import BytesIO
 from fastapi import Response, UploadFile
 from PIL import Image
 
@@ -33,3 +34,10 @@ def read_input_image(input_image: UploadFile) -> np.ndarray:
     pil_image = Image.open(BytesIO(input_image_bytes))
     image = np.array(pil_image)
     return image
+
+def base64_to_stream(image: str) -> UploadFile:
+    image_bytes = base64.b64decode(image)
+    byte_stream = BytesIO()
+    byte_stream.write(image_bytes)
+    byte_stream.seek(0)
+    return UploadFile(file=byte_stream)

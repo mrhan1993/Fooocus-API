@@ -5,10 +5,12 @@ from fastapi import Response
 from fooocusapi.file_utils import get_file_serve_url, output_file_to_base64img, output_file_to_bytesimg
 from fooocusapi.img_utils import read_input_image
 from fooocusapi.models import AsyncJobResponse, AsyncJobStage, GeneratedImageResult, GenerationFinishReason, ImgInpaintOrOutpaintRequest, ImgPromptRequest, ImgUpscaleOrVaryRequest, Text2ImgRequest
+from fooocusapi.models_v2 import *
 from fooocusapi.parameters import ImageGenerationParams, ImageGenerationResult, available_aspect_ratios, default_aspect_ratio, default_inpaint_engine_version, default_sampler, default_scheduler, default_base_model_name, default_refiner_model_name
 from fooocusapi.task_queue import QueueTask
-import modules.flags as flags
-import modules.config as config
+
+from modules import flags
+from modules import config
 from modules.sdxl_styles import legal_style_names
 
 
@@ -42,11 +44,12 @@ def req_to_params(req: Text2ImgRequest) -> ImageGenerationParams:
     refiner_model_name = req.refiner_model_name
     refiner_switch = req.refiner_switch
     loras = [(lora.model_name, lora.weight) for lora in req.loras]
-    uov_input_image = None if not isinstance(
-        req, ImgUpscaleOrVaryRequest) else read_input_image(req.input_image)
-    uov_method = flags.disabled if not isinstance(
-        req, ImgUpscaleOrVaryRequest) else req.uov_method.value
-    outpaint_selections = [] if not isinstance(req, ImgInpaintOrOutpaintRequest) else [
+    uov_input_image = None if not (isinstance(
+        req, ImgUpscaleOrVaryRequest) or isinstance(req, ImgUpscaleOrVaryRequestJson)) else read_input_image(req.input_image)
+    uov_method = flags.disabled if not (isinstance(
+        req, ImgUpscaleOrVaryRequest) or isinstance(req, ImgUpscaleOrVaryRequestJson)) else req.uov_method.value
+    outpaint_selections = [] if not (isinstance(
+        req, ImgInpaintOrOutpaintRequest) or isinstance(req, ImgInpaintOrOutpaintRequestJson)) else [
         s.value for s in req.outpaint_selections]
     
     aspect_ratios_selection = aspect_ratios_selection.replace('x', '×').replace('*', '×')
@@ -59,7 +62,7 @@ def req_to_params(req: Text2ImgRequest) -> ImageGenerationParams:
 
     inpaint_input_image = None
     inpaint_additional_prompt = None
-    if isinstance(req, ImgInpaintOrOutpaintRequest):
+    if isinstance(req, ImgInpaintOrOutpaintRequest) or isinstance(req, ImgInpaintOrOutpaintRequestJson):
         inpaint_additional_prompt = req.inpaint_additional_prompt
         input_image = read_input_image(req.input_image)
         input_mask = None
@@ -71,7 +74,7 @@ def req_to_params(req: Text2ImgRequest) -> ImageGenerationParams:
         }
 
     image_prompts = []
-    if isinstance(req, ImgPromptRequest):
+    if isinstance(req, ImgPromptRequest) or isinstance(req, ImgPromptRequestJson):
         for img_prompt in req.image_prompts:
             if img_prompt.cn_img is not None:
                 cn_img = read_input_image(img_prompt.cn_img)
