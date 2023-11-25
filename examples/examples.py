@@ -229,7 +229,7 @@ with open("imgs\\m.png", "rb") as f:
 
 def upscale_vary(image, params = upscale_params) -> dict:
     """
-    图像扩展, params 中需要至少包含 prompt 字段
+    超分或vary
     """
     params["input_image"] = image
     data = json.dumps(params)
@@ -241,6 +241,7 @@ def upscale_vary(image, params = upscale_params) -> dict:
 
 def inpaint_outpaint(input_image: str, input_mask: str = None, params = inpaint_params) -> dict:
     """
+    局部重绘及扩展
     """
     params["input_image"] = input_image
     params["input_mask"] = input_mask
@@ -254,6 +255,9 @@ def inpaint_outpaint(input_image: str, input_mask: str = None, params = inpaint_
     return response.json()
 
 def image_prompt(img_prompt: list, params: dict) -> dict:
+    """
+    ImagePrompt
+    """
     params["prompt"] = "cat"
     params["image_prompts"] = img_prompt
     data = json.dumps(params)
@@ -277,6 +281,6 @@ img_prompt = [
         "cn_type": "ImagePrompt"
     }
 ]
-# print(upscale_vary(image=image_base64))
-# print(inpaint_outpaint(input_image=s_base64, input_mask=m_base64))
+print(upscale_vary(image=image_base64))
+print(inpaint_outpaint(input_image=s_base64, input_mask=m_base64))
 print(image_prompt(img_prompt=img_prompt, params=img_prompt_params))
