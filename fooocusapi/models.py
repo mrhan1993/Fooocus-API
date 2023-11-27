@@ -1,16 +1,19 @@
 import json
+
 from fastapi import Form, UploadFile
 from fastapi.params import File
 from fastapi.exceptions import RequestValidationError
+
 from pydantic import BaseModel, ConfigDict, Field, TypeAdapter, ValidationError, parse_obj_as
+from pydantic_core import InitErrorDetails
+
 from typing import List
 from enum import Enum
 
-from pydantic_core import InitErrorDetails
 from fooocusapi.parameters import GenerationFinishReason, defualt_styles, default_base_model_name, default_refiner_model_name, default_refiner_switch, default_loras, default_cfg_scale, default_prompt_negative, default_aspect_ratio, default_sampler, default_scheduler
 from fooocusapi.task_queue import TaskType
-import modules.flags as flags
 
+from modules import flags
 
 
 class Lora(BaseModel):
