@@ -157,7 +157,7 @@ def generation_output(results: QueueTask | List[ImageGenerationResult], streamin
         return AsyncJobResponse(job_id=task.seq,
                                 job_type=task.type,
                                 job_stage=job_stage,
-                                job_progess=task.finish_progess,
+                                job_progress=task.finish_progress,
                                 job_status=task.task_status,
                                 job_step_preview=job_step_preview,
                                 job_result=job_result)

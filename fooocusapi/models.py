@@ -383,7 +383,7 @@ class AsyncJobResponse(BaseModel):
     job_id: int = Field(description="Job ID")
     job_type: TaskType = Field(description="Job type")
     job_stage: AsyncJobStage = Field(description="Job running stage")
-    job_progess: int = Field(description="Job running progress, 100 is for finished.")
+    job_progress: int = Field(description="Job running progress, 100 is for finished.")
     job_status: str | None = Field(None, description="Job running status in text")
     job_step_preview: str | None = Field(None, description="Preview image of generation steps at current time, as base64 image")
     job_result: List[GeneratedImageResult] | None = Field(None, description="Job generation result")

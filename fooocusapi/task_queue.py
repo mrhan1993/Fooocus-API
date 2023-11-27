@@ -15,7 +15,7 @@ class TaskType(str, Enum):
 
 class QueueTask(object):
     is_finished: bool = False
-    finish_progess: int = 0
+    finish_progress: int = 0
     start_millis: int = 0
     finish_millis: int = 0
     finish_with_error: bool = False
@@ -33,7 +33,7 @@ class QueueTask(object):
     def set_progress(self, progress: int, status: str | None):
         if progress > 100:
             progress = 100
-        self.finish_progess = progress
+        self.finish_progress = progress
         self.task_status = status
 
     def set_step_preview(self, task_step_preview: str | None):
@@ -41,7 +41,7 @@ class QueueTask(object):
 
     def set_result(self, task_result: any, finish_with_error: bool, error_message: str | None = None):
         if not finish_with_error:
-            self.finish_progess = 100
+            self.finish_progress = 100
             self.task_status = 'Finished'
         self.task_result = task_result
         self.finish_with_error = finish_with_error
