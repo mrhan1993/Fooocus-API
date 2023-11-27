@@ -60,7 +60,7 @@ class ControlNetType(str, Enum):
 
 class ImagePrompt(BaseModel):
     cn_img: UploadFile | None = Field(default=None)
-    cn_stop: float = Field(default=0.4, ge=0, le=1)
+    cn_stop: float | None = Field(default=None, ge=0, le=1)
     cn_weight: float | None = Field(
         default=None, ge=0, le=2, description="None for default value")
     cn_type: ControlNetType = Field(default=ControlNetType.cn_ip)
@@ -322,10 +322,6 @@ class ImgPromptRequest(Text2ImgRequest):
                                (cn_img3, cn_stop3, cn_weight3, cn_type3), (cn_img4, cn_stop4, cn_weight4, cn_type4)]
         for config in image_prompt_config:
             cn_img, cn_stop, cn_weight, cn_type = config
-            if cn_stop is None:
-                cn_stop = flags.default_parameters[cn_type.value][0]
-            if cn_weight is None:
-                cn_weight = flags.default_parameters[cn_type.value][1]
             image_prompts.append(ImagePrompt(
                 cn_img=cn_img, cn_stop=cn_stop, cn_weight=cn_weight, cn_type=cn_type))
 

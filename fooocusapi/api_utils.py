@@ -1,6 +1,5 @@
 from typing import List
 
-import numpy as np
 from fastapi import Response
 from fooocusapi.file_utils import get_file_serve_url, output_file_to_base64img, output_file_to_bytesimg
 from fooocusapi.img_utils import read_input_image
@@ -78,6 +77,10 @@ def req_to_params(req: Text2ImgRequest) -> ImageGenerationParams:
         for img_prompt in req.image_prompts:
             if img_prompt.cn_img is not None:
                 cn_img = read_input_image(img_prompt.cn_img)
+                if img_prompt.cn_stop is None:
+                    img_prompt.cn_stop = flags.default_parameters[img_prompt.cn_type.value][0]
+                if img_prompt.cn_weight is None:
+                    img_prompt.cn_weight = flags.default_parameters[img_prompt.cn_type.value][1]
                 image_prompts.append(
                     (cn_img, img_prompt.cn_stop, img_prompt.cn_weight, img_prompt.cn_type.value))
                 
@@ -99,7 +102,7 @@ def req_to_params(req: Text2ImgRequest) -> ImageGenerationParams:
 
         if adp.inpaint_engine not in flags.inpaint_engine_versions:
             print(f"[Warning] Wrong inpaint_engine input: {adp.inpaint_engine}, using default")
-            adp.inpaint_engine = flags.default_inpaint_engine_version
+            adp.inpaint_engine = default_inpaint_engine_version
         
         advanced_params = [
             adp.disable_preview, adp.adm_scaler_positive, adp.adm_scaler_negative, adp.adm_scaler_end, adp.adaptive_cfg, adp.sampler_name, \

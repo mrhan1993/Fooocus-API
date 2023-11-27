@@ -1,6 +1,9 @@
 import json
+import os
 import requests
 import base64
+
+inpaint_engine = 'v1'
 
 class Config():
     fooocus_host = 'http://127.0.0.1:8888'
@@ -72,12 +75,12 @@ upscale_params = {
     "freeu_s2": 0.95,
     "debugging_inpaint_preprocessor": False,
     "inpaint_disable_initial_latent": False,
-    "inpaint_engine": "v1",
+    "inpaint_engine": inpaint_engine,
     "inpaint_strength": 1,
     "inpaint_respective_field": 1
   },
   "require_base64": False,
-  "async_process": True,
+  "async_process": False,
   "uov_method": "Upscale (2x)",
   "input_image": ""
 }
@@ -134,12 +137,12 @@ inpaint_params = {
     "freeu_s2": 0.95,
     "debugging_inpaint_preprocessor": False,
     "inpaint_disable_initial_latent": False,
-    "inpaint_engine": "v1",
+    "inpaint_engine": inpaint_engine,
     "inpaint_strength": 1,
     "inpaint_respective_field": 1
   },
   "require_base64": False,
-  "async_process": True,
+  "async_process": False,
   "input_image": "",
   "input_mask": None,
   "inpaint_additional_prompt": None,
@@ -198,12 +201,12 @@ img_prompt_params = {
     "freeu_s2": 0.95,
     "debugging_inpaint_preprocessor": False,
     "inpaint_disable_initial_latent": False,
-    "inpaint_engine": "v1",
+    "inpaint_engine": inpaint_engine,
     "inpaint_strength": 1,
     "inpaint_respective_field": 1
   },
   "require_base64": False,
-  "async_process": True,
+  "async_process": False,
   "image_prompts": []
 }
 
@@ -211,17 +214,19 @@ headers = {
     "accept": "application/json"
 }
 
-with open("imgs\\1485005453352708.jpeg", "rb") as f:
+imgs_base_path = os.path.join(os.path.dirname(__file__), 'imgs')
+
+with open(os.path.join(imgs_base_path, "1485005453352708.jpeg"), "rb") as f:
     img1 = f.read()
     image_base64 = base64.b64encode(img1).decode('utf-8')  
     f.close()
 
-with open("imgs\\s.jpg", "rb") as f:
+with open(os.path.join(imgs_base_path, "s.jpg"), "rb") as f:
     s = f.read()
     s_base64 = base64.b64encode(s).decode('utf-8')  
     f.close()
 
-with open("imgs\\m.png", "rb") as f:
+with open(os.path.join(imgs_base_path, "m.png"), "rb") as f:
     m = f.read()
     m_base64 = base64.b64encode(m).decode('utf-8')  
     f.close()
@@ -229,19 +234,19 @@ with open("imgs\\m.png", "rb") as f:
 
 def upscale_vary(image, params = upscale_params) -> dict:
     """
-    超分或vary
+    Upscale or Vary
     """
     params["input_image"] = image
     data = json.dumps(params)
     response = requests.post(url=f"{cfg.fooocus_host}{cfg.img_upscale}",
                         data=data,
                         headers=headers,
-                        timeout=30)
+                        timeout=300)
     return response.json()
 
 def inpaint_outpaint(input_image: str, input_mask: str = None, params = inpaint_params) -> dict:
     """
-    局部重绘及扩展
+    Inpaint or Outpaint
     """
     params["input_image"] = input_image
     params["input_mask"] = input_mask
@@ -251,12 +256,12 @@ def inpaint_outpaint(input_image: str, input_mask: str = None, params = inpaint_
     response = requests.post(url=f"{cfg.fooocus_host}{cfg.inpaint_outpaint}",
                         data=data,
                         headers=headers,
-                        timeout=30)
+                        timeout=300)
     return response.json()
 
 def image_prompt(img_prompt: list, params: dict) -> dict:
     """
-    ImagePrompt
+    Image Prompt
     """
     params["prompt"] = "cat"
     params["image_prompts"] = img_prompt
@@ -264,7 +269,7 @@ def image_prompt(img_prompt: list, params: dict) -> dict:
     response = requests.post(url=f"{cfg.fooocus_host}{cfg.img_prompt}",
                         data=data,
                         headers=headers,
-                        timeout=30)
+                        timeout=300)
     return response.json()
 
 

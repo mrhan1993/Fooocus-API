@@ -89,16 +89,28 @@ Break change from v0.3.0:
 Alternative api for the normal image generation of Fooocus Gradio interface.
 
 #### Image Upscale or Variation
+For multipart/form-data request:
 > POST /v1/generation/image-upscale-vary
+
+For application/json request:
+> POST /v2/generation/image-upscale-vary
 
 Alternative api for 'Upscale or Variation' tab of Fooocus Gradio interface.
 
 #### Image Inpaint or Outpaint
+For multipart/form-data request:
 > POST /v1/generation/image-inpait-outpaint
+
+For application/json request:
+> POST /v2/generation/image-inpait-outpaint
 
 Alternative api for 'Inpaint or Outpaint' tab of Fooocus Gradio interface.
 
 #### Image Prompt
+For multipart/form-data request:
+> POST /v1/generation/image-prompt
+
+For application/json request:
 > POST /v1/generation/image-prompt
 
 Alternative api for 'Image Prompt' tab of Fooocus Gradio interface.
