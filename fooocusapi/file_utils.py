@@ -25,6 +25,16 @@ def save_output_file(img: np.ndarray) -> str:
     return filename
 
 
+def delete_output_file(filename: str):
+    file_path = os.path.join(output_dir, filename)
+    if not os.path.exists(file_path) or not os.path.isfile(file_path):
+        return
+    try:
+        os.remove(file_path)
+    except OSError:
+        print(f"Delete output file failed: {filename}")
+
+
 def output_file_to_base64img(filename: str | None) -> str | None:
     if filename is None:
         return None
