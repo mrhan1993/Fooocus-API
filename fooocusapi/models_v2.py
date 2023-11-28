@@ -11,6 +11,10 @@ class ImgInpaintOrOutpaintRequestJson(Text2ImgRequest):
     input_mask: str | None = Field(None, description="Inpaint or outpaint mask as base64")
     inpaint_additional_prompt: str | None = Field(None, description="Describe what you want to inpaint")
     outpaint_selections: List[OutpaintExpansion] = []
+    outpaint_distance_left: int = Field(default=0, description="Set outpaint left distance"),
+    outpaint_distance_right: int = Field(default=0, description="Set outpaint right distance"),
+    outpaint_distance_top: int = Field(default=0, description="Set outpaint top distance"),
+    outpaint_distance_bottom: int = Field(default=0, description="Set outpaint bottom distance"),
 
 
 class ImagePromptJson(BaseModel):
