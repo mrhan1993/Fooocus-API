@@ -74,7 +74,7 @@ def process_generate(async_task: QueueTask, params: ImageGenerationParams) -> Li
         for i, im in enumerate(imgs):
             seed = -1 if len(tasks) == 0 else tasks[i]['task_seed']
             img_filename = save_output_file(im)
-            results.append(ImageGenerationResult(im=img_filename, seed=seed, finish_reason=GenerationFinishReason.success))
+            results.append(ImageGenerationResult(im=img_filename, seed=str(seed), finish_reason=GenerationFinishReason.success))
         async_task.set_result(results, False)
         task_queue.finish_task(async_task.seq)
         print(f"[Task Queue] Finish task, seq={async_task.seq}")
