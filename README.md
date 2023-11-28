@@ -67,6 +67,9 @@ You can add `-e PIP_INDEX_URL={pypi-mirror-url}` to docker run command to change
 ### Test API
 You can open the Swagger Document in "http://127.0.0.1:8888/docs", then click "Try it out" to send a request.
 
+### Update logs
+Please visit [releases](https://github.com/konieshadow/Fooocus-API/releases) page for changes in each version.
+
 ### Completed Apis
 Swagger openapi defination see [openapi.json](docs/openapi.json).
 
