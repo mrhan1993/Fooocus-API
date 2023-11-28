@@ -5,7 +5,7 @@ from fooocusapi.file_utils import get_file_serve_url, output_file_to_base64img, 
 from fooocusapi.img_utils import read_input_image
 from fooocusapi.models import AsyncJobResponse, AsyncJobStage, GeneratedImageResult, GenerationFinishReason, ImgInpaintOrOutpaintRequest, ImgPromptRequest, ImgUpscaleOrVaryRequest, Text2ImgRequest
 from fooocusapi.models_v2 import *
-from fooocusapi.parameters import ImageGenerationParams, ImageGenerationResult, available_aspect_ratios, default_aspect_ratio, default_inpaint_engine_version, default_sampler, default_scheduler, default_base_model_name, default_refiner_model_name
+from fooocusapi.parameters import ImageGenerationParams, ImageGenerationResult, default_inpaint_engine_version, default_sampler, default_scheduler, default_base_model_name, default_refiner_model_name
 from fooocusapi.task_queue import QueueTask
 
 from modules import flags
@@ -55,11 +55,6 @@ def req_to_params(req: Text2ImgRequest) -> ImageGenerationParams:
     outpaint_distance_top = None if not isinstance(req, ImgInpaintOrOutpaintRequest) else req.outpaint_distance_top
     outpaint_distance_bottom = None if not isinstance(req, ImgInpaintOrOutpaintRequest) else req.outpaint_distance_bottom
 
-    aspect_ratios_selection = aspect_ratios_selection.replace('x', '×').replace('*', '×')
-    if aspect_ratios_selection not in available_aspect_ratios:
-        print(f"[Warning] Invalid aspect ratios selection, using default: {default_aspect_ratio}")
-        aspect_ratios_selection = default_aspect_ratio
-    
     if refiner_model_name == '':
         refiner_model_name = 'None'
 

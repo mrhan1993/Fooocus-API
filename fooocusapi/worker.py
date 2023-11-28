@@ -5,7 +5,7 @@ import numpy as np
 import torch
 from typing import List
 from fooocusapi.file_utils import save_output_file
-from fooocusapi.parameters import default_inpaint_engine_version, GenerationFinishReason, ImageGenerationParams, ImageGenerationResult
+from fooocusapi.parameters import GenerationFinishReason, ImageGenerationParams, ImageGenerationResult
 from fooocusapi.task_queue import QueueTask, TaskQueue, TaskOutputs
 
 
