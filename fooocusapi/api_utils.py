@@ -50,10 +50,14 @@ def req_to_params(req: Text2ImgRequest) -> ImageGenerationParams:
     outpaint_selections = [] if not (isinstance(
         req, ImgInpaintOrOutpaintRequest) or isinstance(req, ImgInpaintOrOutpaintRequestJson)) else [
         s.value for s in req.outpaint_selections]
-    outpaint_distance_left = None if not isinstance(req, ImgInpaintOrOutpaintRequest) else req.outpaint_distance_left
-    outpaint_distance_right = None if not isinstance(req, ImgInpaintOrOutpaintRequest) else req.outpaint_distance_right
-    outpaint_distance_top = None if not isinstance(req, ImgInpaintOrOutpaintRequest) else req.outpaint_distance_top
-    outpaint_distance_bottom = None if not isinstance(req, ImgInpaintOrOutpaintRequest) else req.outpaint_distance_bottom
+    outpaint_distance_left = None if not (isinstance(
+        req, ImgInpaintOrOutpaintRequest) or isinstance(req, ImgInpaintOrOutpaintRequestJson)) else req.outpaint_distance_left
+    outpaint_distance_right = None if not (isinstance(
+        req, ImgInpaintOrOutpaintRequest) or isinstance(req, ImgInpaintOrOutpaintRequestJson)) else req.outpaint_distance_right
+    outpaint_distance_top = None if not (isinstance(
+        req, ImgInpaintOrOutpaintRequest) or isinstance(req, ImgInpaintOrOutpaintRequestJson)) else req.outpaint_distance_top
+    outpaint_distance_bottom = None if not (isinstance(
+        req, ImgInpaintOrOutpaintRequest) or isinstance(req, ImgInpaintOrOutpaintRequestJson)) else req.outpaint_distance_bottom
 
     if refiner_model_name == '':
         refiner_model_name = 'None'
