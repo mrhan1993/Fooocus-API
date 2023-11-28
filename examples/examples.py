@@ -146,7 +146,11 @@ inpaint_params = {
   "input_image": "",
   "input_mask": None,
   "inpaint_additional_prompt": None,
-  "outpaint_selections": []
+  "outpaint_selections": [],
+  "outpaint_distance_left": 0,
+  "outpaint_distance_right": 0,
+  "outpaint_distance_top": 0,
+  "outpaint_distance_bottom": 0,
 }
 
 img_prompt_params = {
