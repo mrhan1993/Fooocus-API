@@ -2,8 +2,10 @@ from enum import Enum
 import time
 import numpy as np
 from typing import List, Tuple
+from fooocusapi.file_utils import delete_output_file
 
 from fooocusapi.img_utils import narray_to_base64img
+from fooocusapi.parameters import ImageGenerationResult, GenerationFinishReason
 
 
 class TaskType(str, Enum):
@@ -108,6 +110,10 @@ class TaskQueue(object):
             # Clean history
             if len(self.history) > self.history_size:
                 removed_task = self.history.pop(0)
+                if isinstance(removed_task.task_result, List):
+                    for item in removed_task.task_result:
+                        if isinstance(item, ImageGenerationResult) and item.finish_reason == GenerationFinishReason.success and item.im is not None:
+                            delete_output_file(item.im)
                 print(f"Clean task history, remove task: {removed_task.seq}")
 
 

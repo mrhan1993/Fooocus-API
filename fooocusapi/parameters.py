@@ -2,8 +2,6 @@ from enum import Enum
 from typing import Dict, List, Tuple
 import numpy as np
 
-from fooocusapi.task_queue import TaskType
-
 
 default_inpaint_engine_version = 'v2.6'
 
