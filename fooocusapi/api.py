@@ -39,7 +39,7 @@ img_generate_responses = {
             "application/json": {
                 "example": [{
                     "base64": "...very long string...",
-                    "seed": 1050625087,
+                    "seed": "1050625087",
                     "finish_reason": "SUCCESS"
                 }]
             },

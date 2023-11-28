@@ -83,6 +83,9 @@ Break change from v0.3.0:
 * The generation apis won't return `base64` field expect request parameters set `require_base64` to true.
 * The generation apis return a `url` field where the generated image can be requested via a static file url.
 
+Break change from v0.3.21:
+* The `seed` field from generation result change to type `String` to avoid numerical overflow.
+
 #### Text to Image
 > POST /v1/generation/text-to-image
 

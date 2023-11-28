@@ -369,7 +369,7 @@ class GeneratedImageResult(BaseModel):
     base64: str | None = Field(
         description="Image encoded in base64, or null if finishReasen is not 'SUCCESS', only return when request require base64")
     url: str | None = Field(description="Image file static serve url, or null if finishReasen is not 'SUCCESS'")
-    seed: int = Field(description="The seed associated with this image")
+    seed: str = Field(description="The seed associated with this image")
     finish_reason: GenerationFinishReason
 
 
