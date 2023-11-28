@@ -96,6 +96,10 @@ class ImageGenerationParams(object):
                  uov_input_image: np.ndarray | None,
                  uov_method: str,
                  outpaint_selections: List[str],
+                 outpaint_distance_left: int,
+                 outpaint_distance_right: int,
+                 outpaint_distance_top: int,
+                 outpaint_distance_bottom: int,
                  inpaint_input_image: Dict[str, np.ndarray] | None,
                  inpaint_additional_prompt: str | None,
                  image_prompts: List[Tuple[np.ndarray, float, float, str]],
@@ -116,6 +120,10 @@ class ImageGenerationParams(object):
         self.uov_input_image = uov_input_image
         self.uov_method = uov_method
         self.outpaint_selections = outpaint_selections
+        self.outpaint_distance_left = outpaint_distance_left
+        self.outpaint_distance_right = outpaint_distance_right
+        self.outpaint_distance_top = outpaint_distance_top
+        self.outpaint_distance_bottom = outpaint_distance_bottom
         self.inpaint_input_image = inpaint_input_image
         self.inpaint_additional_prompt = inpaint_additional_prompt
         self.image_prompts = image_prompts
