@@ -3,6 +3,7 @@ import random
 import time
 import numpy as np
 import torch
+import re
 from typing import List
 from fooocusapi.file_utils import save_output_file
 from fooocusapi.parameters import GenerationFinishReason, ImageGenerationParams, ImageGenerationResult
@@ -121,6 +122,7 @@ def process_generate(async_task: QueueTask, params: ImageGenerationParams) -> Li
         input_image_checkbox = params.uov_input_image is not None or params.inpaint_input_image is not None or len(params.image_prompts) > 0
         current_tab = 'uov' if params.uov_method != flags.disabled else 'inpaint' if params.inpaint_input_image is not None else 'ip' if len(params.image_prompts) > 0 else None
         uov_method = params.uov_method
+        upscale_value = params.upscale_value
         uov_input_image = params.uov_input_image
         outpaint_selections = params.outpaint_selections
         outpaint_distance_left = params.outpaint_distance_left
@@ -466,12 +468,15 @@ def process_generate(async_task: QueueTask, params: ImageGenerationParams) -> Li
             uov_input_image = perform_upscale(uov_input_image)
             print(f'Image upscaled.')
 
-            if '1.5x' in uov_method:
-                f = 1.5
-            elif '2x' in uov_method:
-                f = 2.0
+            f = 1.0
+            if upscale_value > 1.0:
+                f = upscale_value
             else:
-                f = 1.0
+                pattern = r"([0-9]+(?:\.[0-9]+)?)x"
+                matches = re.findall(pattern, uov_method)
+                if len(matches) > 0:
+                    f_tmp = float(matches[0])
+                    f = 1.0 if f_tmp < 1.0 else 5.0 if f_tmp > 5.0 else f_tmp
 
             shape_ceil = get_shape_ceil(H * f, W * f)
 

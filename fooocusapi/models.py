@@ -41,7 +41,7 @@ class UpscaleOrVaryMethod(str, Enum):
     upscale_15 = 'Upscale (1.5x)'
     upscale_2 = 'Upscale (2x)'
     upscale_fast = 'Upscale (Fast 2x)'
-
+    upscale_custom = 'Upscale (Custom)'
 
 class OutpaintExpansion(str, Enum):
     left = 'Left'
@@ -122,10 +122,12 @@ class Text2ImgRequest(BaseModel):
 class ImgUpscaleOrVaryRequest(Text2ImgRequest):
     input_image: UploadFile
     uov_method: UpscaleOrVaryMethod
+    upscale_value: float
 
     @classmethod
     def as_form(cls, input_image: UploadFile = Form(description="Init image for upsacale or outpaint"),
                 uov_method: UpscaleOrVaryMethod = Form(),
+                upscale_value: float = Form(default=1.0, ge=1.0, le=5.0),
                 prompt: str = Form(''),
                 negative_prompt: str = Form(default_prompt_negative),
                 style_selections: List[str] = Form(defualt_styles, description="Fooocus style selections, seperated by comma"),
@@ -168,7 +170,7 @@ class ImgUpscaleOrVaryRequest(Text2ImgRequest):
                 errs = ve.errors()
                 raise RequestValidationError(errors=[errs])
 
-        return cls(input_image=input_image, uov_method=uov_method, prompt=prompt, negative_prompt=negative_prompt, style_selections=style_selection_arr,
+        return cls(input_image=input_image, uov_method=uov_method,upscale_value=upscale_value, prompt=prompt, negative_prompt=negative_prompt, style_selections=style_selection_arr,
                    performance_selection=performance_selection, aspect_ratios_selection=aspect_ratios_selection,
                    image_number=image_number, image_seed=image_seed, sharpness=sharpness, guidance_scale=guidance_scale,
                    base_model_name=base_model_name, refiner_model_name=refiner_model_name, refiner_switch=refiner_switch,
