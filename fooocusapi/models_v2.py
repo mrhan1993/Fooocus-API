@@ -3,6 +3,7 @@ from fooocusapi.models import *
 
 class ImgUpscaleOrVaryRequestJson(Text2ImgRequest):
     uov_method: UpscaleOrVaryMethod = "Upscale (2x)"
+    upscale_value: float | None = Field(None, ge=1.0, le=5.0, description="Upscale custom value, None for default value")
     input_image: str = Field(description="Init image for upsacale or outpaint as base64")
 
 

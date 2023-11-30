@@ -47,6 +47,8 @@ def req_to_params(req: Text2ImgRequest) -> ImageGenerationParams:
         req, ImgUpscaleOrVaryRequest) or isinstance(req, ImgUpscaleOrVaryRequestJson)) else read_input_image(req.input_image)
     uov_method = flags.disabled if not (isinstance(
         req, ImgUpscaleOrVaryRequest) or isinstance(req, ImgUpscaleOrVaryRequestJson)) else req.uov_method.value
+    upscale_value = None if not (isinstance(
+                req, ImgUpscaleOrVaryRequest) or isinstance(req, ImgUpscaleOrVaryRequestJson)) else req.upscale_value
     outpaint_selections = [] if not (isinstance(
         req, ImgInpaintOrOutpaintRequest) or isinstance(req, ImgInpaintOrOutpaintRequestJson)) else [
         s.value for s in req.outpaint_selections]
@@ -133,6 +135,7 @@ def req_to_params(req: Text2ImgRequest) -> ImageGenerationParams:
                                  loras=loras,
                                  uov_input_image=uov_input_image,
                                  uov_method=uov_method,
+                                 upscale_value=upscale_value,
                                  outpaint_selections=outpaint_selections,
                                  outpaint_distance_left=outpaint_distance_left,
                                  outpaint_distance_right=outpaint_distance_right,
