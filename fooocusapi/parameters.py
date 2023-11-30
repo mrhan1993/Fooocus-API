@@ -93,7 +93,7 @@ class ImageGenerationParams(object):
                  loras: List[Tuple[str, float]],
                  uov_input_image: np.ndarray | None,
                  uov_method: str,
-                 upscale_value: float,
+                 upscale_value: float | None,
                  outpaint_selections: List[str],
                  outpaint_distance_left: int,
                  outpaint_distance_right: int,

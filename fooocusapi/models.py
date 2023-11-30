@@ -122,12 +122,12 @@ class Text2ImgRequest(BaseModel):
 class ImgUpscaleOrVaryRequest(Text2ImgRequest):
     input_image: UploadFile
     uov_method: UpscaleOrVaryMethod
-    upscale_value: float
+    upscale_value: float | None
 
     @classmethod
     def as_form(cls, input_image: UploadFile = Form(description="Init image for upsacale or outpaint"),
                 uov_method: UpscaleOrVaryMethod = Form(),
-                upscale_value: float = Form(default=1.0, ge=1.0, le=5.0),
+                upscale_value: float | None = Form(None, description="Upscale custom value, None for default value", ge=1.0, le=5.0),
                 prompt: str = Form(''),
                 negative_prompt: str = Form(default_prompt_negative),
                 style_selections: List[str] = Form(defualt_styles, description="Fooocus style selections, seperated by comma"),
