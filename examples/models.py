@@ -1,4 +1,4 @@
-from pydantic import BaseModel, Field, ValidationError, field_validator
+from pydantic import BaseModel, Field, field_validator
 from typing import List
 from enum import Enum
 
@@ -60,6 +60,7 @@ class UpscaleOrVaryMethod(str, Enum):
     upscale_15 = "Upscale (1.5x)"
     upscale_20 = "Upscale (2x)"
     upscale_fast = "Upscale (Fast 2x)"
+    upscale_custom = "Upscale (Custom)"
 
 class ControlNetEnum(str, Enum):
     """
@@ -70,28 +71,17 @@ class ControlNetEnum(str, Enum):
     pyraCanny = "PyraCanny"
     cpds = "CPDS"
 
+class OutpaintExpansion(str, Enum):
+    left = 'Left'
+    right = 'Right'
+    top = 'Top'
+    bottom = 'Bottom'
 
-class Text2ImgParams(BaseModel):
-    """
-    Text2ImgPrompt model.
-    """
-    prompt: str
-    negative_prompt: str = ""
-    style_selections: List[str] = ["Fooocus V2", "Fooocus Enhance", "Fooocus Sharp"]
-    performance_selection: PerformanceEnum = "Speed"
-    aspect_ratios_selection: str = "1152×896"
-    image_number: int = 1
-    image_seed: int = -1
-    sharpness: int = 2
-    guidance_scale: int = 4
-    base_model_name: str = "juggernautXL_version6Rundiffusion.safetensors"
-    refiner_model_name: str = "None"
-    refiner_switch: float = 0.5
-    loras: List[Lora] = [Lora()]
-    advanced_params: AdvancedParams = AdvancedParams()
-    require_base64: bool = True
-    async_process: bool = True
-
+class ImagePrompt(BaseModel):
+    cn_img: str | None = None
+    cn_stop: float | None = 0.6
+    cn_weight: float | None = 0.6
+    cn_type: ControlNetEnum = "ImagePrompt"
 
 class SharedFields(BaseModel):
     """
@@ -100,33 +90,41 @@ class SharedFields(BaseModel):
     prompt: str = ""
     negative_prompt: str = ""
     style_selections: str = ""
+    aspect_ratios_selection: str = "1152×896"
     performance_selection: PerformanceEnum = "Speed"
     image_number: int = 1
     image_seed: int = -1
     sharpness: int = 2
     guidance_scale: int = 4
     base_model_name: str = "juggernautXL_version6Rundiffusion.safetensors"
-    refiner_model_name: str = ""
+    refiner_model_name: str = "None"
     refiner_switch: float = 0.5
     loras: str = '[{"model_name":"sd_xl_offset_example-lora_1.0.safetensors","weight":0.1}]'
     advanced_params: str = ""
-    require_base64: bool = True
-    async_process: bool = True
+    require_base64: bool = False
+    async_process: bool = False
 
+
+class Text2ImgParams(SharedFields):
+    """
+    Text2ImgPrompt model.
+    """
+    style_selections: List[str] = ["Fooocus V2", "Fooocus Enhance", "Fooocus Sharp"]
+    loras: List[Lora] = [Lora()]
+    advanced_params: AdvancedParams = AdvancedParams()
 
 class ImgUpscaleOrVaryParams(SharedFields):
     """
     Upscale model.
     """
     uov_method: UpscaleOrVaryMethod = "Upscale (2x)"
-
+    upscale_value: float | None = Field(None, ge=1.0, le=5.0, description="Upscale custom value, None for default value")
 
 class ImgInpaintOrOutpaintParams(SharedFields):
     """
     Inpaint model.
     """
     outpaint_selections: str = Field("", description="A comma-separated string of 'Left', 'Right', 'Top', 'Bottom'")
-    aspect_ratios_selection: str = "1152×896"
     outpaint_distance_left: int = Field(default=0, description="Set outpaint left distance, 0 for default")
     outpaint_distance_right: int = Field(default=0, description="Set outpaint right distance, 0 for default")
     outpaint_distance_top: int = Field(default=0, description="Set outpaint top distance, 0 for default")
@@ -160,3 +158,20 @@ class ImagePromptParams(SharedFields):
     cn_weight4: float = 0.6
     cn_type4: ControlNetEnum = "ImagePrompt"
 
+
+class ImgUpscaleOrVaryParamsJson(Text2ImgParams):
+    uov_method: UpscaleOrVaryMethod = "Upscale (2x)"
+    input_image: str = Field(description="Init image for upsacale or outpaint as base64")
+
+class ImgInpaintOrOutpaintParamsJson(Text2ImgParams):
+    input_image: str
+    input_mask: str | None = None
+    inpaint_additional_prompt: str | None = None
+    outpaint_selections: List[OutpaintExpansion] = ["Left", "Right", "Top", "Bottom"]
+    outpaint_distance_left: int = Field(default=0, description="Set outpaint left distance, 0 for default")
+    outpaint_distance_right: int = Field(default=0, description="Set outpaint right distance, 0 for default")
+    outpaint_distance_top: int = Field(default=0, description="Set outpaint top distance, 0 for default")
+    outpaint_distance_bottom: int = Field(default=0, description="Set outpaint bottom distance, 0 for default")
+
+class ImagePromptParamsJson(Text2ImgParams):
+    image_prompts: List[ImagePrompt] = [ImagePrompt()]
