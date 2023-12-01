@@ -79,14 +79,14 @@ All the generation api support for response in PNG bytes directly when request's
 
 All the generation api support async process by pass parameter `async_process` to true. And then use query job api to retrieve progress and generation results.
 
-Break change from v0.3.16:
+Break changes from v0.3.16:
 * Parameter format for `loras` has changed for the img2img apis (the multipart/form-data requests). Now it requires JSON string.
 
-Break change from v0.3.0:
-* The generation apis won't return `base64` field expect request parameters set `require_base64` to true.
+Break changes from v0.3.0:
+* The generation apis won't return `base64` field unless request parameters set `require_base64` to true.
 * The generation apis return a `url` field where the generated image can be requested via a static file url.
 
-Break change from v0.3.21:
+Break changes from v0.3.21:
 * The `seed` field from generation result change to type `String` to avoid numerical overflow.
 
 #### Text to Image
