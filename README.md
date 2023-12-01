@@ -32,12 +32,12 @@ python main.py
 ```
 On default, server is listening on 'http://127.0.0.1:8888'
 
-Using Foocus preset, run:
+Using Fooocus preset, run:
 ```
 python main.py --preset anime
 ```
 
-For pragram arguments, see
+For program arguments, see
 ```
 python main.py -h
 ```
