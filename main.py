@@ -162,7 +162,7 @@ def download_repositories():
 
     http_proxy = os.environ.get('HTTP_PROXY')
     https_proxy = os.environ.get('HTTPS_PROXY')
-    
+
     if http_proxy != None:
         print(f"Using http proxy for git clone: {http_proxy}")
         os.environ['http_proxy'] = http_proxy
@@ -176,7 +176,7 @@ def download_repositories():
         'FOOOCUS_REPO', 'https://github.com/lllyasviel/Fooocus')
     git_clone(fooocus_repo, repo_dir(fooocus_name),
               "Fooocus", fooocus_commit_hash)
-    
+
 
 def is_installed(package):
     try:
@@ -189,10 +189,10 @@ def is_installed(package):
 
 def download_models():
     vae_approx_filenames = [
-        ('xlvaeapp.pth', 'https://huggingface.co/lllyasviel/misc/resolve/main/xlvaeapp.pth'),
-        ('vaeapp_sd15.pth', 'https://huggingface.co/lllyasviel/misc/resolve/main/vaeapp_sd15.pt'),
+        ('xlvaeapp.pth', 'https://hf-mirror.com/lllyasviel/misc/resolve/main/xlvaeapp.pth'),
+        ('vaeapp_sd15.pth', 'https://hf-mirror.com/lllyasviel/misc/resolve/main/vaeapp_sd15.pt'),
         ('xl-to-v1_interposer-v3.1.safetensors',
-        'https://huggingface.co/lllyasviel/misc/resolve/main/xl-to-v1_interposer-v3.1.safetensors')
+        'https://hf-mirror.com/lllyasviel/misc/resolve/main/xl-to-v1_interposer-v3.1.safetensors')
     ]
 
     from modules.model_loader import load_file_from_url
@@ -209,7 +209,7 @@ def download_models():
         load_file_from_url(url=url, model_dir=vae_approx_path, file_name=file_name)
 
     load_file_from_url(
-        url='https://huggingface.co/lllyasviel/misc/resolve/main/fooocus_expansion.bin',
+        url='https://hf-mirror.com/lllyasviel/misc/resolve/main/fooocus_expansion.bin',
         model_dir=fooocus_expansion_path,
         file_name='pytorch_model.bin'
     )
@@ -218,7 +218,7 @@ def download_models():
 def prepare_environments(args) -> bool:
     if not args.skip_pip:
         torch_index_url = os.environ.get('TORCH_INDEX_URL', "https://download.pytorch.org/whl/cu121")
-        
+
         # Check if need pip install
         requirements_file = 'requirements.txt'
         if not requirements_met(requirements_file):
