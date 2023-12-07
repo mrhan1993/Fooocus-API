@@ -23,7 +23,6 @@ modules_path = os.path.dirname(os.path.realpath(__file__))
 script_path = modules_path
 dir_repos = "repositories"
 
-
 # This function was copied from [Fooocus](https://github.com/lllyasviel/Fooocus) repository.
 def onerror(func, path, exc_info):
     import stat
