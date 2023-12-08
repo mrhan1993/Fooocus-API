@@ -2,8 +2,10 @@ from enum import Enum
 import time
 import numpy as np
 from typing import List, Tuple
+from fooocusapi.file_utils import delete_output_file
 
 from fooocusapi.img_utils import narray_to_base64img
+from fooocusapi.parameters import ImageGenerationResult, GenerationFinishReason
 
 
 class TaskType(str, Enum):
@@ -15,7 +17,7 @@ class TaskType(str, Enum):
 
 class QueueTask(object):
     is_finished: bool = False
-    finish_progess: int = 0
+    finish_progress: int = 0
     start_millis: int = 0
     finish_millis: int = 0
     finish_with_error: bool = False
@@ -33,7 +35,7 @@ class QueueTask(object):
     def set_progress(self, progress: int, status: str | None):
         if progress > 100:
             progress = 100
-        self.finish_progess = progress
+        self.finish_progress = progress
         self.task_status = status
 
     def set_step_preview(self, task_step_preview: str | None):
@@ -41,7 +43,7 @@ class QueueTask(object):
 
     def set_result(self, task_result: any, finish_with_error: bool, error_message: str | None = None):
         if not finish_with_error:
-            self.finish_progess = 100
+            self.finish_progress = 100
             self.task_status = 'Finished'
         self.task_result = task_result
         self.finish_with_error = finish_with_error
@@ -108,6 +110,10 @@ class TaskQueue(object):
             # Clean history
             if len(self.history) > self.history_size:
                 removed_task = self.history.pop(0)
+                if isinstance(removed_task.task_result, List):
+                    for item in removed_task.task_result:
+                        if isinstance(item, ImageGenerationResult) and item.finish_reason == GenerationFinishReason.success and item.im is not None:
+                            delete_output_file(item.im)
                 print(f"Clean task history, remove task: {removed_task.seq}")
 
 

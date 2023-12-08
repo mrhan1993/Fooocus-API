@@ -250,6 +250,7 @@ def prepare_environments(args) -> bool:
     import fooocusapi.worker as worker
     worker.task_queue.queue_size = args.queue_size
     worker.task_queue.history_size = args.queue_history
+    print(f"[Fooocus-API] Task queue size: {args.queue_size}, queue history size: {args.queue_history}")
 
     if args.base_url is None or len(args.base_url.strip()) == 0:
         host = args.host
@@ -367,7 +368,7 @@ if __name__ == "__main__":
     parser.add_argument("--skip-pip", default=False, action="store_true", help="Skip automatic pip install when setup")
     parser.add_argument("--preload-pipeline", default=False, action="store_true", help="Preload pipeline before start http server")
     parser.add_argument("--queue-size", type=int, default=3, help="Working queue size, default: 3, generation requests exceeding working queue size will return failure")
-    parser.add_argument("--queue-history", type=int, default=100, help="Finished jobs reserve in memory size, default: 100")
+    parser.add_argument("--queue-history", type=int, default=100, help="Finished jobs reserve size, tasks exceeding the limit will be deleted, including output image files, default: 100")
     parser.add_argument("--preset", type=str, default=None, help="Apply specified UI preset.")
 
 

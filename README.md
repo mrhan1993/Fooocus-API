@@ -4,7 +4,7 @@
 
 FastAPI powered API for [Fooocus](https://github.com/lllyasviel/Fooocus)
 
-Currently loaded Fooocus version: 2.1.823
+Currently loaded Fooocus version: 2.1.824
 
 ### Run with Replicate
 Now you can use Fooocus-API by Replicate, the model is in [konieshadow/fooocus-api](https://replicate.com/konieshadow/fooocus-api).
@@ -32,12 +32,12 @@ python main.py
 ```
 On default, server is listening on 'http://127.0.0.1:8888'
 
-Using Foocus preset, run:
+Using Fooocus preset, run:
 ```
 python main.py --preset anime
 ```
 
-For pragram arguments, see
+For program arguments, see
 ```
 python main.py -h
 ```
@@ -67,6 +67,9 @@ You can add `-e PIP_INDEX_URL={pypi-mirror-url}` to docker run command to change
 ### Test API
 You can open the Swagger Document in "http://127.0.0.1:8888/docs", then click "Try it out" to send a request.
 
+### Update logs
+Please visit [releases](https://github.com/konieshadow/Fooocus-API/releases) page for changes in each version.
+
 ### Completed Apis
 Swagger openapi defination see [openapi.json](docs/openapi.json).
 
@@ -76,12 +79,15 @@ All the generation api support for response in PNG bytes directly when request's
 
 All the generation api support async process by pass parameter `async_process` to true. And then use query job api to retrieve progress and generation results.
 
-Break change from v0.3.16:
+Break changes from v0.3.16:
 * Parameter format for `loras` has changed for the img2img apis (the multipart/form-data requests). Now it requires JSON string.
 
-Break change from v0.3.0:
-* The generation apis won't return `base64` field expect request parameters set `require_base64` to true.
+Break changes from v0.3.0:
+* The generation apis won't return `base64` field unless request parameters set `require_base64` to true.
 * The generation apis return a `url` field where the generated image can be requested via a static file url.
+
+Break changes from v0.3.21:
+* The `seed` field from generation result change to type `String` to avoid numerical overflow.
 
 #### Text to Image
 > POST /v1/generation/text-to-image
@@ -89,16 +95,28 @@ Break change from v0.3.0:
 Alternative api for the normal image generation of Fooocus Gradio interface.
 
 #### Image Upscale or Variation
+For multipart/form-data request:
 > POST /v1/generation/image-upscale-vary
+
+For application/json request:
+> POST /v2/generation/image-upscale-vary
 
 Alternative api for 'Upscale or Variation' tab of Fooocus Gradio interface.
 
 #### Image Inpaint or Outpaint
+For multipart/form-data request:
 > POST /v1/generation/image-inpait-outpaint
+
+For application/json request:
+> POST /v2/generation/image-inpait-outpaint
 
 Alternative api for 'Inpaint or Outpaint' tab of Fooocus Gradio interface.
 
 #### Image Prompt
+For multipart/form-data request:
+> POST /v1/generation/image-prompt
+
+For application/json request:
 > POST /v1/generation/image-prompt
 
 Alternative api for 'Image Prompt' tab of Fooocus Gradio interface.

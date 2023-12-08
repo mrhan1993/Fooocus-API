@@ -1,17 +1,19 @@
 import json
+
 from fastapi import Form, UploadFile
 from fastapi.params import File
 from fastapi.exceptions import RequestValidationError
+
 from pydantic import BaseModel, ConfigDict, Field, TypeAdapter, ValidationError, parse_obj_as
+from pydantic_core import InitErrorDetails
+
 from typing import List
 from enum import Enum
 
-from pydantic_core import InitErrorDetails
 from fooocusapi.parameters import GenerationFinishReason, defualt_styles, default_base_model_name, default_refiner_model_name, default_refiner_switch, default_loras, default_cfg_scale, default_prompt_negative, default_aspect_ratio, default_sampler, default_scheduler
 from fooocusapi.task_queue import TaskType
-import modules.flags as flags
 
-
+from modules import flags
 
 class Lora(BaseModel):
     model_name: str
@@ -39,7 +41,7 @@ class UpscaleOrVaryMethod(str, Enum):
     upscale_15 = 'Upscale (1.5x)'
     upscale_2 = 'Upscale (2x)'
     upscale_fast = 'Upscale (Fast 2x)'
-
+    upscale_custom = 'Upscale (Custom)'
 
 class OutpaintExpansion(str, Enum):
     left = 'Left'
@@ -57,7 +59,7 @@ class ControlNetType(str, Enum):
 
 class ImagePrompt(BaseModel):
     cn_img: UploadFile | None = Field(default=None)
-    cn_stop: float = Field(default=0.4, ge=0, le=1)
+    cn_stop: float | None = Field(default=None, ge=0, le=1)
     cn_weight: float | None = Field(
         default=None, ge=0, le=2, description="None for default value")
     cn_type: ControlNetType = Field(default=ControlNetType.cn_ip)
@@ -120,10 +122,12 @@ class Text2ImgRequest(BaseModel):
 class ImgUpscaleOrVaryRequest(Text2ImgRequest):
     input_image: UploadFile
     uov_method: UpscaleOrVaryMethod
+    upscale_value: float | None
 
     @classmethod
     def as_form(cls, input_image: UploadFile = Form(description="Init image for upsacale or outpaint"),
                 uov_method: UpscaleOrVaryMethod = Form(),
+                upscale_value: float | None = Form(None, description="Upscale custom value, None for default value", ge=1.0, le=5.0),
                 prompt: str = Form(''),
                 negative_prompt: str = Form(default_prompt_negative),
                 style_selections: List[str] = Form(defualt_styles, description="Fooocus style selections, seperated by comma"),
@@ -166,7 +170,7 @@ class ImgUpscaleOrVaryRequest(Text2ImgRequest):
                 errs = ve.errors()
                 raise RequestValidationError(errors=[errs])
 
-        return cls(input_image=input_image, uov_method=uov_method, prompt=prompt, negative_prompt=negative_prompt, style_selections=style_selection_arr,
+        return cls(input_image=input_image, uov_method=uov_method,upscale_value=upscale_value, prompt=prompt, negative_prompt=negative_prompt, style_selections=style_selection_arr,
                    performance_selection=performance_selection, aspect_ratios_selection=aspect_ratios_selection,
                    image_number=image_number, image_seed=image_seed, sharpness=sharpness, guidance_scale=guidance_scale,
                    base_model_name=base_model_name, refiner_model_name=refiner_model_name, refiner_switch=refiner_switch,
@@ -178,6 +182,10 @@ class ImgInpaintOrOutpaintRequest(Text2ImgRequest):
     input_mask: UploadFile | None
     inpaint_additional_prompt: str | None
     outpaint_selections: List[OutpaintExpansion]
+    outpaint_distance_left: int
+    outpaint_distance_right: int
+    outpaint_distance_top: int
+    outpaint_distance_bottom: int
 
     @classmethod
     def as_form(cls, input_image: UploadFile = Form(description="Init image for inpaint or outpaint"),
@@ -186,6 +194,11 @@ class ImgInpaintOrOutpaintRequest(Text2ImgRequest):
                 inpaint_additional_prompt: str | None = Form(None, description="Describe what you want to inpaint"),
                 outpaint_selections: List[str] = Form(
                     [], description="Outpaint expansion selections, literal 'Left', 'Right', 'Top', 'Bottom' seperated by comma"),
+                
+                outpaint_distance_left: int = Form(default=0, description="Set outpaint left distance, 0 for default"),
+                outpaint_distance_right: int = Form(default=0, description="Set outpaint right distance, 0 for default"),
+                outpaint_distance_top: int = Form(default=0, description="Set outpaint top distance, 0 for default"),
+                outpaint_distance_bottom: int = Form(default=0, description="Set outpaint bottom distance, 0 for default"),
                 prompt: str = Form(''),
                 negative_prompt: str = Form(default_prompt_negative),
                 style_selections: List[str] = Form(defualt_styles, description="Fooocus style selections, seperated by comma"),
@@ -244,7 +257,9 @@ class ImgInpaintOrOutpaintRequest(Text2ImgRequest):
                 errs = ve.errors()
                 raise RequestValidationError(errors=[errs])
 
-        return cls(input_image=input_image, input_mask=input_mask, inpaint_additional_prompt=inpaint_additional_prompt, outpaint_selections=outpaint_selections_arr, prompt=prompt, negative_prompt=negative_prompt, style_selections=style_selection_arr,
+        return cls(input_image=input_image, input_mask=input_mask, inpaint_additional_prompt=inpaint_additional_prompt,outpaint_selections=outpaint_selections_arr,
+                   outpaint_distance_left=outpaint_distance_left, outpaint_distance_right=outpaint_distance_right, outpaint_distance_top=outpaint_distance_top, outpaint_distance_bottom=outpaint_distance_bottom,
+                   prompt=prompt, negative_prompt=negative_prompt, style_selections=style_selection_arr,
                    performance_selection=performance_selection, aspect_ratios_selection=aspect_ratios_selection,
                    image_number=image_number, image_seed=image_seed, sharpness=sharpness, guidance_scale=guidance_scale,
                    base_model_name=base_model_name, refiner_model_name=refiner_model_name, refiner_switch=refiner_switch,
@@ -319,10 +334,6 @@ class ImgPromptRequest(Text2ImgRequest):
                                (cn_img3, cn_stop3, cn_weight3, cn_type3), (cn_img4, cn_stop4, cn_weight4, cn_type4)]
         for config in image_prompt_config:
             cn_img, cn_stop, cn_weight, cn_type = config
-            if cn_stop is None:
-                cn_stop = flags.default_parameters[cn_type.value][0]
-            if cn_weight is None:
-                cn_weight = flags.default_parameters[cn_type.value][1]
             image_prompts.append(ImagePrompt(
                 cn_img=cn_img, cn_stop=cn_stop, cn_weight=cn_weight, cn_type=cn_type))
 
@@ -360,7 +371,7 @@ class GeneratedImageResult(BaseModel):
     base64: str | None = Field(
         description="Image encoded in base64, or null if finishReasen is not 'SUCCESS', only return when request require base64")
     url: str | None = Field(description="Image file static serve url, or null if finishReasen is not 'SUCCESS'")
-    seed: int = Field(description="The seed associated with this image")
+    seed: str = Field(description="The seed associated with this image")
     finish_reason: GenerationFinishReason
 
 
@@ -380,7 +391,7 @@ class AsyncJobResponse(BaseModel):
     job_id: int = Field(description="Job ID")
     job_type: TaskType = Field(description="Job type")
     job_stage: AsyncJobStage = Field(description="Job running stage")
-    job_progess: int = Field(description="Job running progress, 100 is for finished.")
+    job_progress: int = Field(description="Job running progress, 100 is for finished.")
     job_status: str | None = Field(None, description="Job running status in text")
     job_step_preview: str | None = Field(None, description="Preview image of generation steps at current time, as base64 image")
     job_result: List[GeneratedImageResult] | None = Field(None, description="Job generation result")

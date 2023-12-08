@@ -2,8 +2,6 @@ from enum import Enum
 from typing import Dict, List, Tuple
 import numpy as np
 
-from fooocusapi.task_queue import TaskType
-
 
 default_inpaint_engine_version = 'v2.6'
 
@@ -73,7 +71,7 @@ class GenerationFinishReason(str, Enum):
 
 
 class ImageGenerationResult(object):
-    def __init__(self, im: str | None, seed: int, finish_reason: GenerationFinishReason):
+    def __init__(self, im: str | None, seed: str, finish_reason: GenerationFinishReason):
         self.im = im
         self.seed = seed
         self.finish_reason = finish_reason
@@ -95,7 +93,12 @@ class ImageGenerationParams(object):
                  loras: List[Tuple[str, float]],
                  uov_input_image: np.ndarray | None,
                  uov_method: str,
+                 upscale_value: float | None,
                  outpaint_selections: List[str],
+                 outpaint_distance_left: int,
+                 outpaint_distance_right: int,
+                 outpaint_distance_top: int,
+                 outpaint_distance_bottom: int,
                  inpaint_input_image: Dict[str, np.ndarray] | None,
                  inpaint_additional_prompt: str | None,
                  image_prompts: List[Tuple[np.ndarray, float, float, str]],
@@ -115,7 +118,12 @@ class ImageGenerationParams(object):
         self.loras = loras
         self.uov_input_image = uov_input_image
         self.uov_method = uov_method
+        self.upscale_value = upscale_value
         self.outpaint_selections = outpaint_selections
+        self.outpaint_distance_left = outpaint_distance_left
+        self.outpaint_distance_right = outpaint_distance_right
+        self.outpaint_distance_top = outpaint_distance_top
+        self.outpaint_distance_bottom = outpaint_distance_bottom
         self.inpaint_input_image = inpaint_input_image
         self.inpaint_additional_prompt = inpaint_additional_prompt
         self.image_prompts = image_prompts

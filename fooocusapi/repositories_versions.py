@@ -1,5 +1,5 @@
 import os
 
-fooocus_version = '2.1.823'
+fooocus_version = '2.1.824'
 fooocus_commit_hash = os.environ.get(
-    'FOOOCUS_COMMIT_HASH', "bd4d40203c7e727fd06fc58ec122c25befcc5644")
+    'FOOOCUS_COMMIT_HASH', "3bc9ac88fd8aa05e157aeff78eaa3631552119e0")
