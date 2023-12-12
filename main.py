@@ -226,7 +226,7 @@ def prepare_environments(args) -> bool:
 
         if not is_installed("torch") or not is_installed("torchvision"):
             print(f"torch_index_url: {torch_index_url}")
-            run_pip(f"install torch==2.0.1 torchvision==0.15.2 --extra-index-url {torch_index_url}", "torch")
+            run_pip(f"install torch==2.1.0 torchvision==0.16.0 --extra-index-url {torch_index_url}", "torch")
 
     skip_sync_repo = False
     if args.sync_repo is not None:
