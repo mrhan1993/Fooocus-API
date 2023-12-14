@@ -11,6 +11,7 @@ from fooocus_api_version import version
 from fooocusapi.repositories_versions import fooocus_commit_hash
 
 os.environ["PYTORCH_ENABLE_MPS_FALLBACK"] = "1"
+os.environ["PYTORCH_MPS_HIGH_WATERMARK_RATIO"] = "0.0"
 
 python = sys.executable
 default_command_live = True
@@ -262,10 +263,7 @@ def prepare_environments(args) -> bool:
     # Add dependent repositories to import path
     sys.path.append(script_path)
     fooocus_path = os.path.join(script_path, dir_repos, fooocus_name)
-    sys.path.insert(0, fooocus_path) # need add __init__.py in folder "modules"
-    backend_path = os.path.join(fooocus_path, 'backend', 'headless')
-    if backend_path not in sys.path:
-        sys.path.append(backend_path)
+    sys.path.append(fooocus_path)
     os.environ["PYTORCH_ENABLE_MPS_FALLBACK"] = "1"
 
     sys.argv = [sys.argv[0]]
