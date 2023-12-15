@@ -255,7 +255,8 @@ def prepare_environments(args) -> bool:
     if args.base_url is None or len(args.base_url.strip()) == 0:
         host = args.host
         if host == '0.0.0.0':
-            host = '127.0.0.1'
+            host = 'wasai.sy.soyoung.com'
+            # host = '127.0.0.1'
         args.base_url = f"http://{host}:{args.port}"
 
     # Add dependent repositories to import path
