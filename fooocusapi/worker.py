@@ -14,8 +14,8 @@ task_queue = TaskQueue(queue_size=3, hisotry_size=6)
 
 
 def process_top():
-    import fcbh.model_management
-    fcbh.model_management.interrupt_current_processing()
+    import ldm_patched.modules.model_management
+    ldm_patched.modules.model_management.interrupt_current_processing()
 
 
 @torch.no_grad()
@@ -38,10 +38,10 @@ def process_generate(async_task: QueueTask, params: ImageGenerationParams) -> Li
     import modules.config as config
     import modules.advanced_parameters as advanced_parameters
     import modules.constants as constants
-    import fooocus_extras.preprocessors as preprocessors
-    import fooocus_extras.ip_adapter as ip_adapter
-    import fooocus_extras.face_crop as face_crop
-    import fcbh.model_management as model_management
+    import extras.preprocessors as preprocessors
+    import extras.ip_adapter as ip_adapter
+    import extras.face_crop as face_crop
+    import ldm_patched.modules.model_management as model_management
     from modules.util import remove_empty_str, resize_image, HWC3, set_image_shape_ceil, get_image_shape_ceil, get_shape_ceil, resample_image
     from modules.private_logger import log
     from modules.upscaler import perform_upscale
