@@ -11,6 +11,7 @@ from fooocus_api_version import version
 from fooocusapi.repositories_versions import fooocus_commit_hash
 
 os.environ["PYTORCH_ENABLE_MPS_FALLBACK"] = "1"
+os.environ["PYTORCH_MPS_HIGH_WATERMARK_RATIO"] = "0.0"
 
 python = sys.executable
 default_command_live = True
@@ -225,7 +226,7 @@ def prepare_environments(args) -> bool:
 
         if not is_installed("torch") or not is_installed("torchvision"):
             print(f"torch_index_url: {torch_index_url}")
-            run_pip(f"install torch==2.0.1 torchvision==0.15.2 --extra-index-url {torch_index_url}", "torch")
+            run_pip(f"install torch==2.1.0 torchvision==0.16.0 --extra-index-url {torch_index_url}", "torch")
 
     skip_sync_repo = False
     if args.sync_repo is not None:
@@ -261,10 +262,7 @@ def prepare_environments(args) -> bool:
     # Add dependent repositories to import path
     sys.path.append(script_path)
     fooocus_path = os.path.join(script_path, dir_repos, fooocus_name)
-    sys.path.insert(0, fooocus_path) # need add __init__.py in folder "modules"
-    backend_path = os.path.join(fooocus_path, 'backend', 'headless')
-    if backend_path not in sys.path:
-        sys.path.append(backend_path)
+    sys.path.append(fooocus_path)
     os.environ["PYTORCH_ENABLE_MPS_FALLBACK"] = "1"
 
     sys.argv = [sys.argv[0]]
