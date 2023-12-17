@@ -531,7 +531,7 @@ def process_generate(async_task: QueueTask, params: ImageGenerationParams) -> Li
         if 'inpaint' in goals:
             if len(outpaint_selections) > 0:
                 H, W, C = inpaint_image.shape
-                if 'top' in outpaint_selections:
+                if 'top' in outpaint_selections and outpaint_distance_top != 0:
                     distance_top = int(H * 0.3)
                     if outpaint_distance_top > 0:
                         distance_top = outpaint_distance_top
@@ -539,7 +539,7 @@ def process_generate(async_task: QueueTask, params: ImageGenerationParams) -> Li
                     inpaint_image = np.pad(inpaint_image, [[distance_top, 0], [0, 0], [0, 0]], mode='edge')
                     inpaint_mask = np.pad(inpaint_mask, [[distance_top, 0], [0, 0]], mode='constant',
                                           constant_values=255)
-                if 'bottom' in outpaint_selections:
+                if 'bottom' in outpaint_selections and outpaint_distance_bottom != 0:
                     distance_bottom = int(H * 0.3)
                     if outpaint_distance_bottom > 0:
                         distance_bottom = outpaint_distance_bottom
@@ -549,7 +549,7 @@ def process_generate(async_task: QueueTask, params: ImageGenerationParams) -> Li
                                           constant_values=255)
 
                 H, W, C = inpaint_image.shape
-                if 'left' in outpaint_selections:
+                if 'left' in outpaint_selections and outpaint_distance_left != 0:
                     distance_left = int(W * 0.3)
                     if outpaint_distance_left > 0:
                         distance_left = outpaint_distance_left
@@ -557,7 +557,7 @@ def process_generate(async_task: QueueTask, params: ImageGenerationParams) -> Li
                     inpaint_image = np.pad(inpaint_image, [[0, 0], [distance_left, 0], [0, 0]], mode='edge')
                     inpaint_mask = np.pad(inpaint_mask, [[0, 0], [distance_left, 0]], mode='constant',
                                           constant_values=255)
-                if 'right' in outpaint_selections:
+                if 'right' in outpaint_selections and outpaint_distance_right != 0:
                     distance_right = int(W * 0.3)
                     if outpaint_distance_right > 0:
                         distance_right = outpaint_distance_right
