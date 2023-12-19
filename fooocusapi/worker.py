@@ -45,7 +45,7 @@ def process_generate(async_task: QueueTask, params: ImageGenerationParams) -> Li
     from modules.util import remove_empty_str, resize_image, HWC3, set_image_shape_ceil, get_image_shape_ceil, get_shape_ceil, resample_image
     from modules.private_logger import log
     from modules.upscaler import perform_upscale
-    from modules.expansion import safe_str
+    from extras.expansion import safe_str
     from modules.sdxl_styles import apply_style, fooocus_expansion, apply_wildcards
 
     outputs = TaskOutputs(async_task)
@@ -501,7 +501,7 @@ def process_generate(async_task: QueueTask, params: ImageGenerationParams) -> Li
 
             if direct_return:
                 d = [('Upscale (Fast)', '2x')]
-                log(uov_input_image, d, single_line_number=1)
+                log(uov_input_image, d)
                 return yield_result(async_task, uov_input_image, tasks)
 
             tiled = True
@@ -798,7 +798,7 @@ def process_generate(async_task: QueueTask, params: ImageGenerationParams) -> Li
                     for n, w in loras:
                         if n != 'None':
                             d.append((f'LoRA [{n}] weight', w))
-                    log(x, d, single_line_number=3)
+                    log(x, d)
                 
                 # Fooocus async_worker.py code end
                 
