@@ -47,6 +47,7 @@ def process_generate(async_task: QueueTask, params: ImageGenerationParams) -> Li
     from modules.upscaler import perform_upscale
     from extras.expansion import safe_str
     from modules.sdxl_styles import apply_style, fooocus_expansion, apply_wildcards
+    import fooocus_version
 
     outputs = TaskOutputs(async_task)
     results = []
@@ -793,11 +794,12 @@ def process_generate(async_task: QueueTask, params: ImageGenerationParams) -> Li
                         ('Refiner Switch', refiner_switch),
                         ('Sampler', sampler_name),
                         ('Scheduler', scheduler_name),
-                        ('Seed', task['task_seed'])
+                        ('Seed', task['task_seed']),
                     ]
                     for n, w in loras:
                         if n != 'None':
-                            d.append((f'LoRA [{n}] weight', w))
+                            d.append((f'LoRA', f'{n} : {w}'))
+                    d.append(('Version', 'v' + fooocus_version.version))
                     log(x, d)
                 
                 # Fooocus async_worker.py code end
