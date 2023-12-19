@@ -4,7 +4,7 @@
 
 FastAPI powered API for [Fooocus](https://github.com/lllyasviel/Fooocus)
 
-Currently loaded Fooocus version: 2.1.837
+Currently loaded Fooocus version: 2.1.852
 
 ### Run with Replicate
 Now you can use Fooocus-API by Replicate, the model is in [konieshadow/fooocus-api](https://replicate.com/konieshadow/fooocus-api).
@@ -78,6 +78,9 @@ You can import it in [Swagger-UI](https://swagger.io/tools/swagger-ui/) editor.
 All the generation api support for response in PNG bytes directly when request's 'Accept' header is 'image/png'.
 
 All the generation api support async process by pass parameter `async_process` to true. And then use query job api to retrieve progress and generation results.
+
+Break changes from v0.3.24:
+* This version merged Fooocus v2.1.839, which include a seed breaking change. Details for [2.1.839](https://github.com/lllyasviel/Fooocus/blob/main/update_log.md#21839).
 
 Break changes from v0.3.16:
 * Parameter format for `loras` has changed for the img2img apis (the multipart/form-data requests). Now it requires JSON string.
