@@ -7,6 +7,8 @@ services:
     volumes:
      - ~/repositories:/app/repositories
      - ~/.cache/pip:/root/.cache/pip
+    environment:
+      PIP_INDEX_URL: https://pypi.tuna.tsinghua.edu.cn/simple
     deploy:
       resources:
         reservations:
