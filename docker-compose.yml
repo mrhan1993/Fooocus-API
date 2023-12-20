@@ -4,6 +4,9 @@ services:
     build: .
     ports:
      - "7865:7865"
+    volumes:
+     - ~/repositories:/app/repositories
+     - ~/.cache/pip:/root/.cache/pip
     deploy:
       resources:
         reservations:
