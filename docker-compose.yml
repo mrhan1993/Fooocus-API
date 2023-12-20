@@ -4,6 +4,7 @@ services:
     build: .
     ports:
      - "7865:7865"
+    command: python3 main.py --host 0.0.0.0 --sync-repo='skip' --queue-size=88
     volumes:
      - ~/repositories:/app/repositories
      - ~/.cache/pip:/root/.cache/pip
