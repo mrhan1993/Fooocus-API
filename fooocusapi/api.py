@@ -9,7 +9,7 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from fooocusapi.models import AllModelNamesResponse, AsyncJobResponse, QueryJobRequest,StopResponse , GeneratedImageResult, ImgInpaintOrOutpaintRequest, ImgPromptRequest, ImgUpscaleOrVaryRequest, JobQueueInfo, Text2ImgRequest
 from fooocusapi.api_utils import generation_output, req_to_params
-from fooocusapi import file_utils
+import fooocusapi.file_utils as file_utils
 from fooocusapi.parameters import GenerationFinishReason, ImageGenerationResult
 from fooocusapi.task_queue import TaskType
 from fooocusapi.worker import process_generate, task_queue, process_top
@@ -279,5 +279,5 @@ app.mount("/files", StaticFiles(directory=file_utils.output_dir), name="files")
 
 def start_app(args):
     file_utils.static_serve_base_url = args.base_url + "/files/"
-    uvicorn.run("fooocusapi.api:app", host=args.listen,
+    uvicorn.run("fooocusapi.api:app", host=args.host,
                 port=args.port, log_level=args.log_level)

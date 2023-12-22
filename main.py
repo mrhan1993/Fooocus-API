@@ -69,6 +69,7 @@ def git_clone(url, dir, name, hash=None):
         print(f'{name} checkout finished for {hash}.')
     except Exception as e:
         print(f'Git clone failed for {name}: {str(e)}')
+        raise e
 
 
 # This function was copied from [Fooocus](https://github.com/lllyasviel/Fooocus) repository.
@@ -269,7 +270,7 @@ def prepare_environments(args) -> bool:
         print("Set device to:", args.gpu_device_id)
 
     if args.base_url is None or len(args.base_url.strip()) == 0:
-        host = args.listen
+        host = args.host
         if host == '0.0.0.0':
             host = '127.0.0.1'
         args.base_url = f"http://{host}:{args.port}"
@@ -358,9 +359,10 @@ if __name__ == "__main__":
     print(f"Python {sys.version}")
     print(f"Fooocus-API version: {version}")
 
+    from fooocusapi.base_args import add_base_args
+
     parser = argparse.ArgumentParser()
-    parser.add_argument("--sync-repo")
-    parser.add_argument("--skip-pip", default=False)
+    add_base_args(parser, True)
 
     args, _ = parser.parse_known_args()
     install_dependents(args)
