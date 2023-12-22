@@ -288,7 +288,6 @@ def prepare_environments(args) -> bool:
         sys.argv.append('--preset')
         sys.argv.append(args.preset)
     import modules.config as config
-    import modules.flags as flags
     import fooocusapi.parameters as parameters
     parameters.default_inpaint_engine_version = config.default_inpaint_engine_version
     parameters.defualt_styles = config.default_styles
