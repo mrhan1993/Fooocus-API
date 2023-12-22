@@ -264,6 +264,10 @@ def prepare_environments(args) -> bool:
     worker.task_queue.history_size = args.queue_history
     print(f"[Fooocus-API] Task queue size: {args.queue_size}, queue history size: {args.queue_history}")
 
+    if args.gpu_device_id is not None:
+        os.environ['CUDA_VISIBLE_DEVICES'] = str(args.gpu_device_id)
+        print("Set device to:", args.gpu_device_id)
+
     if args.base_url is None or len(args.base_url.strip()) == 0:
         host = args.listen
         if host == '0.0.0.0':
