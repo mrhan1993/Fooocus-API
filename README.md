@@ -2,12 +2,12 @@
 
 [![Docker Image CI](https://github.com/konieshadow/Fooocus-API/actions/workflows/docker-image.yml/badge.svg?branch=main)](https://github.com/konieshadow/Fooocus-API/actions/workflows/docker-image.yml)
 
-FastAPI powered API for [Fooocus](https://github.com/lllyasviel/Fooocus)
+FastAPI powered API for [Fooocus](https://github.com/lllyasviel/Fooocus).
 
-Currently loaded Fooocus version: 2.1.852
+Currently loaded Fooocus version: [2.1.852](https://github.com/lllyasviel/Fooocus/blob/main/update_log.md).
 
 ### Run with Replicate
-Now you can use Fooocus-API by Replicate, the model is in [konieshadow/fooocus-api](https://replicate.com/konieshadow/fooocus-api).
+Now you can use Fooocus-API by Replicate, the model is on [konieshadow/fooocus-api](https://replicate.com/konieshadow/fooocus-api).
 
 With preset:
 * [konieshadow/fooocus-api-anime](https://replicate.com/konieshadow/fooocus-api-anime)
