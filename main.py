@@ -10,6 +10,8 @@ from threading import Thread
 from fooocus_api_version import version
 from fooocusapi.repositories_versions import fooocus_commit_hash
 
+print('[System ARGV] ' + str(sys.argv))
+
 os.environ["PYTORCH_ENABLE_MPS_FALLBACK"] = "1"
 os.environ["PYTORCH_MPS_HIGH_WATERMARK_RATIO"] = "0.0"
 
@@ -66,6 +68,7 @@ def git_clone(url, dir, name, hash=None):
         print(f'{name} checkout finished for {hash}.')
     except Exception as e:
         print(f'Git clone failed for {name}: {str(e)}')
+        raise e
 
 
 # This function was copied from [Fooocus](https://github.com/lllyasviel/Fooocus) repository.
@@ -215,7 +218,7 @@ def download_models():
     )
 
 
-def prepare_environments(args) -> bool:
+def install_dependents(args):
     if not args.skip_pip:
         torch_index_url = os.environ.get('TORCH_INDEX_URL', "https://download.pytorch.org/whl/cu121")
 
@@ -248,10 +251,22 @@ def prepare_environments(args) -> bool:
     if not skip_sync_repo:
         download_repositories()
 
+    # Add dependent repositories to import path
+    sys.path.append(script_path)
+    fooocus_path = os.path.join(script_path, dir_repos, fooocus_name)
+    sys.path.append(fooocus_path)
+    os.environ["PYTORCH_ENABLE_MPS_FALLBACK"] = "1"
+
+
+def prepare_environments(args) -> bool:
     import fooocusapi.worker as worker
     worker.task_queue.queue_size = args.queue_size
     worker.task_queue.history_size = args.queue_history
     print(f"[Fooocus-API] Task queue size: {args.queue_size}, queue history size: {args.queue_history}")
+
+    if args.gpu_device_id is not None:
+        os.environ['CUDA_VISIBLE_DEVICES'] = str(args.gpu_device_id)
+        print("Set device to:", args.gpu_device_id)
 
     if args.base_url is None or len(args.base_url.strip()) == 0:
         host = args.host
@@ -260,16 +275,7 @@ def prepare_environments(args) -> bool:
             # host = '127.0.0.1'
         args.base_url = f"http://{host}:{args.port}"
 
-    # Add dependent repositories to import path
-    sys.path.append(script_path)
-    fooocus_path = os.path.join(script_path, dir_repos, fooocus_name)
-    sys.path.append(fooocus_path)
-    os.environ["PYTORCH_ENABLE_MPS_FALLBACK"] = "1"
-
     sys.argv = [sys.argv[0]]
-
-    if args.disable_private_log:
-        sys.argv.append('--disable-image-log')
 
     if args.preset is not None:
         # Remove and copy preset folder
@@ -282,7 +288,6 @@ def prepare_environments(args) -> bool:
         sys.argv.append('--preset')
         sys.argv.append(args.preset)
     import modules.config as config
-    import modules.flags as flags
     import fooocusapi.parameters as parameters
     parameters.default_inpaint_engine_version = config.default_inpaint_engine_version
     parameters.defualt_styles = config.default_styles
@@ -304,13 +309,13 @@ def prepare_environments(args) -> bool:
 
     return True
 
-def pre_setup(skip_sync_repo: bool=False, disable_private_log: bool=False, skip_pip=False, load_all_models: bool=False, preload_pipeline: bool=False, preset: str | None=None):
+def pre_setup(skip_sync_repo: bool=False, disable_image_log: bool=False, skip_pip=False, load_all_models: bool=False, preload_pipeline: bool=False, preset: str | None=None):
     class Args(object):
         host = '127.0.0.1'
         port = 8888
         base_url = None
         sync_repo = None
-        disable_private_log = False
+        disable_image_log = False
         skip_pip = False
         preload_pipeline = False
         queue_size = 3
@@ -320,7 +325,7 @@ def pre_setup(skip_sync_repo: bool=False, disable_private_log: bool=False, skip_
     print("[Pre Setup] Prepare environments")
 
     args = Args()
-    args.disable_private_log = disable_private_log
+    args.disable_image_log = disable_image_log
     args.preload_pipeline = preload_pipeline
     args.preset = preset
     if skip_sync_repo:
@@ -353,25 +358,15 @@ if __name__ == "__main__":
     print(f"Python {sys.version}")
     print(f"Fooocus-API version: {version}")
 
+    from fooocusapi.base_args import add_base_args
+
     parser = argparse.ArgumentParser()
-    parser.add_argument("--port", type=int, default=8888,
-                        help="Set the listen port, default: 8888")
-    parser.add_argument("--host", type=str,
-                        default='127.0.0.1', help="Set the listen host, default: 127.0.0.1")
-    parser.add_argument("--base-url", type=str, default=None, help="Set base url for outside visit, default is http://host:port")
-    parser.add_argument("--log-level", type=str,
-                        default='info', help="Log info for Uvicorn, default: info")
-    parser.add_argument("--sync-repo", default=None,
-                        help="Sync dependent git repositories to local, 'skip' for skip sync action, 'only' for only do the sync action and not launch app")
-    parser.add_argument("--disable-private-log", default=False, action="store_true", help="Disable Fooocus image log, won't save output files (include generated image files)")
-    parser.add_argument("--skip-pip", default=False, action="store_true", help="Skip automatic pip install when setup")
-    parser.add_argument("--preload-pipeline", default=False, action="store_true", help="Preload pipeline before start http server")
-    parser.add_argument("--queue-size", type=int, default=3, help="Working queue size, default: 3, generation requests exceeding working queue size will return failure")
-    parser.add_argument("--queue-history", type=int, default=100, help="Finished jobs reserve size, tasks exceeding the limit will be deleted, including output image files, default: 100")
-    parser.add_argument("--preset", type=str, default=None, help="Apply specified UI preset.")
+    add_base_args(parser, True)
 
+    args, _ = parser.parse_known_args()
+    install_dependents(args)
 
-    args = parser.parse_args()
+    from fooocusapi.args import args
 
     if prepare_environments(args):
         sys.argv = [sys.argv[0]]

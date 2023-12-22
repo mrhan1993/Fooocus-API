@@ -36,6 +36,8 @@ def read_input_image(input_image: UploadFile) -> np.ndarray:
     return image
 
 def base64_to_stream(image: str) -> UploadFile:
+    if image.startswith('data:image'):
+        image = image.split(sep=',', maxsplit=1)[1]
     image_bytes = base64.b64decode(image)
     byte_stream = BytesIO()
     byte_stream.write(image_bytes)

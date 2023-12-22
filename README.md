@@ -2,12 +2,12 @@
 
 [![Docker Image CI](https://github.com/konieshadow/Fooocus-API/actions/workflows/docker-image.yml/badge.svg?branch=main)](https://github.com/konieshadow/Fooocus-API/actions/workflows/docker-image.yml)
 
-FastAPI powered API for [Fooocus](https://github.com/lllyasviel/Fooocus)
+FastAPI powered API for [Fooocus](https://github.com/lllyasviel/Fooocus).
 
-Currently loaded Fooocus version: 2.1.852
+Currently loaded Fooocus version: [2.1.852](https://github.com/lllyasviel/Fooocus/blob/main/update_log.md).
 
 ### Run with Replicate
-Now you can use Fooocus-API by Replicate, the model is in [konieshadow/fooocus-api](https://replicate.com/konieshadow/fooocus-api).
+Now you can use Fooocus-API by Replicate, the model is on [konieshadow/fooocus-api](https://replicate.com/konieshadow/fooocus-api).
 
 With preset:
 * [konieshadow/fooocus-api-anime](https://replicate.com/konieshadow/fooocus-api-anime)
@@ -32,15 +32,27 @@ python main.py
 ```
 On default, server is listening on 'http://127.0.0.1:8888'
 
-Using Fooocus preset, run:
+
+### CMD Flags
+* -h, --help            show this help message and exit
+* --port PORT           Set the listen port, default: 8888
+* --host HOST           Set the listen host, default: 127.0.0.1
+* --base-url BASE_URL   Set base url for outside visit, default is http://host:port
+* --log-level LOG_LEVEL Log info for Uvicorn, default: info
+* --sync-repo SYNC_REPO Sync dependent git repositories to local, 'skip' for skip sync action, 'only' for only do the sync action and not launch app
+* --skip-pip            Skip automatic pip install when setup
+* --preload-pipeline    Preload pipeline before start http server
+* --queue-size QUEUE_SIZE Working queue size, default: 3, generation requests exceeding working queue size will return failure
+* --queue-history QUEUE_HISTORY Finished jobs reserve size, tasks exceeding the limit will be deleted, including output image files, default: 100
+
+Since v0.3.25, added CMD flags support of Fooocus. You can pass any argument which Fooocus supported.
+
+For example, to startup image generation (need more vRAM):
 ```
-python main.py --preset anime
+python main.py --all-in-fp16 --always-gpu
 ```
 
-For program arguments, see
-```
-python main.py -h
-```
+For Fooocus CMD flags, see [here](https://github.com/lllyasviel/Fooocus?tab=readme-ov-file#all-cmd-flags).
 
 ### Start with docker
 Before use docker with GPU, you should [install NVIDIA Container Toolkit](https://docs.nvidia.com/datacenter/cloud-native/container-toolkit/latest/install-guide.html) first.
@@ -78,6 +90,9 @@ You can import it in [Swagger-UI](https://swagger.io/tools/swagger-ui/) editor.
 All the generation api support for response in PNG bytes directly when request's 'Accept' header is 'image/png'.
 
 All the generation api support async process by pass parameter `async_process` to true. And then use query job api to retrieve progress and generation results.
+
+Break changes from v0.3.25
+* Removed cli argument `disable-private-log`. You can use Fooocus's `--disable-image-log` for the same purpose.
 
 Break changes from v0.3.24:
 * This version merged Fooocus v2.1.839, which include a seed breaking change. Details for [2.1.839](https://github.com/lllyasviel/Fooocus/blob/main/update_log.md#21839).
