@@ -181,7 +181,7 @@ def download_repositories():
     git_clone(fooocus_repo, repo_dir(fooocus_name),
               "Fooocus", fooocus_commit_hash)
     
-    
+
 def is_installed(package):
     try:
         spec = find_spec(package)
@@ -279,11 +279,11 @@ def prepare_environments(args) -> bool:
 
     if args.preset is not None:
         # Remove and copy preset folder
-        # origin_preset_folder = os.path.abspath(os.path.join(script_path, dir_repos, fooocus_name, 'presets'))
-        # preset_folder = os.path.abspath(os.path.join(script_path, 'presets'))
-        # if os.path.exists(preset_folder):
-            #shutil.rmtree(preset_folder)
-        #shutil.copytree(origin_preset_folder, preset_folder)
+        origin_preset_folder = os.path.abspath(os.path.join(script_path, dir_repos, fooocus_name, 'presets'))
+        preset_folder = os.path.abspath(os.path.join(script_path, 'presets'))
+        if os.path.exists(preset_folder):
+            shutil.rmtree(preset_folder)
+        shutil.copytree(origin_preset_folder, preset_folder)
 
         sys.argv.append('--preset')
         sys.argv.append(args.preset)
@@ -324,9 +324,6 @@ def pre_setup(skip_sync_repo: bool=False, disable_image_log: bool=False, skip_pi
         gpu_device_id = None
 
     print("[Pre Setup] Prepare environments")
-
-    fooocus_path = os.path.join(script_path, dir_repos, fooocus_name)
-    sys.path.append(fooocus_path)
 
     args = Args()
     args.disable_image_log = disable_image_log
