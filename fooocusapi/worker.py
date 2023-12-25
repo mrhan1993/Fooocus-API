@@ -223,7 +223,7 @@ def process_generate(async_task: QueueTask, params: ImageGenerationParams) -> Li
         denoising_strength = 1.0
         tiled = False
 
-        width, height = aspect_ratios_selection.replace('*', ' ').split(' ')[:2]
+        width, height = aspect_ratios_selection.replace('×', '*').replace('*', ' ').split(' ')[:2]
         width, height = int(width), int(height)
 
         skip_prompt_processing = False
