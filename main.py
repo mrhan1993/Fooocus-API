@@ -321,6 +321,7 @@ def pre_setup(skip_sync_repo: bool=False, disable_image_log: bool=False, skip_pi
         queue_size = 3
         queue_history = 100
         preset = None
+        gpu_device_id = None
 
     print("[Pre Setup] Prepare environments")
 
