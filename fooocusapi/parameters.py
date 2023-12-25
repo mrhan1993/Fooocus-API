@@ -60,7 +60,7 @@ outpaint_expansions = [
 
 
 def get_aspect_ratio_value(label: str) -> str:
-    return label.split(' ')[0].replace('*', '*')
+    return label.split(' ')[0].replace('×', '*')
 
 
 class GenerationFinishReason(str, Enum):

@@ -90,7 +90,7 @@ class SharedFields(BaseModel):
     prompt: str = ""
     negative_prompt: str = ""
     style_selections: str = ""
-    aspect_ratios_selection: str = "1152×896"
+    aspect_ratios_selection: str = "1152*896"
     performance_selection: PerformanceEnum = "Speed"
     image_number: int = 1
     image_seed: int = -1

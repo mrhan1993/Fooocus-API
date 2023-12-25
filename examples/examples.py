@@ -32,7 +32,7 @@ upscale_params = {
     "Fooocus Sharp"
   ],
   "performance_selection": "Speed",
-  "aspect_ratios_selection": "1152×896",
+  "aspect_ratios_selection": "1152*896",
   "image_number": 1,
   "image_seed": -1,
   "sharpness": 2,
@@ -95,7 +95,7 @@ inpaint_params = {
     "Fooocus Sharp"
   ],
   "performance_selection": "Speed",
-  "aspect_ratios_selection": "1152×896",
+  "aspect_ratios_selection": "1152*896",
   "image_number": 1,
   "image_seed": -1,
   "sharpness": 2,
@@ -163,7 +163,7 @@ img_prompt_params = {
     "Fooocus Sharp"
   ],
   "performance_selection": "Speed",
-  "aspect_ratios_selection": "1152×896",
+  "aspect_ratios_selection": "1152*896",
   "image_number": 1,
   "image_seed": -1,
   "sharpness": 2,
