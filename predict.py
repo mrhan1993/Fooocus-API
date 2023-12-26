@@ -18,7 +18,7 @@ class Predictor(BasePredictor):
     def setup(self) -> None:
         """Load the model into memory to make running multiple predictions efficient"""
         from main import pre_setup
-        pre_setup(disable_private_log=True, skip_pip=True, preload_pipeline=True, preset='anime')
+        pre_setup(disable_private_log=True, skip_pip=True, preload_pipeline=True, preset='realistic')
 
     def predict(
         self,

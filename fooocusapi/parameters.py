@@ -5,22 +5,17 @@ import numpy as np
 
 default_inpaint_engine_version = 'v2.6'
 
-
 defualt_styles = [
-    "Fooocus V2",
-    "Fooocus Masterpiece",
-    "SAI Anime",
-    "SAI Digital Art",
-    "SAI Enhance",
-    "SAI Fantasy Art"
-]
-default_base_model_name = 'bluePencilXL_v050.safetensors'
-default_refiner_model_name = 'DreamShaper_8_pruned.safetensors'
-default_refiner_switch = 0.66
-default_loras = [['sd_xl_offset_example-lora_1.0.safetensors', 0.5]]
-default_lora_weight = 0.5
-default_cfg_scale = 7.0
-default_prompt_negative = '(embedding:unaestheticXLv31:0.8), low quality, watermark'
+        "Fooocus V2",
+        "Fooocus Photograph",
+        "Fooocus Negative"
+    ]
+default_base_model_name = 'realisticStockPhoto_v10.safetensors'
+default_refiner_model_name = 'None'
+default_refiner_switch = 0.5
+default_loras = [['SDXL_FILM_PHOTOGRAPHY_STYLE_BetaV0.4.safetensors', 0.25]]
+default_cfg_scale = 3.0
+default_prompt_negative = 'unrealistic, saturated, high contrast, big nose, painting, drawing, sketch, cartoon, anime, manga, render, CG, 3d, watermark, signature, label'
 default_aspect_ratio = '1152*896'
 default_sampler = 'dpmpp_2m_sde_gpu'
 default_scheduler = 'karras'
