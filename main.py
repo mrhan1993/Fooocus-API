@@ -337,6 +337,7 @@ def pre_setup(skip_sync_repo: bool=False, disable_private_log: bool=False, skip_
     args.all_in_fp16 = all_in_fp16
     args.preset = preset
 
+    sys.argv = [sys.argv[0]]
     install_dependents(args)
     
     import fooocusapi.args as _
