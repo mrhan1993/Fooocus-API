@@ -4,7 +4,7 @@
 build:
   # set to true if your model requires a GPU
   gpu: true
-  cuda: "11.8"
+  cuda: "12.1"
 
   # a list of ubuntu apt packages to install
   system_packages:
@@ -30,8 +30,8 @@ build:
     - "omegaconf==2.2.3"
     - "pygit2==1.12.2"
     - "opencv-contrib-python==4.8.0.74"
-    - "torch==2.0.1"
-    - "torchvision==0.15.2"
+    - "torch==2.1.0"
+    - "torchvision==0.16.0"
 
   # commands run after the environment is setup
   # run:

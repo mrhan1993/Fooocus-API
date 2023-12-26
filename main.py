@@ -309,13 +309,13 @@ def prepare_environments(args) -> bool:
 
     return True
 
-def pre_setup(skip_sync_repo: bool=False, disable_image_log: bool=False, skip_pip=False, load_all_models: bool=False, preload_pipeline: bool=False, preset: str | None=None):
+def pre_setup(skip_sync_repo: bool=False, disable_private_log: bool=False, skip_pip=False, load_all_models: bool=False, preload_pipeline: bool=False, preset: str | None=None):
     class Args(object):
         host = '127.0.0.1'
         port = 8888
         base_url = None
         sync_repo = None
-        disable_image_log = False
+        disable_private_log = False
         skip_pip = False
         preload_pipeline = False
         queue_size = 3
@@ -326,11 +326,16 @@ def pre_setup(skip_sync_repo: bool=False, disable_image_log: bool=False, skip_pi
     print("[Pre Setup] Prepare environments")
 
     args = Args()
-    args.disable_image_log = disable_image_log
-    args.preload_pipeline = preload_pipeline
-    args.preset = preset
     if skip_sync_repo:
         args.sync_repo = 'skip'
+    args.disable_private_log = disable_private_log
+    args.skip_pip = skip_pip
+    args.preload_pipeline = preload_pipeline
+    args.preset = preset
+
+    install_dependents(args)
+    
+    import fooocusapi.args as _
     prepare_environments(args)
 
     if load_all_models:
