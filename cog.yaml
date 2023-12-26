@@ -38,7 +38,7 @@ build:
   #   - "echo env is ready!"
   #   - "echo another command if needed"
 
-image: "r8.im/konieshadow/fooocus-api"
+image: "r8.im/konieshadow/fooocus-api-anime"
 
 # predict.py defines how predictions are run on your model
 predict: "predict.py:Predictor"
