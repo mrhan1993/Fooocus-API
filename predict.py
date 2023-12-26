@@ -18,68 +18,76 @@ class Predictor(BasePredictor):
     def setup(self) -> None:
         """Load the model into memory to make running multiple predictions efficient"""
         from main import pre_setup
-        pre_setup(disable_image_log=True, skip_pip=True, preload_pipeline=True, preset=None)
+        pre_setup(disable_private_log=True, skip_pip=True, preload_pipeline=True, preset=None)
 
     def predict(
         self,
-        prompt: str = Input(
-            default='', description="Prompt for image generation"),
-        negative_prompt: str = Input(
-            default=default_prompt_negative, description="Negtive prompt for image generation"),
+        prompt: str = Input( default='', description="Prompt for image generation"),
+        negative_prompt: str = Input( default=default_prompt_negative, 
+                                description="Negtive prompt for image generation"),
         style_selections: str = Input(default=','.join(defualt_styles),
-                                      description="Fooocus styles applied for image generation, seperated by comma"),
-        performance_selection: str = Input(
-            default='Speed', description="Performance selection", choices=['Speed', 'Quality', 'Extreme Speed']),
-        aspect_ratios_selection: str = Input(
-            default='1152×896', description="The generated image's size", choices=available_aspect_ratios),
-        image_number: int = Input(
-            default=1, description="How many image to generate", ge=1, le=8),
-        image_seed: int = Input(
-            default=-1, description="Seed to generate image, -1 for random"),
+                                description="Fooocus styles applied for image generation, seperated by comma"),
+        performance_selection: str = Input( default='Speed', 
+                                description="Performance selection", choices=['Speed', 'Quality', 'Extreme Speed']),
+        aspect_ratios_selection: str = Input(default='1152*896', 
+                                description="The generated image's size", choices=available_aspect_ratios),
+        image_number: int = Input(default=1, 
+                                description="How many image to generate", ge=1, le=8),
+        image_seed: int = Input(default=-1, 
+                                description="Seed to generate image, -1 for random"),
         sharpness: float = Input(default=2.0, ge=0.0, le=30.0),
         guidance_scale: float = Input(default=default_cfg_scale, ge=1.0, le=30.0),
         refiner_switch: float = Input(default=default_refiner_switch, ge=0.1, le=1.0),
-        uov_input_image: Path = Input(
-            default=None, description="Input image for upscale or variation, keep None for not upscale or variation"),
+        uov_input_image: Path = Input(default=None, 
+                                description="Input image for upscale or variation, keep None for not upscale or variation"),
         uov_method: str = Input(default='Disabled', choices=uov_methods),
-        inpaint_input_image: Path = Input(
-            default=None, description="Input image for inpaint or outpaint, keep None for not inpaint or outpaint. Please noticed, `uov_input_image` has bigger priority is not None."),
-        inpaint_input_mask: Path = Input(
-            default=None, description="Input mask for inpaint"),
-        outpaint_selections: str = Input(
-            default='', description="Outpaint expansion selections, literal 'Left', 'Right', 'Top', 'Bottom' seperated by comma"),
-        cn_img1: Path = Input(
-            default=None, description="Input image for image prompt. If all cn_img[n] are None, image prompt will not applied."),
-        cn_stop1: float = Input(
-            default=None, ge=0, le=1, description="Stop at for image prompt, None for default value"),
-        cn_weight1: float = Input(
-            default=None, ge=0, le=2, description="Weight for image prompt, None for default value"),
+        uov_upscale_value: float = Input(default=0, description="Only when Upscale (Custom)"),
+        inpaint_additional_prompt: str = Input( default='', description="Prompt for image generation"),
+        inpaint_input_image: Path = Input(default=None, 
+                                description="Input image for inpaint or outpaint, keep None for not inpaint or outpaint. Please noticed, `uov_input_image` has bigger priority is not None."),
+        inpaint_input_mask: Path = Input(default=None, 
+                                description="Input mask for inpaint"),
+        outpaint_selections: str = Input(default='', 
+                                description="Outpaint expansion selections, literal 'Left', 'Right', 'Top', 'Bottom' seperated by comma"),
+        outpaint_distance_left: int = Input(default=0, 
+                                description="Outpaint expansion distance from Left of the image"),
+        outpaint_distance_top: int = Input(default=0, 
+                                description="Outpaint expansion distance from Top of the image"),
+        outpaint_distance_right: int = Input(default=0, 
+                                description="Outpaint expansion distance from Right of the image"),
+        outpaint_distance_bottom: int = Input(default=0, 
+                                description="Outpaint expansion distance from Bottom of the image"),
+        cn_img1: Path = Input(default=None, 
+                                description="Input image for image prompt. If all cn_img[n] are None, image prompt will not applied."),
+        cn_stop1: float = Input(default=None, ge=0, le=1, 
+                                description="Stop at for image prompt, None for default value"),
+        cn_weight1: float = Input(default=None, ge=0, le=2, 
+                                description="Weight for image prompt, None for default value"),
         cn_type1: str = Input(default='ImagePrompt', description="ControlNet type for image prompt", choices=[
                               'ImagePrompt', 'FaceSwap', 'PyraCanny', 'CPDS']),
-        cn_img2: Path = Input(
-            default=None, description="Input image for image prompt. If all cn_img[n] are None, image prompt will not applied."),
-        cn_stop2: float = Input(
-            default=None, ge=0, le=1, description="Stop at for image prompt, None for default value"),
-        cn_weight2: float = Input(
-            default=None, ge=0, le=2, description="Weight for image prompt, None for default value"),
+        cn_img2: Path = Input(default=None, 
+                              description="Input image for image prompt. If all cn_img[n] are None, image prompt will not applied."),
+        cn_stop2: float = Input(default=None, ge=0, le=1, 
+                                description="Stop at for image prompt, None for default value"),
+        cn_weight2: float = Input(default=None, ge=0, le=2, 
+                                description="Weight for image prompt, None for default value"),
         cn_type2: str = Input(default='ImagePrompt', description="ControlNet type for image prompt", choices=[
                               'ImagePrompt', 'FaceSwap', 'PyraCanny', 'CPDS']),
-        cn_img3: Path = Input(
-            default=None, description="Input image for image prompt. If all cn_img[n] are None, image prompt will not applied."),
-        cn_stop3: float = Input(
-            default=None, ge=0, le=1, description="Stop at for image prompt, None for default value"),
-        cn_weight3: float = Input(
-            default=None, ge=0, le=2, description="Weight for image prompt, None for default value"),
-        cn_type3: str = Input(default='ImagePrompt', description="ControlNet type for image prompt", choices=[
-                              'ImagePrompt', 'FaceSwap', 'PyraCanny', 'CPDS']),
-        cn_img4: Path = Input(
-            default=None, description="Input image for image prompt. If all cn_img[n] are None, image prompt will not applied."),
-        cn_stop4: float = Input(
-            default=None, ge=0, le=1, description="Stop at for image prompt, None for default value"),
-        cn_weight4: float = Input(
-            default=None, ge=0, le=2, description="Weight for image prompt, None for default value"),
-        cn_type4: str = Input(default='ImagePrompt', description="ControlNet type for image prompt", choices=[
-                              'ImagePrompt', 'FaceSwap', 'PyraCanny', 'CPDS']),
+        cn_img3: Path = Input(default=None, 
+                              description="Input image for image prompt. If all cn_img[n] are None, image prompt will not applied."),
+        cn_stop3: float = Input(default=None, ge=0, le=1, 
+                                description="Stop at for image prompt, None for default value"),
+        cn_weight3: float = Input(default=None, ge=0, le=2, 
+                                description="Weight for image prompt, None for default value"),
+        cn_type3: str = Input(default='ImagePrompt', 
+                              description="ControlNet type for image prompt", choices=['ImagePrompt', 'FaceSwap', 'PyraCanny', 'CPDS']),
+        cn_img4: Path = Input(default=None, 
+                              description="Input image for image prompt. If all cn_img[n] are None, image prompt will not applied."),
+        cn_stop4: float = Input(default=None, ge=0, le=1, 
+                                description="Stop at for image prompt, None for default value"),
+        cn_weight4: float = Input(default=None, ge=0, le=2, 
+                                description="Weight for image prompt, None for default value"),
+        cn_type4: str = Input(default='ImagePrompt', description="ControlNet type for image prompt", choices=['ImagePrompt', 'FaceSwap', 'PyraCanny', 'CPDS']),
     ) -> List[Path]:
         """Run a single prediction on the model"""
         import modules.flags as flags
@@ -136,24 +144,30 @@ class Predictor(BasePredictor):
         advanced_params = None
 
         params = ImageGenerationParams(prompt=prompt,
-                                       negative_prompt=negative_prompt,
-                                       style_selections=style_selections_arr,
-                                       performance_selection=performance_selection,
-                                       aspect_ratios_selection=aspect_ratios_selection,
-                                       image_number=image_number,
-                                       image_seed=image_seed,
-                                       sharpness=sharpness,
-                                       guidance_scale=guidance_scale,
-                                       base_model_name=base_model_name,
-                                       refiner_model_name=refiner_model_name,
-                                       refiner_switch=refiner_switch,
-                                       loras=loras,
-                                       uov_input_image=uov_input_image,
-                                       uov_method=uov_method,
-                                       outpaint_selections=outpaint_selections_arr,
-                                       inpaint_input_image=inpaint_input_image_dict,
-                                       image_prompts=image_prompts,
-                                       advanced_params=advanced_params
+                                        negative_prompt=negative_prompt,
+                                        style_selections=style_selections_arr,
+                                        performance_selection=performance_selection,
+                                        aspect_ratios_selection=aspect_ratios_selection,
+                                        image_number=image_number,
+                                        image_seed=image_seed,
+                                        sharpness=sharpness,
+                                        guidance_scale=guidance_scale,
+                                        base_model_name=base_model_name,
+                                        refiner_model_name=refiner_model_name,
+                                        refiner_switch=refiner_switch,
+                                        loras=loras,
+                                        uov_input_image=uov_input_image,
+                                        uov_method=uov_method,
+                                        upscale_value=uov_upscale_value,
+                                        outpaint_selections=outpaint_selections_arr,
+                                        inpaint_input_image=inpaint_input_image_dict,
+                                        image_prompts=image_prompts,
+                                        advanced_params=advanced_params,
+                                        inpaint_additional_prompt=inpaint_additional_prompt,
+                                        outpaint_distance_left=outpaint_distance_left,
+                                        outpaint_distance_top=outpaint_distance_top,
+                                        outpaint_distance_right=outpaint_distance_right,
+                                        outpaint_distance_bottom=outpaint_distance_bottom
                                        )
 
         print(f"[Predictor Predict] Params: {params.__dict__}")

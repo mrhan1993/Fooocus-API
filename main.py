@@ -284,9 +284,7 @@ def prepare_environments(args) -> bool:
         if os.path.exists(preset_folder):
             shutil.rmtree(preset_folder)
         shutil.copytree(origin_preset_folder, preset_folder)
-
-        sys.argv.append('--preset')
-        sys.argv.append(args.preset)
+        
     import modules.config as config
     import fooocusapi.parameters as parameters
     parameters.default_inpaint_engine_version = config.default_inpaint_engine_version
@@ -309,27 +307,42 @@ def prepare_environments(args) -> bool:
 
     return True
 
-def pre_setup(skip_sync_repo: bool=False, disable_image_log: bool=False, skip_pip=False, load_all_models: bool=False, preload_pipeline: bool=False, preset: str | None=None):
+def pre_setup(skip_sync_repo: bool=False, disable_private_log: bool=False, skip_pip=False, load_all_models: bool=False, preload_pipeline: bool=False, always_gpu: bool=False, all_in_fp16: bool=False, preset: str | None=None):
     class Args(object):
         host = '127.0.0.1'
         port = 8888
         base_url = None
         sync_repo = None
-        disable_image_log = False
+        disable_private_log = False
         skip_pip = False
         preload_pipeline = False
         queue_size = 3
         queue_history = 100
         preset = None
+        always_gpu = False
+        all_in_fp16 = False
+        gpu_device_id = None
 
     print("[Pre Setup] Prepare environments")
 
     args = Args()
-    args.disable_image_log = disable_image_log
-    args.preload_pipeline = preload_pipeline
-    args.preset = preset
     if skip_sync_repo:
         args.sync_repo = 'skip'
+    args.disable_private_log = disable_private_log
+    args.skip_pip = skip_pip
+    args.preload_pipeline = preload_pipeline
+    args.always_gpu = always_gpu
+    args.all_in_fp16 = all_in_fp16
+    args.preset = preset
+
+    sys.argv = [sys.argv[0]]
+    if args.preset is not None:
+        sys.argv.append('--preset')
+        sys.argv.append(args.preset)
+
+    install_dependents(args)
+    
+    import fooocusapi.args as _
     prepare_environments(args)
 
     if load_all_models:

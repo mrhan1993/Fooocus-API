@@ -15,42 +15,42 @@ default_lora_name = 'sd_xl_offset_example-lora_1.0.safetensors'
 default_lora_weight = 0.1
 default_cfg_scale = 4.0
 default_prompt_negative = ''
-default_aspect_ratio = '1152×896'
+default_aspect_ratio = '1152*896'
 default_sampler = 'dpmpp_2m_sde_gpu'
 default_scheduler = 'karras'
 
 
 available_aspect_ratios = [
-    '704×1408',
-    '704×1344',
-    '768×1344',
-    '768×1280',
-    '832×1216',
-    '832×1152',
-    '896×1152',
-    '896×1088',
-    '960×1088',
-    '960×1024',
-    '1024×1024',
-    '1024×960',
-    '1088×960',
-    '1088×896',
-    '1152×896',
-    '1152×832',
-    '1216×832',
-    '1280×768',
-    '1344×768',
-    '1344×704',
-    '1408×704',
-    '1472×704',
-    '1536×640',
-    '1600×640',
-    '1664×576',
-    '1728×576',
+    '704*1408',
+    '704*1344',
+    '768*1344',
+    '768*1280',
+    '832*1216',
+    '832*1152',
+    '896*1152',
+    '896*1088',
+    '960*1088',
+    '960*1024',
+    '1024*1024',
+    '1024*960',
+    '1088*960',
+    '1088*896',
+    '1152*896',
+    '1152*832',
+    '1216*832',
+    '1280*768',
+    '1344*768',
+    '1344*704',
+    '1408*704',
+    '1472*704',
+    '1536*640',
+    '1600*640',
+    '1664*576',
+    '1728*576',
 ]
 
 uov_methods = [
-    'Disabled', 'Vary (Subtle)', 'Vary (Strong)', 'Upscale (1.5x)', 'Upscale (2x)', 'Upscale (Fast 2x)'
+    'Disabled', 'Vary (Subtle)', 'Vary (Strong)', 'Upscale (1.5x)', 'Upscale (2x)', 'Upscale (Fast 2x)', 'Upscale (Custom)'
 ]
 
 
@@ -60,7 +60,7 @@ outpaint_expansions = [
 
 
 def get_aspect_ratio_value(label: str) -> str:
-    return label.split(' ')[0].replace('*', '×')
+    return label.split(' ')[0].replace('×', '*')
 
 
 class GenerationFinishReason(str, Enum):
