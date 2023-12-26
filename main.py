@@ -309,7 +309,7 @@ def prepare_environments(args) -> bool:
 
     return True
 
-def pre_setup(skip_sync_repo: bool=False, disable_private_log: bool=False, skip_pip=False, load_all_models: bool=False, preload_pipeline: bool=False, preset: str | None=None):
+def pre_setup(skip_sync_repo: bool=False, disable_private_log: bool=False, skip_pip=False, load_all_models: bool=False, preload_pipeline: bool=False, always_gpu: bool=False, all_in_fp16: bool=False, preset: str | None=None):
     class Args(object):
         host = '127.0.0.1'
         port = 8888
@@ -321,6 +321,8 @@ def pre_setup(skip_sync_repo: bool=False, disable_private_log: bool=False, skip_
         queue_size = 3
         queue_history = 100
         preset = None
+        always_gpu = False
+        all_in_fp16 = False
         gpu_device_id = None
 
     print("[Pre Setup] Prepare environments")
@@ -331,6 +333,8 @@ def pre_setup(skip_sync_repo: bool=False, disable_private_log: bool=False, skip_
     args.disable_private_log = disable_private_log
     args.skip_pip = skip_pip
     args.preload_pipeline = preload_pipeline
+    args.always_gpu = always_gpu
+    args.all_in_fp16 = all_in_fp16
     args.preset = preset
 
     install_dependents(args)
