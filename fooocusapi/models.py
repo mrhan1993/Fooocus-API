@@ -114,7 +114,7 @@ class Text2ImgRequest(BaseModel):
     refiner_model_name: str = default_refiner_model_name
     refiner_switch: float = Field(default=default_refiner_switch, description="Refiner Switch At", ge=0.1, le=1.0)
     loras: List[Lora] = Field(default=default_loras_model)
-    advanced_params: AdvancedParams | None = Field(deafult=None, description="Advanced parameters")
+    advanced_params: AdvancedParams | None = AdvancedParams()
     require_base64: bool = Field(default=False, description="Return base64 data of generated image")
     async_process: bool = Field(default=False, description="Set to true will run async and return job info for retrieve generataion result later")
 
