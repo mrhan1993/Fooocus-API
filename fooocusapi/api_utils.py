@@ -167,7 +167,7 @@ def generation_output(results: QueueTask | List[ImageGenerationResult], streamin
 
                     job_result = generation_output(task.task_result, False, task_result_require_base64)
         job_step_preview = None if not require_step_preivew else task.task_step_preview
-        return AsyncJobResponse(job_id=task.seq,
+        return AsyncJobResponse(job_id=task.job_id,
                                 job_type=task.type,
                                 job_stage=job_stage,
                                 job_progress=task.finish_progress,
