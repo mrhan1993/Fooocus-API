@@ -263,7 +263,8 @@ def prepare_environments(args) -> bool:
     import fooocusapi.worker as worker
     worker.task_queue.queue_size = args.queue_size
     worker.task_queue.history_size = args.queue_history
-    print(f"[Fooocus-API] Task queue size: {args.queue_size}, queue history size: {args.queue_history}")
+    worker.task_queue.webhook_url = args.webhook_url
+    print(f"[Fooocus-API] Task queue size: {args.queue_size}, queue history size: {args.queue_history}, webhook url: {args.webhook_url}")
 
     if args.gpu_device_id is not None:
         os.environ['CUDA_VISIBLE_DEVICES'] = str(args.gpu_device_id)

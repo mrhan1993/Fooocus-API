@@ -383,12 +383,12 @@ class AsyncJobStage(str, Enum):
 
 
 class QueryJobRequest(BaseModel):
-    job_id: int = Field(description="Job ID to query")
+    job_id: str = Field(description="Job ID to query")
     require_step_preivew: bool = Field(False, description="Set to true will return preview image of generation steps at current time")
 
 
 class AsyncJobResponse(BaseModel):
-    job_id: int = Field(description="Job ID")
+    job_id: str = Field(description="Job ID")
     job_type: TaskType = Field(description="Job type")
     job_stage: AsyncJobStage = Field(description="Job running stage")
     job_progress: int = Field(description="Job running progress, 100 is for finished.")
@@ -400,7 +400,7 @@ class AsyncJobResponse(BaseModel):
 class JobQueueInfo(BaseModel):
     running_size: int = Field(description="The current running and waiting job count")
     finished_size: int = Field(description="Finished job cound (after auto clean)")
-    last_job_id: int = Field(description="Last submit generation job id")
+    last_job_id: str = Field(description="Last submit generation job id")
 
 
 class AllModelNamesResponse(BaseModel):
