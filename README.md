@@ -106,6 +106,10 @@ All the generation api support for response in PNG bytes directly when request's
 
 All the generation api support async process by pass parameter `async_process` to true. And then use query job api to retrieve progress and generation results.
 
+Break changes from v0.3.26
+
+- The `job_id` field from `Query Job` and `Query Job Queue Info` apis change type to str. It's an uuid now, which will avoid conflict between each startup.
+
 Break changes from v0.3.25
 
 - Removed cli argument `disable-private-log`. You can use Fooocus's `--disable-image-log` for the same purpose.
