@@ -56,6 +56,7 @@ class QueueTask(object):
 class TaskQueue(object):
     queue: List[QueueTask] = []
     history: List[QueueTask] = []
+    last_job_id = None
     webhook_url: str | None = None
 
     def __init__(self, queue_size: int, hisotry_size: int, webhook_url: str | None = None):
@@ -71,9 +72,11 @@ class TaskQueue(object):
         if len(self.queue) >= self.queue_size:
             return None
 
-        task = QueueTask(job_id=str(uuid.uuid4()), type=type, req_param=req_param,
+        job_id = str(uuid.uuid4())
+        task = QueueTask(job_id=job_id, type=type, req_param=req_param,
                          in_queue_millis=int(round(time.time() * 1000)))
         self.queue.append(task)
+        self.last_job_id = job_id
         return task
 
     def get_task(self, job_id: str, include_history: bool = False) -> QueueTask | None:

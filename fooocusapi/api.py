@@ -246,7 +246,7 @@ def query_job(req: QueryJobRequest=Depends()):
 
 @app.get("/v1/generation/job-queue", response_model=JobQueueInfo, description="Query job queue info")
 def job_queue():
-    return JobQueueInfo(running_size=len(task_queue.queue), finished_size=len(task_queue.history), last_job_id=task_queue.last_seq)
+    return JobQueueInfo(running_size=len(task_queue.queue), finished_size=len(task_queue.history), last_job_id=task_queue.last_job_id)
 
 
 @app.post("/v1/generation/stop", response_model=StopResponse, description="Job stoping")
