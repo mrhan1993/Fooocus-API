@@ -68,7 +68,8 @@ def call_worker(req: Text2ImgRequest, accept: str):
 
     params = req_to_params(req)
     queue_task = task_queue.add_task(
-        task_type, {'params': params.__dict__, 'accept': accept, 'require_base64': req.require_base64})
+        task_type, {'params': params.__dict__, 'accept': accept, 'require_base64': req.require_base64},
+        webhook_url=req.webhook_url)
 
     if queue_task is None:
         print("[Task Queue] The task queue has reached limit")
