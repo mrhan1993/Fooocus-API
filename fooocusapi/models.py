@@ -4,7 +4,7 @@ from fastapi import Form, UploadFile
 from fastapi.params import File
 from fastapi.exceptions import RequestValidationError
 
-from pydantic import BaseModel, ConfigDict, Field, TypeAdapter, ValidationError, parse_obj_as
+from pydantic import BaseModel, ConfigDict, Field, TypeAdapter, ValidationError
 from pydantic_core import InitErrorDetails
 
 from typing import List

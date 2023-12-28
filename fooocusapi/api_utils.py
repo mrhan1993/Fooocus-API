@@ -82,9 +82,9 @@ def req_to_params(req: Text2ImgRequest) -> ImageGenerationParams:
         for img_prompt in req.image_prompts:
             if img_prompt.cn_img is not None:
                 cn_img = read_input_image(img_prompt.cn_img)
-                if img_prompt.cn_stop is None:
+                if img_prompt.cn_stop is None or img_prompt.cn_stop == 0:
                     img_prompt.cn_stop = flags.default_parameters[img_prompt.cn_type.value][0]
-                if img_prompt.cn_weight is None:
+                if img_prompt.cn_weight is None or img_prompt.cn_weight == 0:
                     img_prompt.cn_weight = flags.default_parameters[img_prompt.cn_type.value][1]
                 image_prompts.append(
                     (cn_img, img_prompt.cn_stop, img_prompt.cn_weight, img_prompt.cn_type.value))

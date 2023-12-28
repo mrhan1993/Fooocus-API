@@ -2,6 +2,7 @@ import json
 import requests
 import os
 import base64
+from examples.models import ControlNetEnum, ImagePromptParams, ImagePromptParamsJson, ImgInpaintOrOutpaintParams, ImgInpaintOrOutpaintParamsJson, ImgUpscaleOrVaryParams, ImgUpscaleOrVaryParamsJson, Text2ImgParams, UpscaleOrVaryMethod
 
 from models import *
 
@@ -24,9 +25,9 @@ def txt2img(params: Text2ImgParams) -> dict:
     """
     text to image
     """
-    date = json.dumps(params.model_dump())
+    data = json.dumps(params.model_dump())
     response = requests.post(url=f"{cfg.fooocus_host}{cfg.text2img}",
-                        data=date,
+                        data=data,
                         timeout=30)
     return response.json()
 

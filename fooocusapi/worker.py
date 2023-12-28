@@ -470,7 +470,7 @@ def process_generate(async_task: QueueTask, params: ImageGenerationParams) -> Li
             print(f'Image upscaled.')
 
             f = 1.0
-            if upscale_value is not None:
+            if upscale_value is not None and upscale_value > 1.0:
                 f = upscale_value
             else:
                 pattern = r"([0-9]+(?:\.[0-9]+)?)x"
