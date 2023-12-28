@@ -195,10 +195,10 @@ class ImgInpaintOrOutpaintRequest(Text2ImgRequest):
                 outpaint_selections: List[str] = Form(
                     [], description="Outpaint expansion selections, literal 'Left', 'Right', 'Top', 'Bottom' seperated by comma"),
                 
-                outpaint_distance_left: int = Form(default=0, description="Set outpaint left distance, 0 for default"),
-                outpaint_distance_right: int = Form(default=0, description="Set outpaint right distance, 0 for default"),
-                outpaint_distance_top: int = Form(default=0, description="Set outpaint top distance, 0 for default"),
-                outpaint_distance_bottom: int = Form(default=0, description="Set outpaint bottom distance, 0 for default"),
+                outpaint_distance_left: int = Form(default=0, description="Set outpaint left distance, -1 for default"),
+                outpaint_distance_right: int = Form(default=0, description="Set outpaint right distance, -1 for default"),
+                outpaint_distance_top: int = Form(default=0, description="Set outpaint top distance, -1 for default"),
+                outpaint_distance_bottom: int = Form(default=0, description="Set outpaint bottom distance, -1 for default"),
                 prompt: str = Form(''),
                 negative_prompt: str = Form(default_prompt_negative),
                 style_selections: List[str] = Form(defualt_styles, description="Fooocus style selections, seperated by comma"),
@@ -257,7 +257,7 @@ class ImgInpaintOrOutpaintRequest(Text2ImgRequest):
                 errs = ve.errors()
                 raise RequestValidationError(errors=[errs])
 
-        return cls(input_image=input_image, input_mask=input_mask, inpaint_additional_prompt=inpaint_additional_prompt,outpaint_selections=outpaint_selections_arr,
+        return cls(input_image=input_image, input_mask=input_mask, inpaint_additional_prompt=inpaint_additional_prompt, outpaint_selections=outpaint_selections_arr,
                    outpaint_distance_left=outpaint_distance_left, outpaint_distance_right=outpaint_distance_right, outpaint_distance_top=outpaint_distance_top, outpaint_distance_bottom=outpaint_distance_bottom,
                    prompt=prompt, negative_prompt=negative_prompt, style_selections=style_selection_arr,
                    performance_selection=performance_selection, aspect_ratios_selection=aspect_ratios_selection,
@@ -266,11 +266,19 @@ class ImgInpaintOrOutpaintRequest(Text2ImgRequest):
                    loras=loras_model, advanced_params=advanced_params_obj, require_base64=require_base64, async_process=async_process)
 
 
-class ImgPromptRequest(Text2ImgRequest):
+class ImgPromptRequest(ImgInpaintOrOutpaintRequest):
     image_prompts: List[ImagePrompt]
 
     @classmethod
-    def as_form(cls, cn_img1: UploadFile = Form(File(None), description="Input image for image prompt"),
+    def as_form(cls, input_image: UploadFile = Form(Field(None), description="Init image for inpaint or outpaint"),
+                input_mask: UploadFile = Form(File(None), description="Inpaint or outpaint mask"),
+                inpaint_additional_prompt: str | None = Form(None, description="Describe what you want to inpaint"),
+                outpaint_selections: List[str] = Form([], description="Outpaint expansion selections, literal 'Left', 'Right', 'Top', 'Bottom' seperated by comma"),
+                outpaint_distance_left: int = Form(default=0, description="Set outpaint left distance, 0 for default"),
+                outpaint_distance_right: int = Form(default=0, description="Set outpaint right distance, 0 for default"),
+                outpaint_distance_top: int = Form(default=0, description="Set outpaint top distance, 0 for default"),
+                outpaint_distance_bottom: int = Form(default=0, description="Set outpaint bottom distance, 0 for default"),
+                cn_img1: UploadFile = Form(File(None), description="Input image for image prompt"),
                 cn_stop1: float | None = Form(
                     default=None, ge=0, le=1, description="Stop at for image prompt, None for default value"),
                 cn_weight1: float | None = Form(
@@ -320,6 +328,10 @@ class ImgPromptRequest(Text2ImgRequest):
                 require_base64: bool = Form(default=False, description="Return base64 data of generated image"),
                 async_process: bool = Form(default=False, description="Set to true will run async and return job info for retrieve generataion result later"),
                 ):
+        if isinstance(input_image, File):
+            input_image = None
+        if isinstance(input_mask, File):
+            input_mask = None
         if isinstance(cn_img1, File):
             cn_img1 = None
         if isinstance(cn_img2, File):
@@ -328,6 +340,18 @@ class ImgPromptRequest(Text2ImgRequest):
             cn_img3 = None
         if isinstance(cn_img4, File):
             cn_img4 = None
+
+        outpaint_selections_arr: List[OutpaintExpansion] = []
+        for part in outpaint_selections:
+            if len(part) > 0:
+                for s in part.split(','):
+                    try:
+                        expansion = OutpaintExpansion(s)
+                        outpaint_selections_arr.append(expansion)
+                    except ValueError as ve:
+                        err = InitErrorDetails(type='enum', loc=['outpaint_selections'], input=outpaint_selections, ctx={
+                            'expected': "Literal 'Left', 'Right', 'Top', 'Bottom' seperated by comma"})
+                        raise RequestValidationError(errors=[err])
 
         image_prompts: List[ImagePrompt] = []
         image_prompt_config = [(cn_img1, cn_stop1, cn_weight1, cn_type1), (cn_img2, cn_stop2, cn_weight2, cn_type2),
@@ -360,7 +384,9 @@ class ImgPromptRequest(Text2ImgRequest):
                 errs = ve.errors()
                 raise RequestValidationError(errors=[errs])
 
-        return cls(image_prompts=image_prompts, prompt=prompt, negative_prompt=negative_prompt, style_selections=style_selection_arr,
+        return cls(input_image=input_image, input_mask=input_mask, inpaint_additional_prompt=inpaint_additional_prompt, outpaint_selections=outpaint_selections_arr,
+                   outpaint_distance_left=outpaint_distance_left, outpaint_distance_right=outpaint_distance_right, outpaint_distance_top=outpaint_distance_top, outpaint_distance_bottom=outpaint_distance_bottom,
+                   image_prompts=image_prompts, prompt=prompt, negative_prompt=negative_prompt, style_selections=style_selection_arr,
                    performance_selection=performance_selection, aspect_ratios_selection=aspect_ratios_selection,
                    image_number=image_number, image_seed=image_seed, sharpness=sharpness, guidance_scale=guidance_scale,
                    base_model_name=base_model_name, refiner_model_name=refiner_model_name, refiner_switch=refiner_switch,

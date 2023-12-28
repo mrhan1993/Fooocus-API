@@ -25,5 +25,6 @@ class ImagePromptJson(BaseModel):
     cn_type: ControlNetType = Field(default=ControlNetType.cn_ip, description="ControlNet type for image prompt")
 
 
-class ImgPromptRequestJson(Text2ImgRequest):
+class ImgPromptRequestJson(ImgInpaintOrOutpaintRequestJson):
+    input_image: str | None = Field(None, description="Init image for inpaint or outpaint as base64")
     image_prompts: List[ImagePromptJson | ImagePrompt]

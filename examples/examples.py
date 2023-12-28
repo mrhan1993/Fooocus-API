@@ -45,7 +45,7 @@ headers = {
 
 imgs_base_path = os.path.join(os.path.dirname(__file__), 'imgs')
 
-with open(os.path.join(imgs_base_path, "1485005453352708.jpeg"), "rb") as f:
+with open(os.path.join(imgs_base_path, "bear.jpg"), "rb") as f:
     img1 = f.read()
     image_base64 = base64.b64encode(img1).decode('utf-8')  
     f.close()
@@ -92,8 +92,22 @@ def image_prompt(img_prompt: list, params: dict) -> dict:
     """
     Image Prompt
     """
-    params["prompt"] = "cat"
     params["image_prompts"] = img_prompt
+    data = json.dumps(params)
+    response = requests.post(url=f"{cfg.fooocus_host}{cfg.img_prompt}",
+                        data=data,
+                        headers=headers,
+                        timeout=300)
+    return response.json()
+
+def image_prompt_with_inpaint(img_prompt: list, input_image: str, input_mask: str, params: dict) -> dict:
+    """
+    Image Prompt
+    """
+    params["image_prompts"] = img_prompt
+    params["input_image"] = input_image
+    params["input_mask"] = input_mask
+    params["outpaint_selections"] = ["Left", "Right"]
     data = json.dumps(params)
     response = requests.post(url=f"{cfg.fooocus_host}{cfg.img_prompt}",
                         data=data,
@@ -108,13 +122,9 @@ img_prompt = [
         "cn_stop": 0.6,
         "cn_weight": 0.6,
         "cn_type": "ImagePrompt"
-    },{
-        "cn_img": s_base64,
-        "cn_stop": 0.6,
-        "cn_weight": 0.6,
-        "cn_type": "ImagePrompt"
     }
 ]
 # print(upscale_vary(image=image_base64))
 # print(inpaint_outpaint(input_image=s_base64, input_mask=m_base64))
-print(image_prompt(img_prompt=img_prompt, params=img_prompt_params))
+# print(image_prompt(img_prompt=img_prompt, params=img_prompt_params))
+print(image_prompt_with_inpaint(img_prompt=img_prompt, input_image=s_base64, input_mask=m_base64, params=img_prompt_params))

@@ -112,7 +112,7 @@ def image_prompt_v2(params: ImagePromptParamsJson = ImagePromptParamsJson()) -> 
 if __name__ == '__main__':
     imgs_base_path = os.path.join(os.path.dirname(__file__), 'imgs')
 
-    input_image = open(os.path.join(imgs_base_path,'1485005453352708.jpeg'), 'rb').read()
+    input_image = open(os.path.join(imgs_base_path,'bear.jpg'), 'rb').read()
     input_source = open(os.path.join(imgs_base_path,'s.jpg'), 'rb').read()
     input_mask = open(os.path.join(imgs_base_path,'m.png'), 'rb').read()
 
