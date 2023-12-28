@@ -402,6 +402,10 @@ class JobQueueInfo(BaseModel):
     finished_size: int = Field(description="Finished job cound (after auto clean)")
     last_job_id: str = Field(description="Last submit generation job id")
 
+# Response model for the historical tasks
+class HistoryResponse(BaseModel):
+    queue: List[QueueTask] = []
+    history: List[QueueTask] = []
 
 class AllModelNamesResponse(BaseModel):
     model_filenames: List[str] = Field(description="All available model filenames")
