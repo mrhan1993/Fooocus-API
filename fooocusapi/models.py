@@ -114,7 +114,7 @@ class Text2ImgRequest(BaseModel):
     refiner_model_name: str = default_refiner_model_name
     refiner_switch: float = Field(default=default_refiner_switch, description="Refiner Switch At", ge=0.1, le=1.0)
     loras: List[Lora] = Field(default=default_loras_model)
-    advanced_params: AdvancedParams | None = Field(deafult=None, description="Advanced parameters")
+    advanced_params: AdvancedParams | None = AdvancedParams()
     require_base64: bool = Field(default=False, description="Return base64 data of generated image")
     async_process: bool = Field(default=False, description="Set to true will run async and return job info for retrieve generataion result later")
 
@@ -383,12 +383,12 @@ class AsyncJobStage(str, Enum):
 
 
 class QueryJobRequest(BaseModel):
-    job_id: int = Field(description="Job ID to query")
+    job_id: str = Field(description="Job ID to query")
     require_step_preivew: bool = Field(False, description="Set to true will return preview image of generation steps at current time")
 
 
 class AsyncJobResponse(BaseModel):
-    job_id: int = Field(description="Job ID")
+    job_id: str = Field(description="Job ID")
     job_type: TaskType = Field(description="Job type")
     job_stage: AsyncJobStage = Field(description="Job running stage")
     job_progress: int = Field(description="Job running progress, 100 is for finished.")
@@ -400,7 +400,7 @@ class AsyncJobResponse(BaseModel):
 class JobQueueInfo(BaseModel):
     running_size: int = Field(description="The current running and waiting job count")
     finished_size: int = Field(description="Finished job cound (after auto clean)")
-    last_job_id: int = Field(description="Last submit generation job id")
+    last_job_id: str = Field(description="Last submit generation job id")
 
 
 class AllModelNamesResponse(BaseModel):

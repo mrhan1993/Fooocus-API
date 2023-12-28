@@ -13,3 +13,4 @@ def add_base_args(parser: ArgumentParser, before_prepared: bool):
     parser.add_argument("--preload-pipeline", default=False, action="store_true", help="Preload pipeline before start http server")
     parser.add_argument("--queue-size", type=int, default=3, help="Working queue size, default: 3, generation requests exceeding working queue size will return failure")
     parser.add_argument("--queue-history", type=int, default=100, help="Finished jobs reserve size, tasks exceeding the limit will be deleted, including output image files, default: 100")
+    parser.add_argument('--webhook-url', type=str, default=None, help='The URL to send a POST request when a job is finished')

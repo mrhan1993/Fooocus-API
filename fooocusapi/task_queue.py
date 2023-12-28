@@ -1,8 +1,10 @@
 from enum import Enum
 import time
 import numpy as np
+import uuid
 from typing import List, Tuple
-from fooocusapi.file_utils import delete_output_file
+import requests
+from fooocusapi.file_utils import delete_output_file, get_file_serve_url
 
 from fooocusapi.img_utils import narray_to_base64img
 from fooocusapi.parameters import ImageGenerationResult, GenerationFinishReason
@@ -16,6 +18,7 @@ class TaskType(str, Enum):
 
 
 class QueueTask(object):
+    job_id: str
     is_finished: bool = False
     finish_progress: int = 0
     start_millis: int = 0
@@ -26,8 +29,8 @@ class QueueTask(object):
     task_result: any = None
     error_message: str | None = None
 
-    def __init__(self, seq: int, type: TaskType, req_param: dict, in_queue_millis: int):
-        self.seq = seq
+    def __init__(self, job_id: str, type: TaskType, req_param: dict, in_queue_millis: int):
+        self.job_id = job_id
         self.type = type
         self.req_param = req_param
         self.in_queue_millis = in_queue_millis
@@ -53,55 +56,73 @@ class QueueTask(object):
 class TaskQueue(object):
     queue: List[QueueTask] = []
     history: List[QueueTask] = []
-    last_seq = 0
+    last_job_id = None
+    webhook_url: str | None = None
 
-    def __init__(self, queue_size: int, hisotry_size: int):
+    def __init__(self, queue_size: int, hisotry_size: int, webhook_url: str | None = None):
         self.queue_size = queue_size
         self.history_size = hisotry_size
+        self.webhook_url = webhook_url
 
     def add_task(self, type: TaskType, req_param: dict) -> QueueTask | None:
         """
         Create and add task to queue
-        :returns: The created task's seq, or None if reach the queue size limit
+        :returns: The created task's job_id, or None if reach the queue size limit
         """
         if len(self.queue) >= self.queue_size:
             return None
 
-        task = QueueTask(seq=self.last_seq+1, type=type, req_param=req_param,
+        job_id = str(uuid.uuid4())
+        task = QueueTask(job_id=job_id, type=type, req_param=req_param,
                          in_queue_millis=int(round(time.time() * 1000)))
         self.queue.append(task)
-        self.last_seq = task.seq
+        self.last_job_id = job_id
         return task
 
-    def get_task(self, seq: int, include_history: bool = False) -> QueueTask | None:
+    def get_task(self, job_id: str, include_history: bool = False) -> QueueTask | None:
         for task in self.queue:
-            if task.seq == seq:
+            if task.job_id == job_id:
                 return task
 
         if include_history:
             for task in self.history:
-                if task.seq == seq:
+                if task.job_id == job_id:
                     return task
 
         return None
 
-    def is_task_ready_to_start(self, seq: int) -> bool:
-        task = self.get_task(seq)
+    def is_task_ready_to_start(self, job_id: str) -> bool:
+        task = self.get_task(job_id)
         if task is None:
             return False
 
-        return self.queue[0].seq == seq
+        return self.queue[0].job_id == job_id
 
-    def start_task(self, seq: int):
-        task = self.get_task(seq)
+    def start_task(self, job_id: str):
+        task = self.get_task(job_id)
         if task is not None:
             task.start_millis = int(round(time.time() * 1000))
 
-    def finish_task(self, seq: int):
-        task = self.get_task(seq)
+    def finish_task(self, job_id: str):
+        task = self.get_task(job_id)
         if task is not None:
             task.is_finished = True
             task.finish_millis = int(round(time.time() * 1000))
+
+            # Send webhook
+            if task.is_finished and self.webhook_url:
+                data = { "job_id": task.job_id, "job_result": [] }
+                if isinstance(task.task_result, List):
+                    for item in task.task_result:
+                        data["job_result"].append({
+                            "url": get_file_serve_url(item.im) if item.im else None,
+                            "seed": item.seed if item.seed else "-1",
+                        })
+                try:
+                    res = requests.post(self.webhook_url, json=data)
+                    print(f'Call webhook response status: {res.status_code}')
+                except Exception as e:
+                    print('Call webhook error:', e)
 
             # Move task to history
             self.queue.remove(task)
@@ -114,7 +135,7 @@ class TaskQueue(object):
                     for item in removed_task.task_result:
                         if isinstance(item, ImageGenerationResult) and item.finish_reason == GenerationFinishReason.success and item.im is not None:
                             delete_output_file(item.im)
-                print(f"Clean task history, remove task: {removed_task.seq}")
+                print(f"Clean task history, remove task: {removed_task.job_id}")
 
 
 class TaskOutputs:
