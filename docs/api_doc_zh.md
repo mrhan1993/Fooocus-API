@@ -411,16 +411,16 @@ def inpaint_outpaint(input_image: bytes, params: dict, input_mask: bytes = None)
 
 **请求参数**
 
-| Name | Type | Description |
-| ---- | ---- | ----------- |
-| input_image | str | 输入图像, base64 格式 |
-| input_mask | str | 输入遮罩, base64 格式 |
-| inpaint_additional_prompt | str | 描述词，反向描述词 |
+| Name | Type | Description                                                     |
+| ---- | ---- |-----------------------------------------------------------------|
+| input_image | str | 输入图像, base64 格式                                                 |
+| input_mask | str | 输入遮罩, base64 格式                                                 |
+| inpaint_additional_prompt | str | 附加描述词                                                           |
 | outpaint_selections | List[OutpaintExpansion] | OutpaintExpansion 是一个枚举类型, 值包括 "Left", "Right", "Top", "Bottom" |
-| outpaint_distance_left | int | 图像扩展距离, 默认 0 |
-| outpaint_distance_right | int | 图像扩展距离, 默认 0 |
-| outpaint_distance_top | int | 图像扩展距离, 默认 0 |
-| outpaint_distance_bottom | int | 图像扩展距离, 默认 0 |
+| outpaint_distance_left | int | 图像扩展距离, 默认 0                                                    |
+| outpaint_distance_right | int | 图像扩展距离, 默认 0                                                    |
+| outpaint_distance_top | int | 图像扩展距离, 默认 0                                                    |
+| outpaint_distance_bottom | int | 图像扩展距离, 默认 0                                                    |
 
 **响应参数：**
 

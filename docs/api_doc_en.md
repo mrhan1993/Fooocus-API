@@ -1,4 +1,4 @@
-- [Introduction](#Introduction)
+- [Introduction](#introduction)
 - [Fooocus capability related interfaces](#fooocus-capability-related-interfaces)
   - [text-to-image](#text-to-image)
   - [image-upscale-vary](#image-upscale-vary)
@@ -15,7 +15,7 @@
   - [stop](#stop)
   - [ping](#ping)
 - [webhook](#webhook)
-- [public request body](#public-request-body)
+- [public request body](#public-requests-body)
   - [AdvanceParams](#advanceparams)
   - [lora](#lora)
   - [response](#response)
@@ -135,7 +135,7 @@ example code (Python)：
 ```python
 def generate(params: dict) -> dict:
     """
-    文生图
+    text to image
     """
     date = json.dumps(params)
     response = requests.post(url="http://127.0.0.1:8888/v1/generation/text-to-image",
@@ -150,9 +150,9 @@ Corresponding to the function of Upscale or Variation in Fooocus
 
 the requests body for this interface based on [text-to-image](#text-to-image), so i will only list the difference with [text-to-image](#text-to-image)
 
-此外, 该接口提供了两个版本, 两个版本并无功能上的差异, 主要是请求方式略有区别
+In addition, the interface provides two versions, and there is no functional difference between the two versions, mainly due to slight differences in request methods
 
-**基础信息：**
+**base info：**
 
 ```yaml
 EndPoint_V1: /v1/generation/image-upscale-vary
@@ -163,25 +163,25 @@ DataType: form|json
 
 ### V1
 
-**请求参数**
+**requests params**
 
-| Name | Type | Description |
-| ---- | ---- | ----------- |
-| input_image | string($binary) | 二进制 str 图像 |
-| uov_method | Enum | 'Vary (Subtle)','Vary (Strong)','Upscale (1.5x)','Upscale (2x)','Upscale (Fast 2x)','Upscale (Custom)' |
-| upscale_value | float | 默认为 None , 1.0-5.0, 放大倍数, 仅在 'Upscale (Custom)' 中有效 |
-| style | List[str] | 以逗号分割的 Fooocus 风格列表 |
-| loras | str(List[Lora]) | lora 模型列表, 包含配置, lora 结构: [Lora](#lora), 比如: [{"model_name": "sd_xl_offset_example-lora_1.0.safetensors", "weight": 0.5}] |
-| advanced_params | str(AdvacedParams) | 高级参数, AdvancedParams 结构 [AdvancedParams](#高级参数--advanceparams), 以字符串形式发送, 可以为空 |
+| Name | Type | Description                                                                                                                               |
+| ---- | ---- |-------------------------------------------------------------------------------------------------------------------------------------------|
+| input_image | string($binary) | binary imagge                                                                                                                             |
+| uov_method | Enum | 'Vary (Subtle)','Vary (Strong)','Upscale (1.5x)','Upscale (2x)','Upscale (Fast 2x)','Upscale (Custom)'                                    |
+| upscale_value | float | default to None , 1.0-5.0, magnification, only for uov_method is 'Upscale (Custom)'                                                       |
+| style | List[str] | list Fooocus style seg with comma                                                                                                         |
+| loras | str(List[Lora]) | list for lora, with configure, lora: [Lora](#lora), example: [{"model_name": "sd_xl_offset_example-lora_1.0.safetensors", "weight": 0.5}] |
+| advanced_params | str(AdvacedParams) | AdvancedParams, AdvancedParams: [AdvancedParams](#advanceparams), send with str, None is available                                        |
 
-**响应参数：**
+**response params：**
 
-该接口返回通用响应结构, 参考[响应参数](#响应参数--response)
+This interface returns a universal response structure, refer to [response](#response)
 
-**请求示例：**
+**requests example：**
 
 <details>
-  <summary>示例参数</summary>
+  <summary>example params</summary>
 
   ```python
     params = {
@@ -208,7 +208,7 @@ DataType: form|json
 
 </br>
 
-示例代码（Python）：
+example code（Python）：
 
 ```python
 def upscale(input_image: bytes, params: dict) -> dict:
@@ -225,22 +225,22 @@ def upscale(input_image: bytes, params: dict) -> dict:
 
 ### V2
 
-**请求参数**
+**requests params**
 
-| Name | Type | Description |
-| ---- | ---- | ----------- |
-| uov_method | UpscaleOrVaryMethod | 是个枚举类型, 包括 'Vary (Subtle)','Vary (Strong)','Upscale (1.5x)','Upscale (2x)','Upscale (Fast 2x)','Upscale (Custom)' |
-| upscale_value | float | 默认为 None , 1.0-5.0, 放大倍数, 仅在 'Upscale (Custom)' 中有效 |
-| input_image | str | 输入图像, base64 格式 |
+| Name | Type | Description                                                                                                                           |
+| ---- | ---- |---------------------------------------------------------------------------------------------------------------------------------------|
+| uov_method | UpscaleOrVaryMethod | Enum type, value should one of 'Vary (Subtle)','Vary (Strong)','Upscale (1.5x)','Upscale (2x)','Upscale (Fast 2x)','Upscale (Custom)' |
+| upscale_value | float | default to None , 1.0-5.0, magnification, only for uov_method is 'Upscale (Custom)'                                                   |
+| input_image | str | input image, base64 str                                                                                                               |
 
-**响应参数：**
+**response params：**
 
-该接口返回通用响应结构, 参考[响应参数](#响应参数--response)
+This interface returns a universal response structure, refer to [response](#response)
 
-**请求示例：**
+**requests params：**
 
 <details>
-  <summary>示例参数</summary>
+  <summary>example params</summary>
 
   ```python
     params = {
@@ -304,7 +304,7 @@ def upscale(input_image: bytes, params: dict) -> dict:
 
 </br>
 
-示例代码（Python）：
+example code（Python）：
 
 ```python
 def upscale_vary(image, params = params) -> dict:
@@ -320,9 +320,9 @@ def upscale_vary(image, params = params) -> dict:
     return response.json()
 ```
 
-## 局部重绘 | image-inpaint-outpaint
+## image-inpaint-outpaint
 
-**基础信息：**
+**base info：**
 
 ```yaml
 EndPoint_V1: /v1/generation/image-inpait-outpaint
@@ -333,30 +333,30 @@ DataType: form|json
 
 ### V1
 
-**请求参数**
+**requests params**
 
-| Name | Type | Description |
-| ---- | ---- | ----------- |
-| input_image | string($binary) | 二进制 str 图像 |
-| input_mask | string($binary) | 二进制 str 图像 |
-| inpaint_additional_prompt | string | 附加描述 |
-| outpaint_selections | List | 图像扩展方向, 逗号分割的 'Left', 'Right', 'Top', 'Bottom' |
-| outpaint_distance_left | int | 图像扩展距离, 默认 0 |
-| outpaint_distance_right | int | 图像扩展距离, 默认 0 |
-| outpaint_distance_top | int | 图像扩展距离, 默认 0 |
-| outpaint_distance_bottom | int | 图像扩展距离, 默认 0 |
-| style | List[str] | 以逗号分割的 Fooocus 风格列表 |
-| loras | str(List[Lora]) | lora 模型列表, 包含配置, lora 结构: [Lora](#lora), 比如: [{"model_name": "sd_xl_offset_example-lora_1.0.safetensors", "weight": 0.5}] |
-| advanced_params | str(AdvacedParams) | 高级参数, AdvancedParams 结构 [AdvancedParams](#高级参数--advanceparams), 以字符串形式发送 |
+| Name | Type | Description                                                                                                               |
+| ---- | ---- |---------------------------------------------------------------------------------------------------------------------------|
+| input_image | string($binary) | binary imagge                                                                                                             |
+| input_mask | string($binary) | binary imagge                                                                                                             |
+| inpaint_additional_prompt | string | additional_prompt                                                                                                         |
+| outpaint_selections | List | Image extension direction , 'Left', 'Right', 'Top', 'Bottom' seg with comma                                               |
+| outpaint_distance_left | int | Image extension distance, default to 0                                                                                    |
+| outpaint_distance_right | int | Image extension distance, default to 0                                                                                                             |
+| outpaint_distance_top | int | Image extension distance, default to 0                                                                                                             |
+| outpaint_distance_bottom | int | Image extension distance, default to 0                                                                                                             |
+| style | List[str] | list Fooocus style seg with comma                                                                                                       |
+| loras | str(List[Lora]) | list for lora, with configure, lora: Lora, example: [{"model_name": "sd_xl_offset_example-lora_1.0.safetensors", "weight": 0.5}] |
+| advanced_params | str(AdvacedParams) | AdvancedParams, AdvancedParams: AdvancedParams, send with str, None is available                                                  |
 
-**响应参数：**
+**response params：**
 
-该接口返回通用响应结构, 参考[响应参数](#响应参数--response)
+This interface returns a universal response structure, refer to [response](#response)
 
-**请求示例：**
+**requests example：**
 
 <details>
-  <summary>示例参数</summary>
+  <summary>example params</summary>
 
   ```python
     params = {
@@ -388,7 +388,7 @@ DataType: form|json
 
 </br>
 
-示例代码（Python）：
+example code（Python）：
 
 ```python
 def inpaint_outpaint(input_image: bytes, params: dict, input_mask: bytes = None) -> dict:
@@ -403,32 +403,32 @@ def inpaint_outpaint(input_image: bytes, params: dict, input_mask: bytes = None)
     return response.json()
 ```
 
-> 该参数仅展示了 `outpaint`, `inpaint` 需要上传两张图片, 并根据需要选择是否同时进行 `outpaint`, 此外, `inpaint` 如果不加任何 `prompt` 效果表现为去除元素, 可以用来移除图中杂物、水印, 添加 `prompt` 可以用来替换图中元素
+> this params only show `outpaint`, `inpaint` need two image, And choose whether to proceed simultaneously as needed `outpaint`,  in addition, `inpaint` without `prompt` the effect is manifested as removing elements, It can be used to remove clutter and watermarks in images, and adding 'prompt' can be used to replace elements in images
 
 
 ### V2
 
-**请求参数**
+**requests params**
 
-| Name | Type | Description |
-| ---- | ---- | ----------- |
-| input_image | str | 输入图像, base64 格式 |
-| input_mask | str | 输入遮罩, base64 格式 |
-| inpaint_additional_prompt | str | 描述词，反向描述词 |
-| outpaint_selections | List[OutpaintExpansion] | OutpaintExpansion 是一个枚举类型, 值包括 "Left", "Right", "Top", "Bottom" |
-| outpaint_distance_left | int | 图像扩展距离, 默认 0 |
-| outpaint_distance_right | int | 图像扩展距离, 默认 0 |
-| outpaint_distance_top | int | 图像扩展距离, 默认 0 |
-| outpaint_distance_bottom | int | 图像扩展距离, 默认 0 |
+| Name | Type | Description                                                                     |
+| ---- | ---- |---------------------------------------------------------------------------------|
+| input_image | str | input image, base64 str                                                         |
+| input_mask | str | input mask, base64 str                                                          |
+| inpaint_additional_prompt | str | additional prompt                                                               |
+| outpaint_selections | List[OutpaintExpansion] | OutpaintExpansion is Enum, value shoule one of "Left", "Right", "Top", "Bottom" |
+| outpaint_distance_left | int | Image extension distance, default to 0                                                                    |
+| outpaint_distance_right | int | Image extension distance, default to 0                                                                    |
+| outpaint_distance_top | int | Image extension distance, default to 0                                                                    |
+| outpaint_distance_bottom | int | Image extension distance, default to 0                                                                    |
 
-**响应参数：**
+**response params：**
 
-该接口返回通用响应结构, 参考[响应参数](#响应参数--response)
+This interface returns a universal response structure, refer to [response](#response)[response params](#response)
 
-**请求示例：**
+**requests example：**
 
 <details>
-  <summary>示例参数</summary>
+  <summary>example params</summary>
 
   ```python
     params = {
@@ -503,7 +503,7 @@ def inpaint_outpaint(input_image: bytes, params: dict, input_mask: bytes = None)
 
 </br>
 
-示例代码（Python）：
+example code（Python）：
 
 ```python
 def inpaint_outpaint(input_image: str, input_mask: str = None, params = params) -> dict:
@@ -522,9 +522,9 @@ def inpaint_outpaint(input_image: str, input_mask: str = None, params = params) 
     return response.json()
 ```
 
-## 图生图 | image-prompt
+## image-prompt
 
-**基础信息：**
+**base info：**
 
 ```yaml
 EndPoint_V1: /v1/generation/image-prompt
@@ -535,38 +535,38 @@ DataType: form|json
 
 ### V1
 
-**请求参数**
+**requests params**
 
-| Name | Type | Description |
-| ---- | ---- | ----------- |
-| cn_img1 | string($binary) | 二进制 str 图像 |
-| cn_stop1 | float | 默认 0.6 |
-| cn_weight1 | float | 默认 0.6 |
-| cn_type1 | Emum | "ImagePrompt", "FaceSwap", "PyraCanny", "CPDS" 中的一个 |
-| cn_img2 | string($binary) | 二进制 str 图像 |
-| cn_stop2 | float | 默认 0.6 |
-| cn_weight2 | float | 默认 0.6 |
-| cn_type2 | Emum | "ImagePrompt", "FaceSwap", "PyraCanny", "CPDS" 中的一个 |
-| cn_img3 | string($binary) | 二进制 str 图像 |
-| cn_stop3 | float | 默认 0.6 |
-| cn_weight3 | float | 默认 0.6 |
-| cn_type3 | Emum | "ImagePrompt", "FaceSwap", "PyraCanny", "CPDS" 中的一个 |
-| cn_img4 | string($binary) | 二进制 str 图像 |
-| cn_stop4 | float | 默认 0.6 |
-| cn_weight4 | float | 默认 0.6 |
-| cn_type4 | Emum | "ImagePrompt", "FaceSwap", "PyraCanny", "CPDS" 中的一个 |
-| style | List[str] | 以逗号分割的 Fooocus 风格列表 |
-| loras | str(List[Lora]) | lora 模型列表, 包含配置, lora 结构: [Lora](#lora), 比如: [{"model_name": "sd_xl_offset_example-lora_1.0.safetensors", "weight": 0.5}] |
-| advanced_params | str(AdvacedParams) | 高级参数, AdvancedParams 结构 [AdvancedParams](#高级参数--advanceparams), 以字符串形式发送 |
+| Name | Type | Description                                                                                                                     |
+| ---- | ---- |---------------------------------------------------------------------------------------------------------------------------------|
+| cn_img1 | string($binary) | binary image                                                                                                                    |
+| cn_stop1 | float | default to 0.6                                                                                                                  |
+| cn_weight1 | float | default to 0.6                                                                                                                  |
+| cn_type1 | Emum | should one of "ImagePrompt", "FaceSwap", "PyraCanny", "CPDS"                                                                             |
+| cn_img2 | string($binary) | binary image                                                                                                                    |
+| cn_stop2 | float | default to 0.6                                                                                                                  |
+| cn_weight2 | float | default to 0.6                                                                                                                  |
+| cn_type2 | Emum | should one of "ImagePrompt", "FaceSwap", "PyraCanny", "CPDS"                                                                             |
+| cn_img3 | string($binary) | binary image                                                                                                                    |
+| cn_stop3 | float | default to 0.6                                                                                                                  |
+| cn_weight3 | float | default to 0.6                                                                                                                  |
+| cn_type3 | Emum | should one of "ImagePrompt", "FaceSwap", "PyraCanny", "CPDS"                                                                             |
+| cn_img4 | string($binary) | binary image                                                                                                                    |
+| cn_stop4 | float | default to 0.6                                                                                                                  |
+| cn_weight4 | float | default to 0.6                                                                                                                  |
+| cn_type4 | Emum | should one of "ImagePrompt", "FaceSwap", "PyraCanny", "CPDS"                                                                |
+| style | List[str] | list Fooocus style seg with comma                                                                                               |
+| loras | str(List[Lora]) | list for lora, with configure, lora: Lora, example: [{"model_name": "sd_xl_offset_example-lora_1.0.safetensors", "weight": 0.5}] |
+| advanced_params | str(AdvacedParams) | AdvancedParams, AdvancedParams: AdvancedParams, send with str, None is available                                                |
 
-**响应参数：**
+**response params：**
 
-该接口返回通用响应结构, 参考[响应参数](#响应参数--response)
+This interface returns a universal response structure, refer to [response](#response)[response params](#response)
 
-**请求示例：**
+**requests example：**
 
 <details>
-  <summary>示例参数</summary>
+  <summary>example params</summary>
 
   ```python
     params = {
@@ -604,7 +604,7 @@ DataType: form|json
 
 </br>
 
-示例代码（Python）：
+example code（Python）：
 
 ```python
 def image_prompt(cn_img1: bytes,
@@ -629,29 +629,29 @@ def image_prompt(cn_img1: bytes,
 
 ### V2
 
-**请求参数**
+**requests params**
 
-| Name | Type | Description |
-| ---- | ---- | ----------- |
-| image_prompts | List[ImagePrompt] | 图像列表, 包含配置, ImagePrompt 结构如下： |
+| Name | Type | Description                                     |
+| ---- | ---- |-------------------------------------------------|
+| image_prompts | List[ImagePrompt] | image list, include config, ImagePrompt struct： |
 
 **ImagePrompt**
 
-| Name | Type | Description |
-| ---- | ---- | ----------- |
-| cn_img | str | 输入图像, 作为 base64 编码 |
-| cn_stop | float | 停止位置, 范围 0-1, 默认 0.5 |
-| cn_weight | float | 权重, 范围 0-2, 默认 1.0 |
-| cn_type | ControlNetType | 控制网络类型, 是一个枚举类型, 包括: "ImagePrompt", "FaceSwap", "PyraCanny", "CPDS" |
+| Name | Type | Description                                                                         |
+| ---- | ---- |-------------------------------------------------------------------------------------|
+| cn_img | str | input image, base64 str                                                             |
+| cn_stop | float | 0-1, default to 0.5                                                                 |
+| cn_weight | float | weight, 0-2, default to 1.0                                                         |
+| cn_type | ControlNetType | ControlNetType Enum, should one of "ImagePrompt", "FaceSwap", "PyraCanny", "CPDS" |
 
-**响应参数：**
+**response params：**
 
-该接口返回通用响应结构, 参考[响应参数](#响应参数--response)
+This interface returns a universal response structure, refer to [response](#response)[response params](#response)
 
-**请求示例：**
+**requests example：**
 
 <details>
-  <summary>示例参数</summary>
+  <summary>example params</summary>
 
   ```python
     params = {
@@ -719,7 +719,7 @@ def image_prompt(cn_img1: bytes,
 
 </br>
 
-示例代码（Python）：
+example code（Python）：
 
 ```python
 img_prompt = [
@@ -752,16 +752,16 @@ def image_prompt(img_prompt: list, params: dict) -> dict:
 
 --------------------------------------------
 
-## 列出模型 | all-models
+## all-models
 
-**基础信息：**
+**base info：**
 
 ```yaml
 EndPoint: /v1/engines/all-models
 Method: Get
 ```
 
-**请求示例**:
+**requests example**:
 
 ```python
 def all_models() -> dict:
@@ -773,7 +773,7 @@ def all_models() -> dict:
     return response.json()
 ```
 
-**响应示例**:
+**response params**:
 
 ```python
 {
@@ -788,16 +788,16 @@ def all_models() -> dict:
 }
 ```
 
-## 刷新模型 | refresh-models
+## refresh-models
 
-**基础信息：**
+**base info：**
 
 ```yaml
 EndPoint: /v1/engines/refresh-models
 Method: Post
 ```
 
-**请求示例**
+**requests example**
 ```python
 def refresh() -> dict:
     """
@@ -808,7 +808,7 @@ def refresh() -> dict:
     return response.json()
 ```
 
-**响应示例**
+**response params**
 ```python
 {
   "model_filenames": [
@@ -822,16 +822,16 @@ def refresh() -> dict:
 }
 ```
 
-## 样式 | styles
+## styles
 
-**基础信息：**
+**base info：**
 
 ```yaml
 EndPoint: /v1/engines/styles
 Method: Get
 ```
 
-**请求示例**:
+**requests example**:
 
 ```python
 def styles() -> dict:
@@ -843,7 +843,7 @@ def styles() -> dict:
     return response.json()
 ```
 
-**响应示例**:
+**response params**:
 
 ```python
 [
@@ -855,18 +855,18 @@ def styles() -> dict:
 ]
 ```
 
-# Fooocus API 任务相关接口
+# Fooocus API task related interfaces
 
-## 任务队列 | job-queue
+## job-queue
 
-**基础信息：**
+**base info：**
 
 ```yaml
 EndPoint: /v1/engines/job-queue
 Method: Get
 ```
 
-**请求示例**:
+**requests example**:
 
 ```python
 def job_queue() -> dict:
@@ -878,7 +878,7 @@ def job_queue() -> dict:
     return response.json()
 ```
 
-**响应示例**:
+**response params**:
 
 ```python
 {
@@ -888,19 +888,19 @@ def job_queue() -> dict:
 }
 ```
 
-## 查询任务 | query-job
+## query-job
 
-**基础信息：**
+**base info：**
 
 ```yaml
 EndPoint: /v1/generation/query-job
 Method: Get
 ```
 
-**请求示例**:
+**requests example**:
 ```python
 def taskResult(task_id: str) -> dict:
-    # 获取任务状态
+    # get task status
     task_status = requests.get(url="http://127.0.0.1:8888/v1/generation/query-job",
                                params={"job_id": task_id,
                                        "require_step_preivew": False},
@@ -909,7 +909,7 @@ def taskResult(task_id: str) -> dict:
     return task_status.json()
 ```
 
-**响应示例**:
+**response params**:
 ```python
 {
   "job_id": "cac3914a-926d-4b6f-a46a-83794a0ce1d4",
@@ -929,16 +929,16 @@ def taskResult(task_id: str) -> dict:
 }
 ```
 
-## 查询任务历史 | job-history
+## job-history
 
-**基础信息：**
+**base info：**
 
 ```yaml
 EndPoint: /v1/generation/job-history
 Method: get
 ```
 
-**请求示例**:
+**requests example**:
 
 ```python
 def job-history() -> dict:
@@ -950,7 +950,7 @@ def job-history() -> dict:
     return response.json()
 ```
 
-**响应示例**:
+**response params**:
 
 ```python
 {
@@ -962,16 +962,16 @@ def job-history() -> dict:
 }
 ```
 
-## 停止任务 | stop
+## stop
 
-**基础信息：**
+**base info：**
 
 ```yaml
 EndPoint: /v1/generation/stop
 Method: post
 ```
 
-**请求示例**:
+**requests example**:
 
 ```python
 def stop() -> dict:
@@ -983,7 +983,7 @@ def stop() -> dict:
     return response.json()
 ```
 
-**响应示例**:
+**response params**:
 
 ```python
 {
@@ -993,7 +993,7 @@ def stop() -> dict:
 
 ## ping
 
-**基础信息：**
+**base info：**
 
 ```yaml
 EndPoint: /ping
@@ -1004,11 +1004,11 @@ pong
 
 # webhook
 
-你可以在命令行通过 `--webhook-url` 指定一个地址，以便异步任务完成之后可以收到通知
+You can specify an address through '--webhook_url' on the command line so that you can receive notifications after asynchronous tasks are completed
 
-下面是一个简单的示例来展示 `webhook` 是如何工作的
+Here is a simple example to demonstrate how 'webhook' works
 
-首先，使用下面的代码启动一个简易服务器:
+First，start a simple server using the following code:
 
 ```python
 from fastapi import FastAPI
@@ -1023,58 +1023,58 @@ async def status(requests: dict):
 uvicorn.run(app, host="0.0.0.0", port=8000)
 ```
 
-然后, 在启动 Fooocus API 时添加 `--webhook-url http://host:8000/status`
+Then, start Fooocus API with `--webhook-url http://host:8000/status`
 
-通过任意方式提交一个任务, 等完成后你会在这个简易服务器的后台看到任务结束信息：
+Submit a task in any way, and after completion, you will see the task completion information in the background of this simple server：
 
 ```python
 {'job_id': '717ec0b5-85df-4174-80d6-bddf93cd8248', 'job_result': [{'url': 'http://127.0.0.1:8888/files/2023-12-29/f1eca704-718e-4781-9d5f-82d41aa799d7.png', 'seed': '3283449865282320931'}]}
 ```
 
-# 公共请求体
+# public requests params
 
-## 高级参数 | AdvanceParams
+## AdvanceParams
 
-| Name | Type | Description |
-| ---- | ---- | ----------- |
-| disable_preview | bool | 是否禁用预览, 默认 False |
-| adm_scaler_positive | float | 正 ADM Guidance Scaler, 默认 1.5, 范围 0.1-3.0 |
-| adm_scaler_negative | float | 负 ADM Guidance Scaler, 默认 0.8, 范围 0.1-3.0 |
-| adm_scaler_end | float | ADM Guidance Scaler 结束值, 默认 0.5, 范围 0.0-1.0 |
-| refiner_swap_method | str | 优化模型交换方法, 默认 `joint` |
-| adaptive_cfg | float | CFG Mimicking from TSNR, 默认 7.0, 范围 1.0-30.0 |
-| sampler_name | str | 采样器, 默认 `default_sampler` |
-| scheduler_name | str | 调度器, 默认 `default_scheduler` |
-| overwrite_step | int | Forced Overwrite of Sampling Step, 默认 -1, 范围 -1-200 |
-| overwrite_switch | int | Forced Overwrite of Refiner Switch Step, 默认 -1, 范围 -1-200 |
-| overwrite_width | int | Forced Overwrite of Generating Width, 默认 -1, 范围 -1-2048 |
-| overwrite_height | int | Forced Overwrite of Generating Height, 默认 -1, 范围 -1-2048 |
-| overwrite_vary_strength | float | Forced Overwrite of Denoising Strength of "Vary", 默认 -1, 范围 -1-1.0 |
-| overwrite_upscale_strength | float | Forced Overwrite of Denoising Strength of "Upscale", 默认 -1, 范围 -1-1.0 |
-| mixing_image_prompt_and_vary_upscale | bool | Mixing Image Prompt and Vary/Upscale, 默认 False |
-| mixing_image_prompt_and_inpaint | bool | Mixing Image Prompt and Inpaint, 默认 False |
-| debugging_cn_preprocessor | bool | Debug Preprocessors, 默认 False |
-| skipping_cn_preprocessor | bool | Skip Preprocessors, 默认 False |
-| controlnet_softness | float | Softness of ControlNet, 默认 0.25, 范围 0.0-1.0 |
-| canny_low_threshold | int | Canny Low Threshold, 默认 64, 范围 1-255 |
-| canny_high_threshold | int | Canny High Threshold, 默认 128, 范围 1-255 |
-| freeu_enabled | bool | FreeU enabled, 默认 False |
-| freeu_b1 | float | FreeU B1, 默认 1.01 |
-| freeu_b2 | float | FreeU B2, 默认 1.02 |
-| freeu_s1 | float | FreeU B3, 默认 0.99 |
-| freeu_s2 | float | FreeU B4, 默认 0.95 |
-| debugging_inpaint_preprocessor | bool | Debug Inpaint Preprocessing, 默认 False |
-| inpaint_disable_initial_latent | bool | Disable initial latent in inpaint, 默认 False |
-| inpaint_engine | str | Inpaint Engine, 默认 `v1` |
-| inpaint_strength | float | Inpaint Denoising Strength, 默认 1.0, 范围 0.0-1.0 |
-| inpaint_respective_field | float | Inpaint Respective Field, 默认 1.0, 范围 0.0-1.0 |
+| Name | Type | Description                                                                      |
+| ---- | ---- |----------------------------------------------------------------------------------|
+| disable_preview | bool | disable preview, default to False                                                |
+| adm_scaler_positive | float | ADM Guidance Scaler, default to 1.5, range 0.1-3.0                               |
+| adm_scaler_negative | float | negative ADM Guidance Scaler, default to 0.8, range 0.1-3.0                      |
+| adm_scaler_end | float | ADM Guidance Scaler end value, default to 0.5, range 0.0-1.0                     |
+| refiner_swap_method | str | refiner model swap method, default to `joint`                                    |
+| adaptive_cfg | float | CFG Mimicking from TSNR, default to 7.0, range 1.0-30.0                          |
+| sampler_name | str | sampler, default to `default_sampler`                                            |
+| scheduler_name | str | scheduler, default to `default_scheduler`                                        |
+| overwrite_step | int | Forced Overwrite of Sampling Step, default to -1, range -1-200                   |
+| overwrite_switch | int | Forced Overwrite of Refiner Switch Step, default to -1, range -1-200             |
+| overwrite_width | int | Forced Overwrite of Generating Width, default to -1, range -1-2048               |
+| overwrite_height | int | Forced Overwrite of Generating Height, default to -1, range -1-2048              |
+| overwrite_vary_strength | float | Forced Overwrite of Denoising Strength of "Vary", default to -1, range -1-1.0    |
+| overwrite_upscale_strength | float | Forced Overwrite of Denoising Strength of "Upscale", default to -1, range -1-1.0 |
+| mixing_image_prompt_and_vary_upscale | bool | Mixing Image Prompt and Vary/Upscale, default to False                           |
+| mixing_image_prompt_and_inpaint | bool | Mixing Image Prompt and Inpaint, default to False                                |
+| debugging_cn_preprocessor | bool | Debug Preprocessors, default to False                                            |
+| skipping_cn_preprocessor | bool | Skip Preprocessors, default to False                                             |
+| controlnet_softness | float | Softness of ControlNet, default to 0.25, range 0.0-1.0                           |
+| canny_low_threshold | int | Canny Low Threshold, default to 64, range 1-255                                  |
+| canny_high_threshold | int | Canny High Threshold, default to 128, range 1-255                                |
+| freeu_enabled | bool | FreeU enabled, default to False                                                  |
+| freeu_b1 | float | FreeU B1, default to 1.01                                                        |
+| freeu_b2 | float | FreeU B2, default to 1.02                                                        |
+| freeu_s1 | float | FreeU B3, default to 0.99                                                        |
+| freeu_s2 | float | FreeU B4, default to 0.95                                                        |
+| debugging_inpaint_preprocessor | bool | Debug Inpaint Preprocessing, default to False                                    |
+| inpaint_disable_initial_latent | bool | Disable initial latent in inpaint, default to False                              |
+| inpaint_engine | str | Inpaint Engine, default to `v1`                                                  |
+| inpaint_strength | float | Inpaint Denoising Strength, default to 1.0, range 0.0-1.0                        |
+| inpaint_respective_field | float | Inpaint Respective Field, default to 1.0, range 0.0-1.0                          |
 
 ## lora
 
-| Name | Type | Description |
-| ---- | ---- | ----------- |
-| model_name | str | 模型名称 |
-| weight | float | 权重, 默认 0.5 |
+| Name | Type | Description            |
+| ---- | ---- |------------------------|
+| model_name | str | model name             |
+| weight | float | weight, default to 0.5 |
 
 ## response
 
@@ -1082,23 +1082,23 @@ success response：
 
 **async_process: True**
 
-| Name | Type | Description |
-| ---- | ---- | ----------- |
-| job_id | int | 任务ID |
-| job_type | str | 任务类型 |
-| job_stage | str | 任务阶段 |
-| job_progress | float | 任务进度 |
-| job_status | str | 任务状态 |
-| job_step_preview | str | 任务预览 |
-| job_result | str | 任务结果 |
+| Name | Type | Description  |
+| ---- | ---- |--------------|
+| job_id | int | job ID       |
+| job_type | str | job type     |
+| job_stage | str | job stage    |
+| job_progress | float | job progress |
+| job_status | str | job status   |
+| job_step_preview | str | job previes  |
+| job_result | str | job result   |
 
 **async_process: False**
 
-| Name | Type | Description |
-| ---- | ---- | ----------- |
-| base64 | str | 图片base64编码, 根据 `require_base64` 参数决定是否为 null |
-| url | str | 图片url |
-| seed | int | 图片种子 |
-| finish_reason | str | 任务结束原因 |
+| Name | Type | Description                                                                      |
+| ---- | ---- |----------------------------------------------------------------------------------|
+| base64 | str | base64 image, according to `require_base64` params determines whether it is null |
+| url | str | result image url                                                                 |
+| seed | int | image seed                                                                       |
+| finish_reason | str | finish reason                                                                    |
 
 fail response：
