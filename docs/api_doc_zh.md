@@ -12,6 +12,7 @@
   - [查询任务 | query-job](#查询任务--query-job)
   - [查询任务历史 | job-history](#查询任务历史--job-history)
   - [停止任务 | stop](#停止任务--stop)
+  - [ping](#ping)
 - [webhook](#webhook)
 - [公共请求体](#公共请求体)
   - [高级参数 | AdvanceParams](#高级参数--advanceparams)
@@ -24,7 +25,7 @@
 
 > 除了目前还不支持的 Describe, Fooocus API可以完整的使用其他任意功能
 
-Fooocus API 目前提供了 10 个 REST 接口, 我大致将其分为两类, 第一类用来调用 Fooocus 的能力, 比如生成图像、刷新模型之类的, 第二类为 Fooocus API 自身相关的, 主要是任务查询相关。我会在接下来的内容中尝试说明它们的作用以及用法并提供示例。
+Fooocus API 目前提供了 12 个 REST 接口, 我大致将其分为两类, 第一类用来调用 Fooocus 的能力, 比如生成图像、刷新模型之类的, 第二类为 Fooocus API 自身相关的, 主要是任务查询相关。我会在接下来的内容中尝试说明它们的作用以及用法并提供示例。
 
 # Fooocus 能力相关接口
 
@@ -991,7 +992,45 @@ def stop() -> dict:
 }
 ```
 
+## ping
+
+**基础信息：**
+
+```yaml
+EndPoint: /ping
+Method: get
+```
+
+pong
+
 # webhook
+
+你可以在命令行通过 `--webhook-url` 指定一个地址，以便异步任务完成之后可以收到通知
+
+下面是一个简单的示例来展示 `webhook` 是如何工作的
+
+首先，使用下面的代码启动一个简易服务器:
+
+```python
+from fastapi import FastAPI
+import uvicorn
+
+app = FastAPI()
+
+@app.post("/status")
+async def status(requests: dict):
+    print(requests)
+
+uvicorn.run(app, host="0.0.0.0", port=8000)
+```
+
+然后, 在启动 Fooocus API 时添加 `--webhook-url http://host:8000/status`
+
+通过任意方式提交一个任务, 等完成后你会在这个简易服务器的后台看到任务结束信息：
+
+```python
+{'job_id': '717ec0b5-85df-4174-80d6-bddf93cd8248', 'job_result': [{'url': 'http://127.0.0.1:8888/files/2023-12-29/f1eca704-718e-4781-9d5f-82d41aa799d7.png', 'seed': '3283449865282320931'}]}
+```
 
 # 公共请求体
 
