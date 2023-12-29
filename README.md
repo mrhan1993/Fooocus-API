@@ -185,7 +185,13 @@ You can get preview image of generation steps at current time by this api.
 
 > GET /v1/generation/job-queue
 
-Query job queue info, include running job count, finished job count and last job id.
+Query job queue info, including running job count, finished job count and last job id.
+
+#### Query Job History
+
+> GET /v1/generation/job-history
+
+Query job history, including running job.
 
 #### Stop Generation task
 
