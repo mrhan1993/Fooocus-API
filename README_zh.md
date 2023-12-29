@@ -12,7 +12,7 @@
     - [venv](#venv)
     - [预下载及安装](#预下载及安装)
   - [使用Docker启动](#使用docker启动)
-- [cmd flags](#cmd-flags)
+- [命令行参数](#命令行参数)
 - [更新日志](#更新日志)
 - [Apis](#apis)
 - [License](#license)
@@ -112,7 +112,7 @@ source venv/bin/activate
 
 最后，把下载的模型放到这个目录 `repositories\Fooocus\models`
 
-这里是一个启动必须下载的模型列表 (也可能不一样如果 [启动参数](#cmd-flags) 不同的话):
+这里是一个启动必须下载的模型列表 (也可能不一样如果 [启动参数](#命令行参数) 不同的话):
 
 - checkpoint: 放到 `repositories\Fooocus\models\checkpoints`
     + [juggernautXL_version6Rundiffusion.safetensors](https://huggingface.co/lllyasviel/fav_models/resolve/main/fav/juggernautXL_version6Rundiffusion.safetensors)
@@ -158,7 +158,7 @@ docker run -d --gpus=all \
 
 你还可以添加 `-e PIP_INDEX_URL={pypi-mirror-url}` 选项来更换 pip 源
 
-# cmd flags
+# 命令行参数
 
 - `-h, --help` 显示本帮助并退出
 - `--port PORT` 设置监听端口，默认：8888
