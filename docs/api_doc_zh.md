@@ -2,20 +2,15 @@
 - [Fooocus 能力相关接口](#fooocus-能力相关接口)
   - [文生图 | text-to-image](#文生图--text-to-image)
   - [图像放大 | image-upscale-vary](#图像放大--image-upscale-vary)
-    - [V1](#v1)
-    - [V2](#v2)
   - [局部重绘 | image-inpaint-outpaint](#局部重绘--image-inpaint-outpaint)
-    - [V1](#v1-1)
-    - [V2](#v2-1)
   - [图生图 | image-prompt](#图生图--image-prompt)
-    - [V1](#v1-2)
-    - [V2](#v2-2)
   - [列出模型 | all-models](#列出模型--all-models)
   - [刷新模型 | refresh-models](#刷新模型--refresh-models)
   - [样式 | styles](#样式--styles)
 - [Fooocus API 任务相关接口](#fooocus-api-任务相关接口)
   - [任务队列 | job-queue](#任务队列--job-queue)
   - [查询任务 | query-job](#查询任务--query-job)
+  - [查询任务历史 | job-history](#查询任务历史--job-history)
   - [停止任务 | stop](#停止任务--stop)
 - [webhook](#webhook)
 - [公共请求体](#公共请求体)
@@ -930,6 +925,39 @@ def taskResult(task_id: str) -> dict:
       "seed": 8228839561385006000,
       "finish_reason": "SUCCESS"
     }
+  ]
+}
+```
+
+## 查询任务历史 | job-history
+
+**基础信息：**
+
+```yaml
+EndPoint: /v1/generation/job-history
+Method: get
+```
+
+**请求示例**:
+
+```python
+def job-history() -> dict:
+    """
+    job-history
+    """
+    response = requests.get(url="http://127.0.0.1:8888/v1/generation/job-history",
+                        timeout=30)
+    return response.json()
+```
+
+**响应示例**:
+
+```python
+{
+  "queue": [],
+  "history": [
+    "job_id": "cac3914a-926d-4b6f-a46a-83794a0ce1d4",
+    "is_finished": True
   ]
 }
 ```
