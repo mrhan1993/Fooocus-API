@@ -185,15 +185,13 @@ python main.py --all-in-fp16 --always-gpu
 
 # 更新日志
 
+**[23/12/29] v0.3.27** : 增加查询历史 API。增加 webhook_url 对所有请求的支持
+
 **[23/12/28] v0.3.26** : **重大变更**: 添加 webhook 选项以支持生成完毕后的事件通知。将 async 的任务 ID 由数字改为 UUID 来避免应用重启后造成的混乱
 
 **[23/12/22] v0.3.25** : 增加对 Fooocus 命令行选项的支持 **重大变更**: 移除`disable-private-log` 选项，你可以使用 Fooocus 原生的 `--disable-image-log` 来达到同样的效果
 
 **[23/12/19] v0.3.24** : 该版本合并了 Fooocus v2.1.839, 包含一个对于 seed 的重大变更，详情参考：[2.1.839](https://github.com/lllyasviel/Fooocus/blob/main/update_log.md#21839).
-
-
-<details>
-  <summary>完整更新日志</summary>
 
 **[23/12/14] v0.3.23** : 合并 Fooocus v2.1.837.
 
@@ -203,7 +201,6 @@ python main.py --all-in-fp16 --always-gpu
 
 更早的日志可以在 [release page](https://github.com/konieshadow/Fooocus-API/releases) 找到
 
-</details>
 
 # Apis
 

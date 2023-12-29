@@ -201,7 +201,6 @@ For Fooocus CMD flags, see [here](https://github.com/lllyasviel/Fooocus?tab=read
 
 older change history you can find in [release page](https://github.com/konieshadow/Fooocus-API/releases)
 
-</details>
 
 # Apis
 
