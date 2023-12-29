@@ -4,6 +4,7 @@
   - [图像放大 | image-upscale-vary](#图像放大--image-upscale-vary)
   - [局部重绘 | image-inpaint-outpaint](#局部重绘--image-inpaint-outpaint)
   - [图生图 | image-prompt](#图生图--image-prompt)
+  - [图像反推 | describe](#图像反推--describe)
   - [列出模型 | all-models](#列出模型--all-models)
   - [刷新模型 | refresh-models](#刷新模型--refresh-models)
   - [样式 | styles](#样式--styles)
@@ -749,6 +750,46 @@ def image_prompt(img_prompt: list, params: dict) -> dict:
                         headers=headers,
                         timeout=300)
     return response.json()
+```
+
+## 图像反推 | describe
+
+**基础信息：**
+
+```yaml
+EndPoint: /v1/tools/describe-image
+Method: Post
+DataType: form
+```
+
+**请求参数**
+
+| Name | Type | Description                 |
+|------|------|-----------------------------|
+| type | Enum | 反推类型, "Photo", "Animd" 中的一个 |
+
+**请求示例**:
+
+```python
+def describe_image(image: bytes,
+                   params: dict = {"type": "Photo"}) -> dict:
+    """
+    describe-image
+    """
+    response = requests.post(url="http://127.0.0.1:8888/v1/tools/describe-image",
+                        files={
+                            "image": image
+                        },
+                        timeout=30)
+    return response.json()
+```
+
+**响应示例**:
+
+```python
+{
+  "describe": "a young woman posing with her hands behind her head"
+}
 ```
 
 --------------------------------------------

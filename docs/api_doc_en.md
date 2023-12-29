@@ -3,8 +3,8 @@
   - [text-to-image](#text-to-image)
   - [image-upscale-vary](#image-upscale-vary)
   - [image-inpaint-outpaint](#image-inpaint-outpaint)
-  - [describe](#describe)
   - [image-prompt](#image-prompt)
+  - [describe](#describe)
   - [all-models](#all-models)
   - [refresh-models](#refresh-models)
   - [styles](#styles)
@@ -15,7 +15,7 @@
   - [stop](#stop)
   - [ping](#ping)
 - [webhook](#webhook)
-- [public request body](#public-requests-body)
+- [public requests body](#public-requests-params)
   - [AdvanceParams](#advanceparams)
   - [lora](#lora)
   - [response](#response)
@@ -748,6 +748,46 @@ def image_prompt(img_prompt: list, params: dict) -> dict:
                         headers=headers,
                         timeout=300)
     return response.json()
+```
+
+## describe
+
+**base info：**
+
+```yaml
+EndPoint: /v1/tools/describe-image
+Method: Post
+DataType: form
+```
+
+**requests params**
+
+| Name | Type | Description                              |
+|------|------|------------------------------------------|
+| type | Enum | type, should be one of "Photo", "Animd"  |
+
+**requests example**:
+
+```python
+def describe_image(image: bytes,
+                   params: dict = {"type": "Photo"}) -> dict:
+    """
+    describe-image
+    """
+    response = requests.post(url="http://127.0.0.1:8888/v1/tools/describe-image",
+                        files={
+                            "image": image
+                        },
+                        timeout=30)
+    return response.json()
+```
+
+**response example**:
+
+```python
+{
+  "describe": "a young woman posing with her hands behind her head"
+}
 ```
 
 --------------------------------------------
