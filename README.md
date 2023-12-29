@@ -193,10 +193,6 @@ For Fooocus CMD flags, see [here](https://github.com/lllyasviel/Fooocus?tab=read
 
 **[23/12/19] v0.3.24** : Merge for Fooocus v2.1.852. This version merged Fooocus v2.1.839, which include a seed breaking change. Details for [2.1.839](https://github.com/lllyasviel/Fooocus/blob/main/update_log.md#21839).
 
-
-<details>
-  <summary> Full Change Logs</summary>
-
 **[23/12/14] v0.3.23** : Merge for Fooocus v2.1.837.
 
 **[23/11/30] v0.3.22** : Add upscale custom support. You can pass param `upscale_value` for upsacle api to override upscale value.

@@ -1,13 +1,13 @@
 import uvicorn
 
 from typing import List, Optional
-
+from fastapi.responses import JSONResponse
 from fastapi import Depends, FastAPI, Header, Query, Response, UploadFile
 from fastapi.params import File
 from fastapi.staticfiles import StaticFiles
 from fastapi.middleware.cors import CORSMiddleware
 
-from fooocusapi.models import AllModelNamesResponse, AsyncJobResponse, QueryJobRequest,StopResponse , GeneratedImageResult, ImgInpaintOrOutpaintRequest, ImgPromptRequest, ImgUpscaleOrVaryRequest, JobQueueInfo, Text2ImgRequest
+from fooocusapi.models import AllModelNamesResponse, AsyncJobResponse, QueryJobRequest,StopResponse , GeneratedImageResult, ImgInpaintOrOutpaintRequest, ImgPromptRequest, ImgUpscaleOrVaryRequest, JobQueueInfo, JobHistoryResponse, Text2ImgRequest
 from fooocusapi.api_utils import generation_output, req_to_params
 import fooocusapi.file_utils as file_utils
 from fooocusapi.parameters import GenerationFinishReason, ImageGenerationResult
@@ -61,14 +61,15 @@ def call_worker(req: Text2ImgRequest, accept: str):
     task_type = TaskType.text_2_img
     if isinstance(req, ImgUpscaleOrVaryRequest) or isinstance(req, ImgUpscaleOrVaryRequestJson):
         task_type = TaskType.img_uov
-    elif isinstance(req, ImgInpaintOrOutpaintRequest) or isinstance(req, ImgInpaintOrOutpaintRequestJson):
-        task_type = TaskType.img_inpaint_outpaint
     elif isinstance(req, ImgPromptRequest) or isinstance(req, ImgPromptRequestJson):
         task_type = TaskType.img_prompt
+    elif isinstance(req, ImgInpaintOrOutpaintRequest) or isinstance(req, ImgInpaintOrOutpaintRequestJson):
+        task_type = TaskType.img_inpaint_outpaint
 
     params = req_to_params(req)
     queue_task = task_queue.add_task(
-        task_type, {'params': params.__dict__, 'accept': accept, 'require_base64': req.require_base64})
+        task_type, {'params': params.__dict__, 'accept': accept, 'require_base64': req.require_base64},
+        webhook_url=req.webhook_url)
 
     if queue_task is None:
         print("[Task Queue] The task queue has reached limit")
@@ -89,6 +90,10 @@ def stop_worker():
 def home():
     return Response(content='Swagger-UI to: <a href="/docs">/docs</a>', media_type="text/html")
 
+
+@app.get("/ping", description="Returns a simple 'pong' response")
+def ping():
+    return Response(content='pong', media_type="text/html")
 
 @app.post("/v1/generation/text-to-image", response_model=List[GeneratedImageResult] | AsyncJobResponse, responses=img_generate_responses)
 def text2img_generation(req: Text2ImgRequest, accept: str = Header(None),
@@ -215,6 +220,11 @@ def img_prompt(req: ImgPromptRequestJson,
         req.image_number = 1
     else:
         streaming_output = False
+
+    if req.input_image is not None:
+        req.input_image = base64_to_stream(req.input_image)
+    if req.input_mask is not None:
+        req.input_mask = base64_to_stream(req.input_mask)
     
     default_image_promt = ImagePrompt(cn_img=None)
     image_prompts_files: List[ImagePrompt] = []
@@ -225,10 +235,10 @@ def img_prompt(req: ImgPromptRequestJson,
                             cn_weight=img_prompt.cn_weight,
                             cn_type=img_prompt.cn_type)
         image_prompts_files.append(image)
-    
+
     while len(image_prompts_files) <= 4:
         image_prompts_files.append(default_image_promt)
-    
+
     req.image_prompts = image_prompts_files
 
     results = call_worker(req, accept)
@@ -236,17 +246,30 @@ def img_prompt(req: ImgPromptRequestJson,
 
 
 @app.get("/v1/generation/query-job", response_model=AsyncJobResponse, description="Query async generation job")
-def query_job(req: QueryJobRequest=Depends()):
+def query_job(req: QueryJobRequest = Depends()):
     queue_task = task_queue.get_task(req.job_id, True)
     if queue_task is None:
-        return Response(content="Job not found", status_code=404)
+        return JSONResponse(content=AsyncJobResponse(job_id="",
+                                                     job_type="Not Found",
+                                                     job_stage="ERROR",
+                                                     job_progress=0,
+                                                     job_status="Job not found"), status_code=404)
 
-    return generation_output(queue_task, streaming_output=False, require_base64=False, require_step_preivew=req.require_step_preivew)
+    return generation_output(queue_task, streaming_output=False, require_base64=False,
+                             require_step_preivew=req.require_step_preivew)
 
 
 @app.get("/v1/generation/job-queue", response_model=JobQueueInfo, description="Query job queue info")
 def job_queue():
     return JobQueueInfo(running_size=len(task_queue.queue), finished_size=len(task_queue.history), last_job_id=task_queue.last_job_id)
+
+
+@app.get("/v1/generation/job-history", response_model=JobHistoryResponse, description="Query historical job data")
+def get_history():
+    # Fetch and return the historical tasks
+    hitory = [JobHistoryInfo(job_id=item.job_id, is_finished=item.is_finished) for item in task_queue.history]
+    queue = [JobHistoryInfo(job_id=item.job_id, is_finished=item.is_finished) for item in task_queue.queue]
+    return JobHistoryResponse(history=hitory, queue=queue)
 
 
 @app.post("/v1/generation/stop", response_model=StopResponse, description="Job stoping")
