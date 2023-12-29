@@ -11,7 +11,7 @@ from typing import List
 from enum import Enum
 
 from fooocusapi.parameters import GenerationFinishReason, defualt_styles, default_base_model_name, default_refiner_model_name, default_refiner_switch, default_loras, default_cfg_scale, default_prompt_negative, default_aspect_ratio, default_sampler, default_scheduler
-from fooocusapi.task_queue import TaskType
+from fooocusapi.task_queue import QueueTask, TaskType
 
 from modules import flags
 
@@ -403,10 +403,18 @@ class JobQueueInfo(BaseModel):
     finished_size: int = Field(description="Finished job cound (after auto clean)")
     last_job_id: str = Field(description="Last submit generation job id")
 
+
+# TODO May need more detail fields, will add later when someone need
+class JobHistoryInfo(BaseModel):
+    job_id: str
+    is_finished: bool = False
+
+
 # Response model for the historical tasks
-class HistoryResponse(BaseModel):
-    queue: List[QueueTask] = []
-    history: List[QueueTask] = []
+class JobHistoryResponse(BaseModel):
+    queue: List[JobHistoryInfo] = []
+    history: List[JobHistoryInfo] = []
+
 
 class AllModelNamesResponse(BaseModel):
     model_filenames: List[str] = Field(description="All available model filenames")
@@ -415,6 +423,7 @@ class AllModelNamesResponse(BaseModel):
     model_config = ConfigDict(
         protected_namespaces=('protect_me_', 'also_protect_')
     )
+
     
 class StopResponse(BaseModel):
     msg: str

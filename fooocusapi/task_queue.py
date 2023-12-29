@@ -26,7 +26,7 @@ class QueueTask(object):
     finish_with_error: bool = False
     task_status: str | None = None
     task_step_preview: str | None = None
-    task_result: any = None
+    task_result: List[ImageGenerationResult] = None
     error_message: str | None = None
     webhook_url: str | None = None  # attribute for individual webhook_url
 
@@ -47,7 +47,7 @@ class QueueTask(object):
     def set_step_preview(self, task_step_preview: str | None):
         self.task_step_preview = task_step_preview
 
-    def set_result(self, task_result: any, finish_with_error: bool, error_message: str | None = None):
+    def set_result(self, task_result: List[ImageGenerationResult], finish_with_error: bool, error_message: str | None = None):
         if not finish_with_error:
             self.finish_progress = 100
             self.task_status = 'Finished'

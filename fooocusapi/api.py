@@ -7,7 +7,7 @@ from fastapi.params import File
 from fastapi.staticfiles import StaticFiles
 from fastapi.middleware.cors import CORSMiddleware
 
-from fooocusapi.models import AllModelNamesResponse, AsyncJobResponse, QueryJobRequest,StopResponse , GeneratedImageResult, ImgInpaintOrOutpaintRequest, ImgPromptRequest, ImgUpscaleOrVaryRequest, JobQueueInfo, HistoryResponse, Text2ImgRequest
+from fooocusapi.models import AllModelNamesResponse, AsyncJobResponse, QueryJobRequest,StopResponse , GeneratedImageResult, ImgInpaintOrOutpaintRequest, ImgPromptRequest, ImgUpscaleOrVaryRequest, JobQueueInfo, JobHistoryResponse, Text2ImgRequest
 from fooocusapi.api_utils import generation_output, req_to_params
 import fooocusapi.file_utils as file_utils
 from fooocusapi.parameters import GenerationFinishReason, ImageGenerationResult
@@ -254,10 +254,14 @@ def query_job(req: QueryJobRequest = Depends()):
 def job_queue():
     return JobQueueInfo(running_size=len(task_queue.queue), finished_size=len(task_queue.history), last_job_id=task_queue.last_job_id)
 
-@app.get("/v1/generation/job-history", response_model=HistoryResponse, description="Query historical job data")
+
+@app.get("/v1/generation/job-history", response_model=JobHistoryResponse, description="Query historical job data")
 def get_history():
     # Fetch and return the historical tasks
-    return HistoryResponse(history=task_queue.history, queue=task_queue.queue)
+    hitory = [JobHistoryInfo(job_id=item.job_id, is_finished=item.is_finished) for item in task_queue.history]
+    queue = [JobHistoryInfo(job_id=item.job_id, is_finished=item.is_finished) for item in task_queue.queue]
+    return JobHistoryResponse(history=hitory, queue=queue)
+
 
 @app.post("/v1/generation/stop", response_model=StopResponse, description="Job stoping")
 def stop():
