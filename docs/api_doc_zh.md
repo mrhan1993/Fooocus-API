@@ -4,6 +4,7 @@
   - [图像放大 | image-upscale-vary](#图像放大--image-upscale-vary)
   - [局部重绘 | image-inpaint-outpaint](#局部重绘--image-inpaint-outpaint)
   - [图生图 | image-prompt](#图生图--image-prompt)
+  - [图像反推 | describe](#图像反推--describe)
   - [列出模型 | all-models](#列出模型--all-models)
   - [刷新模型 | refresh-models](#刷新模型--refresh-models)
   - [样式 | styles](#样式--styles)
@@ -411,16 +412,16 @@ def inpaint_outpaint(input_image: bytes, params: dict, input_mask: bytes = None)
 
 **请求参数**
 
-| Name | Type | Description |
-| ---- | ---- | ----------- |
-| input_image | str | 输入图像, base64 格式 |
-| input_mask | str | 输入遮罩, base64 格式 |
-| inpaint_additional_prompt | str | 描述词，反向描述词 |
+| Name | Type | Description                                                     |
+| ---- | ---- |-----------------------------------------------------------------|
+| input_image | str | 输入图像, base64 格式                                                 |
+| input_mask | str | 输入遮罩, base64 格式                                                 |
+| inpaint_additional_prompt | str | 附加描述词                                                           |
 | outpaint_selections | List[OutpaintExpansion] | OutpaintExpansion 是一个枚举类型, 值包括 "Left", "Right", "Top", "Bottom" |
-| outpaint_distance_left | int | 图像扩展距离, 默认 0 |
-| outpaint_distance_right | int | 图像扩展距离, 默认 0 |
-| outpaint_distance_top | int | 图像扩展距离, 默认 0 |
-| outpaint_distance_bottom | int | 图像扩展距离, 默认 0 |
+| outpaint_distance_left | int | 图像扩展距离, 默认 0                                                    |
+| outpaint_distance_right | int | 图像扩展距离, 默认 0                                                    |
+| outpaint_distance_top | int | 图像扩展距离, 默认 0                                                    |
+| outpaint_distance_bottom | int | 图像扩展距离, 默认 0                                                    |
 
 **响应参数：**
 
@@ -441,7 +442,7 @@ def inpaint_outpaint(input_image: bytes, params: dict, input_mask: bytes = None)
             "Fooocus Sharp"
         ],
         "performance_selection": "Speed",
-        "aspect_ratios_selection": "1152×896",
+        "aspect_ratios_selection": "1152*896",
         "image_number": 1,
         "image_seed": -1,
         "sharpness": 2,
@@ -587,7 +588,7 @@ DataType: form|json
       "negative_prompt": "",
       "style_selections": "",
       "performance_selection": "Speed",
-      "aspect_ratios_selection": '1152×896',
+      "aspect_ratios_selection": '1152*896',
       "image_number": 1,
       "image_seed": -1,
       "sharpness": 2,
@@ -664,7 +665,7 @@ def image_prompt(cn_img1: bytes,
             "Fooocus Sharp"
         ],
         "performance_selection": "Speed",
-        "aspect_ratios_selection": "1152×896",
+        "aspect_ratios_selection": "1152*896",
         "image_number": 1,
         "image_seed": -1,
         "sharpness": 2,
@@ -749,6 +750,46 @@ def image_prompt(img_prompt: list, params: dict) -> dict:
                         headers=headers,
                         timeout=300)
     return response.json()
+```
+
+## 图像反推 | describe
+
+**基础信息：**
+
+```yaml
+EndPoint: /v1/tools/describe-image
+Method: Post
+DataType: form
+```
+
+**请求参数**
+
+| Name | Type | Description                 |
+|------|------|-----------------------------|
+| type | Enum | 反推类型, "Photo", "Animd" 中的一个 |
+
+**请求示例**:
+
+```python
+def describe_image(image: bytes,
+                   params: dict = {"type": "Photo"}) -> dict:
+    """
+    describe-image
+    """
+    response = requests.post(url="http://127.0.0.1:8888/v1/tools/describe-image",
+                        files={
+                            "image": image
+                        },
+                        timeout=30)
+    return response.json()
+```
+
+**响应示例**:
+
+```python
+{
+  "describe": "a young woman posing with her hands behind her head"
+}
 ```
 
 --------------------------------------------
