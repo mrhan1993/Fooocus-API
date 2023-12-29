@@ -91,6 +91,10 @@ def home():
     return Response(content='Swagger-UI to: <a href="/docs">/docs</a>', media_type="text/html")
 
 
+@app.get("/ping", description="Returns a simple 'pong' response")
+def ping():
+    return Response(content='pong', media_type="text/html")
+
 @app.post("/v1/generation/text-to-image", response_model=List[GeneratedImageResult] | AsyncJobResponse, responses=img_generate_responses)
 def text2img_generation(req: Text2ImgRequest, accept: str = Header(None),
                         accept_query: str | None = Query(None, alias='accept', description="Parameter to overvide 'Accept' header, 'image/png' for output bytes")):
