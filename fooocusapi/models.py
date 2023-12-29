@@ -400,6 +400,15 @@ class GeneratedImageResult(BaseModel):
     finish_reason: GenerationFinishReason
 
 
+class DescribeImageType(str, Enum):
+    photo = 'Photo'
+    anime = 'Anime'
+
+
+class DescribeImageResponse(BaseModel):
+    describe: str
+
+
 class AsyncJobStage(str, Enum):
     waiting = 'WAITING'
     running = 'RUNNING'
