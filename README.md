@@ -1,5 +1,7 @@
 [![Docker Image CI](https://github.com/konieshadow/Fooocus-API/actions/workflows/docker-image.yml/badge.svg?branch=main)](https://github.com/konieshadow/Fooocus-API/actions/workflows/docker-image.yml)
 
+[ English | [中文](/README_zh.md) ]
+
 - [Introduction](#introduction)
   - [Fooocus](#fooocus)
   - [Fooocus-API](#fooocus-api)
@@ -41,7 +43,7 @@ Fooocus has included and automated lots of inner optimizations and quality impro
 
 I think you must have tried to use [Gradio client](https://www.gradio.app/docs/client) to call Fooocus, which was a terrible experience for me. 
 
-Fooocus API uses [FastAPI](https://fastapi.tiangolo.com/)  provides the `REST` API for using Fooocus. Now, you can use Fooocus in any language you like. 
+Fooocus API uses [FastAPI](https://fastapi.tiangolo.com/)  provides the `REST` API for using Fooocus. Now, you can use Fooocus's powerful ability in any language you like. 
 
 In addition, we also provide detailed [documentation](/docs/api_doc_en.md) and [sample code](/examples)
 
@@ -73,13 +75,13 @@ conda env create -f environment.yaml
 conda activate fooocus-api
 ```
 
-and then, run `python main.py` to start app, default, server is listening on 'http://127.0.0.1:8888'
+and then, run `python main.py` to start app, default, server is listening on `http://127.0.0.1:8888`
 
 > If you are running the project for the first time, you may have to wait for a while, during which time the program will complete the rest of the installation and download the necessary models. You can also do these steps manually, which I'll mention later.
 
 ### venv
 
-Similar to using conda, create a virtual environment, install requirements, and then start and wait for a while
+Similar to using conda, create a virtual environment, and then start and wait for a while
 
 ```powershell
 # windows
