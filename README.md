@@ -1,12 +1,55 @@
-# Fooocus-API
-
 [![Docker Image CI](https://github.com/konieshadow/Fooocus-API/actions/workflows/docker-image.yml/badge.svg?branch=main)](https://github.com/konieshadow/Fooocus-API/actions/workflows/docker-image.yml)
+
+[ English | [中文](/README_zh.md) ]
+
+- [Introduction](#introduction)
+  - [Fooocus](#fooocus)
+  - [Fooocus-API](#fooocus-api)
+- [Get-Start](#get-start)
+  - [Run with Replicate](#run-with-replicate)
+  - [Self hosted](#self-hosted)
+    - [conda](#conda)
+    - [venv](#venv)
+    - [predownload and install](#predownload-and-install)
+  - [Start with docker](#start-with-docker)
+- [cmd flags](#cmd-flags)
+- [Change log](#change-log)
+- [Apis](#apis)
+- [License](#license)
+- [Thanks :purple\_heart:](#thanks-purple_heart)
+
+
+# Introduction
 
 FastAPI powered API for [Fooocus](https://github.com/lllyasviel/Fooocus).
 
 Currently loaded Fooocus version: [2.1.852](https://github.com/lllyasviel/Fooocus/blob/main/update_log.md).
 
-### Run with Replicate
+## Fooocus
+
+This part from [Fooocus](https://github.com/lllyasviel/Fooocus) project.
+
+Fooocus is an image generating software (based on [Gradio](https://www.gradio.app/)).
+
+Fooocus is a rethinking of Stable Diffusion and Midjourney’s designs:
+
+- Learned from Stable Diffusion, the software is offline, open source, and free.
+
+- Learned from Midjourney, the manual tweaking is not needed, and users only need to focus on the prompts and images.
+
+Fooocus has included and automated lots of inner optimizations and quality improvements. Users can forget all those difficult technical parameters, and just enjoy the interaction between human and computer to "explore new mediums of thought and expanding the imaginative powers of the human species"
+
+## Fooocus-API
+
+I think you must have tried to use [Gradio client](https://www.gradio.app/docs/client) to call Fooocus, which was a terrible experience for me. 
+
+Fooocus API uses [FastAPI](https://fastapi.tiangolo.com/)  provides the `REST` API for using Fooocus. Now, you can use Fooocus's powerful ability in any language you like. 
+
+In addition, we also provide detailed [documentation](/docs/api_doc_en.md) and [sample code](/examples)
+
+# Get-Start
+
+## Run with Replicate
 
 Now you can use Fooocus-API by Replicate, the model is on [konieshadow/fooocus-api](https://replicate.com/konieshadow/fooocus-api).
 
@@ -17,40 +60,117 @@ With preset:
 
 I believe this is the easiest way to generate image with Fooocus's power.
 
-### Reuse model files from Fooocus
+## Self hosted
 
-You can simple copy `config.txt` file from your local Fooocus folder to Fooocus-API's root folder. See [Customization](https://github.com/lllyasviel/Fooocus#customization) for details.
+You need python version >= 3.10, or use conda to create a new env.
 
-### Start app
+The hardware requirements are what Fooocus needs. You can find detail [here](https://github.com/lllyasviel/Fooocus#minimal-requirement)
 
-Need python version >= 3.10, or use conda to create a new env.
+### conda
 
-```
+You can easily start app follow this step use conda:
+
+```shell
 conda env create -f environment.yaml
 conda activate fooocus-api
 ```
 
+and then, run `python main.py` to start app, default, server is listening on `http://127.0.0.1:8888`
+
+> If you are running the project for the first time, you may have to wait for a while, during which time the program will complete the rest of the installation and download the necessary models. You can also do these steps manually, which I'll mention later.
+
+### venv
+
+Similar to using conda, create a virtual environment, and then start and wait for a while
+
+```powershell
+# windows
+python -m venv venv
+.\venv\Scripts\Activate
+```
+
+```shell
+# linux
+python -m venv venv
+source venv/bin/activate
+```
+and then, run `python main.py`
+
+### predownload and install
+
+If you want to deal with environmental problems manually and download the model in advance, you can refer to the following steps
+
+After creating a complete environment using conda or venv, you can manually complete the installation of the subsequent environment, just follow
+
+first, install requirements `pip install -r requirements.txt`
+
+then, pytorch with cuda `pip install torch==2.1.0 torchvision==0.16.0 torchaudio==2.1.0 --index-url https://download.pytorch.org/whl/cu121` , you can find more info about this [here](https://pytorch.org/get-started/previous-versions/),
+
+> It is important to note that for pytorch and cuda versions, the recommended version of Fooocus is used, which is currently pytorch2.1.0+cuda12.1. If you insist, you can also use other versions, but you need to add `--skip-pip` when you start app, otherwise the recommended version will be installed automatically
+
+next, make a dir named `repositories` and clone `https://github.com/lllyasviel/Fooocus` in to it
+
+last, you can download models and put it into `repositories\Fooocus\models`
+
+here is a list need to download for startup (for different [startup params](#cmd-flags) maybe difference):
+
+- checkpoint:  path to `repositories\Fooocus\models\checkpoints`
+    + [juggernautXL_version6Rundiffusion.safetensors](https://huggingface.co/lllyasviel/fav_models/resolve/main/fav/juggernautXL_version6Rundiffusion.safetensors)
+
+- vae_approx: path to `repositories\Fooocus\models\vae_approx`
+    + [xlvaeapp.pth](https://huggingface.co/lllyasviel/misc/resolve/main/xlvaeapp.pth')
+    + [vaeapp_sd15.pth](https://huggingface.co/lllyasviel/misc/resolve/main/vaeapp_sd15.pt)
+    + [xl-to-v1_interposer-v3.1.safetensors](https://huggingface.co/lllyasviel/misc/resolve/main/xl-to-v1_interposer-v3.1.safetensors)
+
+- lora: path to `repositories\Fooocus\models\loras`
+    + [sd_xl_offset_example-lora_1.0.safetensors](https://huggingface.co/stabilityai/stable-diffusion-xl-base-1.0/raw/main/sd_xl_offset_example-lora_1.0.safetensors)
+
+> I've uploaded the model I'm using, which contains almost all the base models that Fooocus will use! I put it [here](https://www.123pan.com/s/dF5A-SIQsh.html) 提取码: `D4Mk`
+
+## Start with docker
+
+Before use docker with GPU, you should [install NVIDIA Container Toolkit](https://docs.nvidia.com/datacenter/cloud-native/container-toolkit/latest/install-guide.html) first.
+
 Run
 
+```shell
+docker run -d --gpus=all \
+    -e NVIDIA_DRIVER_CAPABILITIES=compute,utility \
+    -e NVIDIA_VISIBLE_DEVICES=all \
+    -p 8888:8888 konieshadow/fooocus-api
 ```
-python main.py
+
+For a more complex usage:
+
+```shell
+mkdir ~/repositories
+mkdir -p ~/.cache/pip
+
+docker run -d --gpus=all \
+    -e NVIDIA_DRIVER_CAPABILITIES=compute,utility \
+    -e NVIDIA_VISIBLE_DEVICES=all \
+    -v ~/repositories:/app/repositories \
+    -v ~/.cache/pip:/root/.cache/pip \
+    -p 8888:8888 konieshadow/fooocus-api
 ```
 
-On default, server is listening on 'http://127.0.0.1:8888'
+It will persistent the dependent repositories and pip cache.
 
-### CMD Flags
+You can add `-e PIP_INDEX_URL={pypi-mirror-url}` to docker run command to change pip index url.
 
-- -h, --help show this help message and exit
-- --port PORT Set the listen port, default: 8888
-- --host HOST Set the listen host, default: 127.0.0.1
-- --base-url BASE_URL Set base url for outside visit, default is http://host:port
-- --log-level LOG_LEVEL Log info for Uvicorn, default: info
-- --sync-repo SYNC_REPO Sync dependent git repositories to local, 'skip' for skip sync action, 'only' for only do the sync action and not launch app
-- --skip-pip Skip automatic pip install when setup
-- --preload-pipeline Preload pipeline before start http server
-- --queue-size QUEUE_SIZE Working queue size, default: 3, generation requests exceeding working queue size will return failure
-- --queue-history QUEUE_HISTORY Finished jobs reserve size, tasks exceeding the limit will be deleted, including output image files, default: 100
-- --webhook-url WEBHOOK_URL Webhook url for notify generation result, default: None
+# cmd flags
+
+- `-h, --help` show this help message and exit
+- `--port PORT` Set the listen port, default: 8888
+- `--host HOST` Set the listen host, default: 127.0.0.1
+- `--base-url BASE_URL` Set base url for outside visit, default is http://host:port
+- `--log-level LOG_LEVEL` Log info for Uvicorn, default: info
+- `--sync-repo SYNC_REPO` Sync dependent git repositories to local, 'skip' for skip sync action, 'only' for only do the sync action and not launch app
+- `--skip-pip` Skip automatic pip install when setup
+- `--preload-pipeline` Preload pipeline before start http server
+- `--queue-size QUEUE_SIZE` Working queue size, default: 3, generation requests exceeding working queue size will return failure
+- `--queue-history QUEUE_HISTORY` Finished jobs reserve size, tasks exceeding the limit will be deleted, including output image files, default: 100
+- `--webhook-url WEBHOOK_URL` Webhook url for notify generation result, default: None
 
 Since v0.3.25, added CMD flags support of Fooocus. You can pass any argument which Fooocus supported.
 
@@ -62,149 +182,33 @@ python main.py --all-in-fp16 --always-gpu
 
 For Fooocus CMD flags, see [here](https://github.com/lllyasviel/Fooocus?tab=readme-ov-file#all-cmd-flags).
 
-### Start with docker
 
-Before use docker with GPU, you should [install NVIDIA Container Toolkit](https://docs.nvidia.com/datacenter/cloud-native/container-toolkit/latest/install-guide.html) first.
+# Change log
 
-Run
+**[23/12/29] v0.3.27** : Add query job hitory api. Add webhook_url support for each generation request.
 
-```
-docker run --gpus=all -e NVIDIA_DRIVER_CAPABILITIES=compute,utility -e NVIDIA_VISIBLE_DEVICES=all -p 8888:8888 konieshadow/fooocus-api
-```
+**[23/12/28] v0.3.26** : **Break Change**: Add web-hook cmd flag for notify generation result. Change async job id to uuid to avoid conflict between each startup.
 
-For a more complex usage:
+**[23/12/22] v0.3.25** : Add CMD flags support of Fooocus. **Break Change**: Removed cli argument `disable-private-log`. You can use Fooocus's `--disable-image-log` for the same purpose.
 
-```
-mkdir ~/repositories
-mkdir -p ~/.cache/pip
+**[23/12/19] v0.3.24** : Merge for Fooocus v2.1.852. This version merged Fooocus v2.1.839, which include a seed breaking change. Details for [2.1.839](https://github.com/lllyasviel/Fooocus/blob/main/update_log.md#21839).
 
-docker run --gpus=all -e NVIDIA_DRIVER_CAPABILITIES=compute,utility -e NVIDIA_VISIBLE_DEVICES=all \
-    -v ~/repositories:/app/repositories \
-    -v ~/.cache/pip:/root/.cache/pip \
-    -p 8888:8888 konieshadow/fooocus-api
-```
+**[23/12/14] v0.3.23** : Merge for Fooocus v2.1.837.
 
-It will persistent the dependent repositories and pip cache.
+**[23/11/30] v0.3.22** : Add upscale custom support. You can pass param `upscale_value` for upsacle api to override upscale value.
 
-You can add `-e PIP_INDEX_URL={pypi-mirror-url}` to docker run command to change pip index url.
+**[23/11/28] v0.3.21** : Add custom size support for outpaint. Thanks to [freek99](https://github.com/freek99).  Delete output files when exceeding task queue history limit.  Remove restrictions on input resolution. Now you can use any combination of `width*height` for `aspect_ratios_selection`. Change type of `seed` field from generation result to String to avoid numerical overflow.
 
-### Test API
+older change history you can find in [release page](https://github.com/konieshadow/Fooocus-API/releases)
 
-You can open the Swagger Document in "http://127.0.0.1:8888/docs", then click "Try it out" to send a request.
 
-### Update logs
+# Apis
 
-Please visit [releases](https://github.com/konieshadow/Fooocus-API/releases) page for changes in each version.
+you can find all api detail [here](/docs/api_doc_en.md)
 
-### Completed Apis
+# License
 
-Swagger openapi defination see [openapi.json](docs/openapi.json).
 
-You can import it in [Swagger-UI](https://swagger.io/tools/swagger-ui/) editor.
+# Thanks :purple_heart:
 
-All the generation api support for response in PNG bytes directly when request's 'Accept' header is 'image/png'.
-
-All the generation api support async process by pass parameter `async_process` to true. And then use query job api to retrieve progress and generation results.
-
-Break changes from v0.3.26
-
-- The `job_id` field from `Query Job` and `Query Job Queue Info` apis change type to str. It's an uuid now, which will avoid conflict between each startup.
-
-Break changes from v0.3.25
-
-- Removed cli argument `disable-private-log`. You can use Fooocus's `--disable-image-log` for the same purpose.
-
-Break changes from v0.3.24:
-
-- This version merged Fooocus v2.1.839, which include a seed breaking change. Details for [2.1.839](https://github.com/lllyasviel/Fooocus/blob/main/update_log.md#21839).
-
-Break changes from v0.3.16:
-
-- Parameter format for `loras` has changed for the img2img apis (the multipart/form-data requests). Now it requires JSON string.
-
-Break changes from v0.3.0:
-
-- The generation apis won't return `base64` field unless request parameters set `require_base64` to true.
-- The generation apis return a `url` field where the generated image can be requested via a static file url.
-
-Break changes from v0.3.21:
-
-- The `seed` field from generation result change to type `String` to avoid numerical overflow.
-
-#### Text to Image
-
-> POST /v1/generation/text-to-image
-
-Alternative api for the normal image generation of Fooocus Gradio interface.
-
-#### Image Upscale or Variation
-
-For multipart/form-data request:
-
-> POST /v1/generation/image-upscale-vary
-
-For application/json request:
-
-> POST /v2/generation/image-upscale-vary
-
-Alternative api for 'Upscale or Variation' tab of Fooocus Gradio interface.
-
-#### Image Inpaint or Outpaint
-
-For multipart/form-data request:
-
-> POST /v1/generation/image-inpait-outpaint
-
-For application/json request:
-
-> POST /v2/generation/image-inpait-outpaint
-
-Alternative api for 'Inpaint or Outpaint' tab of Fooocus Gradio interface.
-
-#### Image Prompt
-
-For multipart/form-data request:
-
-> POST /v1/generation/image-prompt
-
-For application/json request:
-
-> POST /v1/generation/image-prompt
-
-Alternative api for 'Image Prompt' tab of Fooocus Gradio interface.
-
-#### Query Job
-
-> GET /v1/generation/query-job
-
-Query async generation request results, return job progress and generation results.
-
-You can get preview image of generation steps at current time by this api.
-
-#### Query Job Queue Info
-
-> GET /v1/generation/job-queue
-
-Query job queue info, include running job count, finished job count and last job id.
-
-#### Stop Generation task
-
-> POST /v1/generation/stop
-
-Stop current generation task.
-
-#### Get All Model Names
-
-> GET /v1/engines/all-models
-
-Get all filenames of base model and lora.
-
-#### Refresh Models
-
-> POST /v1/engines/refresh-models
-
-#### Get All Fooocus Styles
-
-> GET /v1/engines/styles
-
-Get all legal Fooocus styles.
+Thanks for all your contributions and efforts towards improving the Fooocus API. We thank you for being part of our :sparkles: community :sparkles:!

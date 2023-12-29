@@ -159,6 +159,10 @@ class ImageGenerationParams(object):
             inpaint_strength = 1.0
             inpaint_respective_field = 0.618
 
+            # Auto set mixing_image_prompt_and_inpaint to True
+            if len(self.image_prompts) > 0 and inpaint_input_image is not None:
+                mixing_image_prompt_and_inpaint = True
+
             self.advanced_params = [
                 disable_preview, adm_scaler_positive, adm_scaler_negative, adm_scaler_end, adaptive_cfg, sampler_name, \
                 scheduler_name, generate_image_grid, overwrite_step, overwrite_switch, overwrite_width, overwrite_height, \
