@@ -45,7 +45,7 @@ Fooocus 包含了许多内部优化以及质量改进。 忘记那些复杂困�
 
 Fooocus API 使用 [FastAPI](https://fastapi.tiangolo.com/)  构建了一系列 `REST` API 来使用 Fooocus。现在，你可以用任何你喜欢的编程语言来调用 Fooocus 的强大能力。
 
-此外，我们还提供了详细的 [文档](/docs/api_doc_en.md) 和 [示例代码](/examples)
+此外，我们还提供了详细的 [文档](/docs/api_doc_zh.md) 和 [示例代码](/examples)
 
 # 开始
 
@@ -199,7 +199,7 @@ python main.py --all-in-fp16 --always-gpu
 
 **[23/11/30] v0.3.22** : 支持自定义 upscale， 通过传递 `upscale_value` 给 upsacle api 来重写 upscale 值
 
-**[23/11/28] v0.3.21** : 增加 outpaint 自定义大小，感谢 [freek99](https://github.com/freek99) 提供的代码。当超出队列历史限制时，删除生成的图像。删除对输入分辨率的限制。现在你可以通过 `width*height` 给 `aspect_ratios_selection` 来指定任意分辨率。更改 `seed` 为 String 类型
+**[23/11/28] v0.3.21** : 增加 outpaint 自定义大小，感谢 [freek99](https://github.com/freek99) 提供的代码。当超出队列历史限制时，删除生成的图像。删除对输入分辨率的限制。现在你可以通过 `width*height` 给 `aspect_ratios_selection` 来指定任意分辨率。将 `seed` 字段的类型从 `generation result` 更改为字符串，以避免数字溢出。
 
 更早的日志可以在 [release page](https://github.com/konieshadow/Fooocus-API/releases) 找到
 
