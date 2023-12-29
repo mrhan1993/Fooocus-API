@@ -15,6 +15,7 @@ class TaskType(str, Enum):
     img_uov = 'Image Upscale or Variation'
     img_inpaint_outpaint = 'Image Inpaint or Outpaint'
     img_prompt = 'Image Prompt'
+    not_found = 'Not Found'
 
 
 class QueueTask(object):
