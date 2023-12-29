@@ -61,10 +61,10 @@ def call_worker(req: Text2ImgRequest, accept: str):
     task_type = TaskType.text_2_img
     if isinstance(req, ImgUpscaleOrVaryRequest) or isinstance(req, ImgUpscaleOrVaryRequestJson):
         task_type = TaskType.img_uov
-    elif isinstance(req, ImgInpaintOrOutpaintRequest) or isinstance(req, ImgInpaintOrOutpaintRequestJson):
-        task_type = TaskType.img_inpaint_outpaint
     elif isinstance(req, ImgPromptRequest) or isinstance(req, ImgPromptRequestJson):
         task_type = TaskType.img_prompt
+    elif isinstance(req, ImgInpaintOrOutpaintRequest) or isinstance(req, ImgInpaintOrOutpaintRequestJson):
+        task_type = TaskType.img_inpaint_outpaint
 
     params = req_to_params(req)
     queue_task = task_queue.add_task(
@@ -217,6 +217,11 @@ def img_prompt(req: ImgPromptRequestJson,
     else:
         streaming_output = False
 
+    if req.input_image is not None:
+        req.input_image = base64_to_stream(req.input_image)
+    if req.input_mask is not None:
+        req.input_mask = base64_to_stream(req.input_mask)
+    
     default_image_promt = ImagePrompt(cn_img=None)
     image_prompts_files: List[ImagePrompt] = []
     for img_prompt in req.image_prompts:

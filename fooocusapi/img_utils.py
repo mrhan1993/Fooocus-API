@@ -35,7 +35,9 @@ def read_input_image(input_image: UploadFile) -> np.ndarray:
     image = np.array(pil_image)
     return image
 
-def base64_to_stream(image: str) -> UploadFile:
+def base64_to_stream(image: str) -> UploadFile | None:
+    if image == '':
+        return None
     if image.startswith('data:image'):
         image = image.split(sep=',', maxsplit=1)[1]
     image_bytes = base64.b64decode(image)

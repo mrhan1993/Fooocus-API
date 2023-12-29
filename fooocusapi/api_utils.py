@@ -79,12 +79,16 @@ def req_to_params(req: Text2ImgRequest) -> ImageGenerationParams:
 
     image_prompts = []
     if isinstance(req, ImgPromptRequest) or isinstance(req, ImgPromptRequestJson):
+        # Auto set mixing_image_prompt_and_inpaint to True
+        if len(req.image_prompts) > 0 and req.input_image is not None and req.advanced_params is not None:
+            req.advanced_params.mixing_image_prompt_and_inpaint = True
+
         for img_prompt in req.image_prompts:
             if img_prompt.cn_img is not None:
                 cn_img = read_input_image(img_prompt.cn_img)
-                if img_prompt.cn_stop is None:
+                if img_prompt.cn_stop is None or img_prompt.cn_stop == 0:
                     img_prompt.cn_stop = flags.default_parameters[img_prompt.cn_type.value][0]
-                if img_prompt.cn_weight is None:
+                if img_prompt.cn_weight is None or img_prompt.cn_weight == 0:
                     img_prompt.cn_weight = flags.default_parameters[img_prompt.cn_type.value][1]
                 image_prompts.append(
                     (cn_img, img_prompt.cn_stop, img_prompt.cn_weight, img_prompt.cn_type.value))

@@ -121,7 +121,7 @@ def process_generate(async_task: QueueTask, params: ImageGenerationParams) -> Li
         refiner_switch = params.refiner_switch
         loras = params.loras
         input_image_checkbox = params.uov_input_image is not None or params.inpaint_input_image is not None or len(params.image_prompts) > 0
-        current_tab = 'uov' if params.uov_method != flags.disabled else 'inpaint' if params.inpaint_input_image is not None else 'ip' if len(params.image_prompts) > 0 else None
+        current_tab = 'uov' if params.uov_method != flags.disabled else 'ip' if len(params.image_prompts) > 0 else 'inpaint' if params.inpaint_input_image is not None else None
         uov_method = params.uov_method
         upscale_value = params.upscale_value
         uov_input_image = params.uov_input_image
@@ -470,7 +470,7 @@ def process_generate(async_task: QueueTask, params: ImageGenerationParams) -> Li
             print(f'Image upscaled.')
 
             f = 1.0
-            if upscale_value is not None:
+            if upscale_value is not None and upscale_value > 1.0:
                 f = upscale_value
             else:
                 pattern = r"([0-9]+(?:\.[0-9]+)?)x"
