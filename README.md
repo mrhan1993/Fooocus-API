@@ -185,6 +185,8 @@ For Fooocus CMD flags, see [here](https://github.com/lllyasviel/Fooocus?tab=read
 
 # Change log
 
+**[23/12/29] v0.3.27** : Add describe interface，now you can get prompt from image
+
 **[23/12/29] v0.3.27** : Add query job hitory api. Add webhook_url support for each generation request.
 
 **[23/12/28] v0.3.26** : **Break Change**: Add web-hook cmd flag for notify generation result. Change async job id to uuid to avoid conflict between each startup.
