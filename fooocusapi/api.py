@@ -7,16 +7,17 @@ from fastapi.params import File
 from fastapi.staticfiles import StaticFiles
 from fastapi.middleware.cors import CORSMiddleware
 
-from fooocusapi.models import AllModelNamesResponse, AsyncJobResponse, QueryJobRequest,StopResponse , GeneratedImageResult, ImgInpaintOrOutpaintRequest, ImgPromptRequest, ImgUpscaleOrVaryRequest, JobQueueInfo, JobHistoryResponse, Text2ImgRequest
+from fooocusapi.models import *
 from fooocusapi.api_utils import generation_output, req_to_params
 import fooocusapi.file_utils as file_utils
 from fooocusapi.parameters import GenerationFinishReason, ImageGenerationResult
 from fooocusapi.task_queue import TaskType
 from fooocusapi.worker import process_generate, task_queue, process_top
 from fooocusapi.models_v2 import *
-from fooocusapi.img_utils import base64_to_stream
+from fooocusapi.img_utils import base64_to_stream, read_input_image
 
 from concurrent.futures import ThreadPoolExecutor
+from modules.util import HWC3
 
 
 app = FastAPI()
@@ -276,6 +277,19 @@ def get_history():
 def stop():
     stop_worker()
     return StopResponse(msg="success")
+
+
+@app.post("/v1/tools/describe-image", response_model=DescribeImageResponse)
+def describe_image(image: UploadFile, type: DescribeImageType = Query(DescribeImageType.photo, description="Image type, 'Photo' or 'Anime'")):
+    if type == DescribeImageType.photo:
+        from extras.interrogate import default_interrogator as default_interrogator_photo
+        interrogator = default_interrogator_photo
+    else:
+        from extras.wd14tagger import default_interrogator as default_interrogator_anime
+        interrogator = default_interrogator_anime
+    img = HWC3(read_input_image(image))
+    result = interrogator(img)
+    return DescribeImageResponse(describe=result)
 
 
 @app.get("/v1/engines/all-models", response_model=AllModelNamesResponse, description="Get all filenames of base model and lora")
