@@ -117,7 +117,8 @@ class Text2ImgRequest(BaseModel):
     advanced_params: AdvancedParams | None = AdvancedParams()
     require_base64: bool = Field(default=False, description="Return base64 data of generated image")
     async_process: bool = Field(default=False, description="Set to true will run async and return job info for retrieve generataion result later")
-
+    webhook_url: str | None = Field(default=None, description="Optional URL for a webhook callback. If provided, the system will send a POST request to this URL upon task completion or failure."
+                                                              " This allows for asynchronous notification of task status.")
 
 class ImgUpscaleOrVaryRequest(Text2ImgRequest):
     input_image: UploadFile
@@ -402,6 +403,10 @@ class JobQueueInfo(BaseModel):
     finished_size: int = Field(description="Finished job cound (after auto clean)")
     last_job_id: str = Field(description="Last submit generation job id")
 
+# Response model for the historical tasks
+class HistoryResponse(BaseModel):
+    queue: List[QueueTask] = []
+    history: List[QueueTask] = []
 
 class AllModelNamesResponse(BaseModel):
     model_filenames: List[str] = Field(description="All available model filenames")

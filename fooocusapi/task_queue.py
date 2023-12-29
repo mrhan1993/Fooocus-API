@@ -28,12 +28,15 @@ class QueueTask(object):
     task_step_preview: str | None = None
     task_result: any = None
     error_message: str | None = None
+    webhook_url: str | None = None  # attribute for individual webhook_url
 
-    def __init__(self, job_id: str, type: TaskType, req_param: dict, in_queue_millis: int):
+    def __init__(self, job_id: str, type: TaskType, req_param: dict, in_queue_millis: int,
+                 webhook_url: str | None = None):
         self.job_id = job_id
         self.type = type
         self.req_param = req_param
         self.in_queue_millis = in_queue_millis
+        self.webhook_url = webhook_url
 
     def set_progress(self, progress: int, status: str | None):
         if progress > 100:
@@ -64,7 +67,7 @@ class TaskQueue(object):
         self.history_size = hisotry_size
         self.webhook_url = webhook_url
 
-    def add_task(self, type: TaskType, req_param: dict) -> QueueTask | None:
+    def add_task(self, type: TaskType, req_param: dict, webhook_url: str | None = None) -> QueueTask | None:
         """
         Create and add task to queue
         :returns: The created task's job_id, or None if reach the queue size limit
@@ -74,7 +77,8 @@ class TaskQueue(object):
 
         job_id = str(uuid.uuid4())
         task = QueueTask(job_id=job_id, type=type, req_param=req_param,
-                         in_queue_millis=int(round(time.time() * 1000)))
+                         in_queue_millis=int(round(time.time() * 1000)),
+                         webhook_url=webhook_url)
         self.queue.append(task)
         self.last_job_id = job_id
         return task
@@ -109,8 +113,11 @@ class TaskQueue(object):
             task.is_finished = True
             task.finish_millis = int(round(time.time() * 1000))
 
+            # Use the task's webhook_url if available, else use the default
+            webhook_url = task.webhook_url or self.webhook_url
+
             # Send webhook
-            if task.is_finished and self.webhook_url:
+            if task.is_finished and webhook_url:
                 data = { "job_id": task.job_id, "job_result": [] }
                 if isinstance(task.task_result, List):
                     for item in task.task_result:
@@ -119,7 +126,7 @@ class TaskQueue(object):
                             "seed": item.seed if item.seed else "-1",
                         })
                 try:
-                    res = requests.post(self.webhook_url, json=data)
+                    res = requests.post(webhook_url, json=data)
                     print(f'Call webhook response status: {res.status_code}')
                 except Exception as e:
                     print('Call webhook error:', e)

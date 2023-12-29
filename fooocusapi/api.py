@@ -7,7 +7,7 @@ from fastapi.params import File
 from fastapi.staticfiles import StaticFiles
 from fastapi.middleware.cors import CORSMiddleware
 
-from fooocusapi.models import AllModelNamesResponse, AsyncJobResponse, QueryJobRequest,StopResponse , GeneratedImageResult, ImgInpaintOrOutpaintRequest, ImgPromptRequest, ImgUpscaleOrVaryRequest, JobQueueInfo, Text2ImgRequest
+from fooocusapi.models import AllModelNamesResponse, AsyncJobResponse, QueryJobRequest,StopResponse , GeneratedImageResult, ImgInpaintOrOutpaintRequest, ImgPromptRequest, ImgUpscaleOrVaryRequest, JobQueueInfo, HistoryResponse, Text2ImgRequest
 from fooocusapi.api_utils import generation_output, req_to_params
 import fooocusapi.file_utils as file_utils
 from fooocusapi.parameters import GenerationFinishReason, ImageGenerationResult
@@ -68,7 +68,8 @@ def call_worker(req: Text2ImgRequest, accept: str):
 
     params = req_to_params(req)
     queue_task = task_queue.add_task(
-        task_type, {'params': params.__dict__, 'accept': accept, 'require_base64': req.require_base64})
+        task_type, {'params': params.__dict__, 'accept': accept, 'require_base64': req.require_base64},
+        webhook_url=req.webhook_url)
 
     if queue_task is None:
         print("[Task Queue] The task queue has reached limit")
@@ -253,6 +254,10 @@ def query_job(req: QueryJobRequest = Depends()):
 def job_queue():
     return JobQueueInfo(running_size=len(task_queue.queue), finished_size=len(task_queue.history), last_job_id=task_queue.last_job_id)
 
+@app.get("/v1/generation/job-history", response_model=HistoryResponse, description="Query historical job data")
+def get_history():
+    # Fetch and return the historical tasks
+    return HistoryResponse(history=task_queue.history, queue=task_queue.queue)
 
 @app.post("/v1/generation/stop", response_model=StopResponse, description="Job stoping")
 def stop():
