@@ -1,7 +1,7 @@
 import uvicorn
 
 from typing import List, Optional
-
+from fastapi.responses import JSONResponse
 from fastapi import Depends, FastAPI, Header, Query, Response, UploadFile
 from fastapi.params import File
 from fastapi.staticfiles import StaticFiles
@@ -215,7 +215,7 @@ def img_prompt(req: ImgPromptRequestJson,
         req.image_number = 1
     else:
         streaming_output = False
-    
+
     default_image_promt = ImagePrompt(cn_img=None)
     image_prompts_files: List[ImagePrompt] = []
     for img_prompt in req.image_prompts:
@@ -225,10 +225,10 @@ def img_prompt(req: ImgPromptRequestJson,
                             cn_weight=img_prompt.cn_weight,
                             cn_type=img_prompt.cn_type)
         image_prompts_files.append(image)
-    
+
     while len(image_prompts_files) <= 4:
         image_prompts_files.append(default_image_promt)
-    
+
     req.image_prompts = image_prompts_files
 
     results = call_worker(req, accept)
@@ -236,12 +236,17 @@ def img_prompt(req: ImgPromptRequestJson,
 
 
 @app.get("/v1/generation/query-job", response_model=AsyncJobResponse, description="Query async generation job")
-def query_job(req: QueryJobRequest=Depends()):
+def query_job(req: QueryJobRequest = Depends()):
     queue_task = task_queue.get_task(req.job_id, True)
     if queue_task is None:
-        return Response(content="Job not found", status_code=404)
+        return JSONResponse(content=AsyncJobResponse(job_id="",
+                                                     job_type="Not Found",
+                                                     job_stage="ERROR",
+                                                     job_progress=0,
+                                                     job_status="Job not found"), status_code=404)
 
-    return generation_output(queue_task, streaming_output=False, require_base64=False, require_step_preivew=req.require_step_preivew)
+    return generation_output(queue_task, streaming_output=False, require_base64=False,
+                             require_step_preivew=req.require_step_preivew)
 
 
 @app.get("/v1/generation/job-queue", response_model=JobQueueInfo, description="Query job queue info")
