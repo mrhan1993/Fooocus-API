@@ -112,6 +112,37 @@ def text2img_generation(req: Text2ImgRequest, accept: str = Header(None),
     results = call_worker(req, accept)
     return generation_output(results, streaming_output, req.require_base64)
 
+@app.post("/v2/generation/text-to-image-with-ip", response_model=List[GeneratedImageResult] | AsyncJobResponse, responses=img_generate_responses)
+def text_to_img_with_ip(req: Text2ImgRequestWithPrompt,
+                            accept: str = Header(None),
+                            accept_query: str | None = Query(None, alias='accept', description="Parameter to overvide 'Accept' header, 'image/png' for output bytes")):
+    if accept_query is not None and len(accept_query) > 0:
+        accept = accept_query
+
+    if accept == 'image/png':
+        streaming_output = True
+        # image_number auto set to 1 in streaming mode
+        req.image_number = 1
+    else:
+        streaming_output = False
+    
+    default_image_promt = ImagePrompt(cn_img=None)
+    image_prompts_files: List[ImagePrompt] = []
+    for img_prompt in req.image_prompts:
+        img_prompt.cn_img = base64_to_stream(img_prompt.cn_img)
+        image = ImagePrompt(cn_img=img_prompt.cn_img,
+                            cn_stop=img_prompt.cn_stop,
+                            cn_weight=img_prompt.cn_weight,
+                            cn_type=img_prompt.cn_type)
+        image_prompts_files.append(image)
+
+    while len(image_prompts_files) <= 4:
+        image_prompts_files.append(default_image_promt)
+
+    req.image_prompts = image_prompts_files
+
+    results = call_worker(req, accept)
+    return generation_output(results, streaming_output, req.require_base64)
 
 @app.post("/v1/generation/image-upscale-vary", response_model=List[GeneratedImageResult] | AsyncJobResponse, responses=img_generate_responses)
 def img_upscale_or_vary(input_image: UploadFile, req: ImgUpscaleOrVaryRequest = Depends(ImgUpscaleOrVaryRequest.as_form),
