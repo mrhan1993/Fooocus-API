@@ -6,7 +6,7 @@ x-common-env: &common-env
   NVIDIA_DRIVER_CAPABILITIES: compute,utility
 
 services:
-  web-1:
+  web-1: &web-1
     image: socus-api:latest
     environment:
       <<: *common-env
