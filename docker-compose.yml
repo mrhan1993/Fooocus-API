@@ -26,7 +26,7 @@ services:
       - NVIDIA_VISIBLE_DEVICES=2
       - NVIDIA_DRIVER_CAPABILITIES=compute,utility
     ports:
-     - "7865:7865"
+     - "7869:7865"
     volumes:
       - ~/.cache/pip:/root/.cache/pip
       - .:/app
@@ -45,7 +45,7 @@ services:
       - NVIDIA_VISIBLE_DEVICES=3
       - NVIDIA_DRIVER_CAPABILITIES=compute,utility
     ports:
-     - "7869:7865"
+     - "7870:7865"
     volumes:
       - ~/.cache/pip:/root/.cache/pip
       - .:/app
@@ -63,7 +63,7 @@ services:
       - NVIDIA_VISIBLE_DEVICES=4
       - NVIDIA_DRIVER_CAPABILITIES=compute,utility
     ports:
-     - "7870:7865"
+     - "7871:7865"
     volumes:
       - ~/.cache/pip:/root/.cache/pip
       - .:/app
