@@ -11,6 +11,7 @@
     - [conda](#conda)
     - [venv](#venv)
     - [预下载及安装](#预下载及安装)
+    - [已经有安装好的 Fooocus](#已经有安装好的-fooocus)
   - [使用Docker启动](#使用docker启动)
 - [命令行参数](#命令行参数)
 - [更新日志](#更新日志)
@@ -108,7 +109,7 @@ source venv/bin/activate
 
 > 关于 pytorch 和 cuda 的版本，Fooocus API 使用的是 Fooocus 推荐的版本，目前是 pytorch2.1.0+cuda12.1。如果你是个"犟种"非要用其他版本，我测试过也是可以的，不过启动的时候记得加上 `--skip-pip`，否则程序会自动替换为推荐版本。
 
-然后创建一个名为 `repositories` 的目录，将 `https://github.com/lllyasviel/Fooocus` 克隆到其中
+然后创建一个名为 `repositories` 的目录，将 `https://github.com/lllyasviel/Fooocus` 克隆到其中。注意必须使用 `git clone`，`download zip`下载解压不包含Git信息，无法正常运行。如果你有一个已经安装完成的 Fooocus，查看[这里](#已经有安装好的-fooocus)
 
 最后，把下载的模型放到这个目录 `repositories\Fooocus\models`
 
@@ -126,6 +127,14 @@ source venv/bin/activate
     + [sd_xl_offset_example-lora_1.0.safetensors](https://huggingface.co/stabilityai/stable-diffusion-xl-base-1.0/raw/main/sd_xl_offset_example-lora_1.0.safetensors)
 
 > 国内不好下的到 [这儿](https://www.123pan.com/s/dF5A-SIQsh.html)下载， 提取码: `D4Mk`
+
+### 已经有安装好的 Fooocus
+
+如果你已经有一个安装好的且运行正常的 Fooocus， 推荐的方式是复用模型, 只需要将 Fooocus 根目录下的 `config.txt` 文件复制到 Fooocus API 的根目录即可。 查看 [Customization](https://github.com/lllyasviel/Fooocus#customization) 获取更多细节.
+
+使用这种方法 Fooocus 和 Fooocus API 会同时存在，独立运行互不干扰。
+
+> 除非你能确保已安装的 Fooocus 目录是一个 Git 仓库，否则不推荐直接将其复制到 repositories 目录。
 
 ## 使用Docker启动
 

@@ -11,6 +11,7 @@
     - [conda](#conda)
     - [venv](#venv)
     - [predownload and install](#predownload-and-install)
+    - [already exist Fooocus](#already-exist-fooocus)
   - [Start with docker](#start-with-docker)
 - [cmd flags](#cmd-flags)
 - [Change log](#change-log)
@@ -108,7 +109,7 @@ then, pytorch with cuda `pip install torch==2.1.0 torchvision==0.16.0 torchaudio
 
 > It is important to note that for pytorch and cuda versions, the recommended version of Fooocus is used, which is currently pytorch2.1.0+cuda12.1. If you insist, you can also use other versions, but you need to add `--skip-pip` when you start app, otherwise the recommended version will be installed automatically
 
-next, make a dir named `repositories` and clone `https://github.com/lllyasviel/Fooocus` in to it
+next, make a dir named `repositories` and clone `https://github.com/lllyasviel/Fooocus` in to it. You must be use `git clone` but not download zip. If you have an existing Fooocus, please see [here](#already-exist-fooocus)
 
 last, you can download models and put it into `repositories\Fooocus\models`
 
@@ -126,6 +127,14 @@ here is a list need to download for startup (for different [startup params](#cmd
     + [sd_xl_offset_example-lora_1.0.safetensors](https://huggingface.co/stabilityai/stable-diffusion-xl-base-1.0/raw/main/sd_xl_offset_example-lora_1.0.safetensors)
 
 > I've uploaded the model I'm using, which contains almost all the base models that Fooocus will use! I put it [here](https://www.123pan.com/s/dF5A-SIQsh.html) 提取码: `D4Mk`
+
+### already exist Fooocus
+
+If you already have Fooocus installed, and it is work well, The recommended way is to reuse models, you just simple copy `config.txt` file from your local Fooocus folder to Fooocus-API's root folder. See [Customization](https://github.com/lllyasviel/Fooocus#customization) for details.
+
+Use this method you will have both Fooocus and Fooocus-API running at the same time. And they operate independently and do not interfere with each other.
+
+> It is not recommended to copy an existing Fooocus installation directly to the repositories directory. If you insist on doing this, please make sure that the Fooocus directory is a Git repository, otherwise the program will not start properly
 
 ## Start with docker
 
