@@ -53,10 +53,8 @@ def git_clone(url, dir, name, hash=None):
                 print(f'{name} exists and URL is correct.')
         except:
             if os.path.isdir(dir) or os.path.exists(dir):
-                shutil.rmtree(dir, onerror=onerror)
-            os.makedirs(dir, exist_ok=True)
-            repo = pygit2.clone_repository(url, dir)
-            print(f'{name} cloned from {url}.')
+                print("Fooocus exists, but not a git repo. You can find how to solve this problem here: https://github.com/konieshadow/Fooocus-API#use-exist-fooocus")
+                sys.exit('1')
 
         remote = repo.remotes['origin']
         remote.fetch()
