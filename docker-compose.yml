@@ -10,7 +10,7 @@ services:
     image: socus-api:latest
     environment:
       <<: *common-env
-      NVIDIA_VISIBLE_DEVICES: 1
+      NVIDIA_VISIBLE_DEVICES: 0
     ports:
      - "7868:7865"
     volumes:
@@ -28,7 +28,7 @@ services:
     <<: *web-1
     environment:
       <<: *common-env
-      NVIDIA_VISIBLE_DEVICES: 2
+      NVIDIA_VISIBLE_DEVICES: 1
     ports:
      - "7869:7865"
     restart: unless-stopped
@@ -37,7 +37,7 @@ services:
     <<: *web-1
     environment:
       <<: *common-env
-      NVIDIA_VISIBLE_DEVICES: 3
+      NVIDIA_VISIBLE_DEVICES: 2
     ports:
      - "7870:7865"
     restart: unless-stopped
@@ -46,7 +46,7 @@ services:
     <<: *web-1
     environment:
       <<: *common-env
-      NVIDIA_VISIBLE_DEVICES: 4
+      NVIDIA_VISIBLE_DEVICES: 3
     ports:
      - "7871:7865"
     restart: unless-stopped
