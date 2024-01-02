@@ -3,7 +3,7 @@ services:
   web:
     build: .
     ports:
-     - "7865:7865"
+     - "7878:7878"
     volumes:
      - ~/repositories:/app/repositories
      - ~/.cache/pip:/root/.cache/pip
