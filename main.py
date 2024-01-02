@@ -52,7 +52,8 @@ def git_clone(url, dir, name, hash=None):
                 print(f'{name} exists and URL is correct.')
         except:
             if os.path.isdir(dir) or os.path.exists(dir):
-                shutil.rmtree(dir, onerror=onerror)
+                print("Fooocus exists, but not a git repo. You can find how to solve this problem here: https://github.com/konieshadow/Fooocus-API#use-exist-fooocus")
+                sys.exit('1')
             os.makedirs(dir, exist_ok=True)
             repo = pygit2.clone_repository(url, dir)
             print(f'{name} cloned from {url}.')
@@ -160,6 +161,7 @@ def requirements_met(requirements_file):
 
 def download_repositories():
     import pygit2
+    import requests
 
     pygit2.option(pygit2.GIT_OPT_SET_OWNER_VALIDATION, 0)
 
@@ -174,9 +176,16 @@ def download_repositories():
         print(f"Using https proxy for git clone: {https_proxy}")
         os.environ['https_proxy'] = https_proxy
 
-    # Check and download Fooocus
+    fooocus_gitee_repo = 'https://gitee.com/mirrors/fooocus'
+    fooocus_github_repo = 'https://github.com/lllyasviel/Fooocus'
+
+    try:
+        requests.get("https://policies.google.com/privacy", timeout=30)
+        fooocus_repo_url = fooocus_github_repo
+    except:
+        fooocus_repo_url = fooocus_gitee_repo
     fooocus_repo = os.environ.get(
-        'FOOOCUS_REPO', 'https://github.com/lllyasviel/Fooocus')
+        'FOOOCUS_REPO', fooocus_repo_url)
     git_clone(fooocus_repo, repo_dir(fooocus_name),
               "Fooocus", fooocus_commit_hash)
 
