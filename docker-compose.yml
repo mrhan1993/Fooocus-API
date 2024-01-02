@@ -1,6 +1,6 @@
 version: '3'
 services:
-  api-1:
+  web-1:
     image: socus-api:latest
     environment:
       - TZ=Asia/Shanghai
@@ -18,7 +18,7 @@ services:
           devices:
             - driver: nvidia
               capabilities: [gpu]
-  api-2:
+  web-2:
     image: socus-api:latest
     environment:
       - TZ=Asia/Shanghai
@@ -37,7 +37,7 @@ services:
             - driver: nvidia
               capabilities: [gpu]
 
-  api-3:
+  web-3:
     image: socus-api:latest
     environment:
       - TZ=Asia/Shanghai
@@ -55,7 +55,7 @@ services:
           devices:
             - driver: nvidia
               capabilities: [gpu]
-  api-4:
+  web-4:
     image: socus-api:latest
     environment:
       - TZ=Asia/Shanghai
