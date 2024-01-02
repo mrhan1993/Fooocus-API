@@ -1,75 +1,50 @@
-version: '3'
+version: '3.8'
+
+x-common-env: &common-env
+  TZ: Asia/Shanghai
+  PIP_INDEX_URL: https://pypi.tuna.tsinghua.edu.cn/simple
+  NVIDIA_DRIVER_CAPABILITIES: compute,utility
+
 services:
   web-1:
     image: socus-api:latest
     environment:
-      - TZ=Asia/Shanghai
-      - PIP_INDEX_URL=https://pypi.tuna.tsinghua.edu.cn/simple
-      - NVIDIA_VISIBLE_DEVICES=1
-      - NVIDIA_DRIVER_CAPABILITIES=compute,utility
+      <<: *common-env
+      NVIDIA_VISIBLE_DEVICES: 1
     ports:
      - "7868:7865"
     volumes:
       - ~/.cache/pip:/root/.cache/pip
       - .:/app
-    deploy:
-      resources:
-        reservations:
-          devices:
-            - driver: nvidia
-              capabilities: [gpu]
+    restart: unless-stopped
+
   web-2:
-    image: socus-api:latest
+    <<: *web-1
     environment:
-      - TZ=Asia/Shanghai
-      - PIP_INDEX_URL=https://pypi.tuna.tsinghua.edu.cn/simple
-      - NVIDIA_VISIBLE_DEVICES=2
-      - NVIDIA_DRIVER_CAPABILITIES=compute,utility
+      <<: *common-env
+      NVIDIA_VISIBLE_DEVICES: 2
     ports:
      - "7869:7865"
-    volumes:
-      - ~/.cache/pip:/root/.cache/pip
-      - .:/app
-    deploy:
-      resources:
-        reservations:
-          devices:
-            - driver: nvidia
-              capabilities: [gpu]
+    restart: unless-stopped
 
   web-3:
-    image: socus-api:latest
+    <<: *web-1
     environment:
-      - TZ=Asia/Shanghai
-      - PIP_INDEX_URL=https://pypi.tuna.tsinghua.edu.cn/simple
-      - NVIDIA_VISIBLE_DEVICES=3
-      - NVIDIA_DRIVER_CAPABILITIES=compute,utility
+      <<: *common-env
+      NVIDIA_VISIBLE_DEVICES: 3
     ports:
      - "7870:7865"
-    volumes:
-      - ~/.cache/pip:/root/.cache/pip
-      - .:/app
-    deploy:
-      resources:
-        reservations:
-          devices:
-            - driver: nvidia
-              capabilities: [gpu]
+    restart: unless-stopped
+
   web-4:
-    image: socus-api:latest
+    <<: *web-1
     environment:
-      - TZ=Asia/Shanghai
-      - PIP_INDEX_URL=https://pypi.tuna.tsinghua.edu.cn/simple
-      - NVIDIA_VISIBLE_DEVICES=4
-      - NVIDIA_DRIVER_CAPABILITIES=compute,utility
+      <<: *common-env
+      NVIDIA_VISIBLE_DEVICES: 4
     ports:
      - "7871:7865"
-    volumes:
-      - ~/.cache/pip:/root/.cache/pip
-      - .:/app
-    deploy:
-      resources:
-        reservations:
-          devices:
-            - driver: nvidia
-              capabilities: [gpu]
+    restart: unless-stopped
+
+volumes:
+  pip-cache:
+    external: true
