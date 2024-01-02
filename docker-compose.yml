@@ -1,6 +1,6 @@
 version: '3'
 services:
-  web:
+  api-1:
     build:
       context: .
       dockerfile: Dockerfile
@@ -8,7 +8,7 @@ services:
     environment:
       - TZ=Asia/Shanghai
     ports:
-     - "7865:7865"
+     - "7868:7865"
     volumes:
      - ~/repositories:/app/repositories
      - ~/.cache/pip:/root/.cache/pip
