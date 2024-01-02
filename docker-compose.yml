@@ -1,18 +1,18 @@
 version: '3'
 services:
   web:
-    build: .
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: socus-api:latest
+    environment:
+      - TZ=Asia/Shanghai
     ports:
      - "7865:7865"
     volumes:
      - ~/repositories:/app/repositories
      - ~/.cache/pip:/root/.cache/pip
+     - .:/app
     environment:
-      PIP_INDEX_URL: https://pypi.tuna.tsinghua.edu.cn/simple
-    deploy:
-      resources:
-        reservations:
-          devices:
-            - driver: nvidia
-              device_ids: ['3']
-              capabilities: [gpu]
+      - PIP_INDEX_URL=https://pypi.tuna.tsinghua.edu.cn/simple
+      - NVIDIA_VISIBLE_DEVICES=2
