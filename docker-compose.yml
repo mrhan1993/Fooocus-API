@@ -17,5 +17,5 @@ services:
         reservations:
           devices:
             - driver: nvidia
-            capabilities: [gpu]
+              capabilities: [gpu]
 
