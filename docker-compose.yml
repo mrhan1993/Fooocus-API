@@ -10,7 +10,6 @@ services:
     ports:
      - "7868:7865"
     volumes:
-      - ~/repositories:/app/repositories
       - ~/.cache/pip:/root/.cache/pip
       - .:/app
     deploy:
