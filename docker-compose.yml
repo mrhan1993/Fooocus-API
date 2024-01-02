@@ -9,10 +9,17 @@ services:
       - TZ=Asia/Shanghai
       - PIP_INDEX_URL=https://pypi.tuna.tsinghua.edu.cn/simple
       - NVIDIA_VISIBLE_DEVICES=2
+      - NVIDIA_DRIVER_CAPABILITIES=compute,utility
     ports:
      - "7868:7865"
     volumes:
-     - ~/repositories:/app/repositories
-     - ~/.cache/pip:/root/.cache/pip
-     - .:/app
+      - ~/repositories:/app/repositories
+      - ~/.cache/pip:/root/.cache/pip
+      - .:/app
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+            capabilities: [gpu]
 
