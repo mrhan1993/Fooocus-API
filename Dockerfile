@@ -17,6 +17,6 @@ RUN pip install packaging
 WORKDIR /app
 
 COPY . /app/
-COPY ~/repositories /app/repositories
+COPY $HOME/repositories /app/repositories
 
 CMD python3 main.py --host 0.0.0.0 --port 7865 --sync-repo='skip' --queue-size=88
