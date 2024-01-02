@@ -18,4 +18,4 @@ WORKDIR /app
 
 COPY . /app/
 
-CMD python3 main.py --host 0.0.0.0 --port 7868 --sync-repo='skip' --queue-size=88
+CMD python3 main.py --host 0.0.0.0 --port 7865 --sync-repo='skip' --queue-size=88
