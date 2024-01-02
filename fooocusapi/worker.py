@@ -4,6 +4,8 @@ import time
 import numpy as np
 import torch
 import re
+import logging
+
 from typing import List
 from fooocusapi.file_utils import save_output_file
 from fooocusapi.parameters import GenerationFinishReason, ImageGenerationParams, ImageGenerationResult
@@ -830,6 +832,8 @@ def process_generate(async_task: QueueTask, params: ImageGenerationParams) -> Li
         return yield_result(None, results, tasks)
     except Exception as e:
         print('Worker error:', e)
+        logging.exception(e)
+
         if not async_task.is_finished:
             task_queue.finish_task(async_task.job_id)
             async_task.set_result([], True, str(e))
