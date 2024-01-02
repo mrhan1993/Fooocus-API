@@ -1,9 +1,6 @@
 version: '3'
 services:
   api-1:
-    build:
-      context: .
-      dockerfile: Dockerfile
     image: socus-api:latest
     environment:
       - TZ=Asia/Shanghai
