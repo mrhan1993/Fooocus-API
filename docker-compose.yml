@@ -16,6 +16,12 @@ services:
     volumes:
       - ~/.cache/pip:/root/.cache/pip
       - .:/app
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              capabilities: [gpu]
     restart: unless-stopped
 
   web-2:
