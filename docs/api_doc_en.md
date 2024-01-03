@@ -4,6 +4,7 @@
   - [image-upscale-vary](#image-upscale-vary)
   - [image-inpaint-outpaint](#image-inpaint-outpaint)
   - [image-prompt](#image-prompt)
+  - [text-to-image-with-imageprompt](#text-to-image-with-imageprompt)
   - [describe](#describe)
   - [all-models](#all-models)
   - [refresh-models](#refresh-models)
@@ -24,7 +25,9 @@
 
 # Introduction
 
-Fooocus API are provided 13 REST interfaces now, I roughly divide it into two categories, the first is the ability to call Fooocus, such as generating images, refreshing models, and so on, and the second is related to Fooocus API itself, mainly related to task queries. I will try to illustrate their role and usage and provide examples in the following content.
+Fooocus API are provided more than a dozen REST interfaces now, I roughly divide it into two categories, the first is the ability to call Fooocus, such as generating images, refreshing models, and so on, and the second is related to Fooocus API itself, mainly related to task queries. I will try to illustrate their role and usage and provide examples in the following content.
+
+> Almost all interface parameters have default values, which means you only need to send the parameters you are interested in. The complete parameters and default values can be viewed in the table.
 
 # Fooocus capability related interfaces
 
@@ -59,6 +62,7 @@ DataType: json
 | advanced_params | AdvacedParams | Adavanced params, [AdvancedParams](#advanceparams) |
 | require_base64 | bool | require base64, default to False |
 | async_process | bool | is async, default to False |
+| webhook_url | str | after async task completed, address for callback, default to None, refer to [webhook](#webhook) |
 
 **response params：**
 
@@ -68,80 +72,22 @@ This interface returns a universal response structure, refer to [response](#resp
 
 **request example：**
 
-<details>
-  <summary>example params</summary>
-
-  ```python
-    params = {
-        "prompt": "a girl in the ground",
-        "negative_prompt": "",
-        "style_selections": [
-            "Fooocus V2",
-            "Fooocus Enhance",
-            "Fooocus Sharp"
-        ],
-        "performance_selection": "Speed",
-        "aspect_ratios_selection": "1152*896",
-        "image_number": 1,
-        "image_seed": -1,
-        "sharpness": 2,
-        "guidance_scale": 4,
-        "base_model_name": "juggernautXL_version6Rundiffusion.safetensors",
-        "refiner_model_name": "None",
-        "refiner_switch": 0.5,
-        "loras": [
-            {
-                "model_name": "sd_xl_offset_example-lora_1.0.safetensors",
-                "weights": 0.1
-            }
-        ],
-        "advanced_params": {
-            "adm_scaler_positive": 1.5,
-            "adm_scaler_negative": 0.6,
-            "adm_scaler_end": 0.3,
-            "refiner_swap_method": "joint",
-            "adaptive_cfg": 7,
-            "sampler_name": "dpmpp_2m_sde_gpu",
-            "scheduler_name": "karras",
-            "overwrite_step": -1,
-            "overwrite_switch": -1,
-            "overwrite_width": -1,
-            "overwrite_height": -1,
-            "overwrite_vary_strength": -1,
-            "overwrite_upscale_strength": -1,
-            "mixing_image_prompt_and_vary_upscale": False,
-            "mixing_image_prompt_and_inpaint": False,
-            "debugging_cn_preprocessor": False,
-            "skipping_cn_preprocessor": False,
-            "controlnet_softness": 0.25,
-            "canny_low_threshold": 64,
-            "canny_high_threshold": 128,
-            "inpaint_engine": "v1",
-            "freeu_enabled": False,
-            "freeu_b1": 1.01,
-            "freeu_b2": 1.02,
-            "freeu_s1": 0.99,
-            "freeu_s2": 0.95
-        },
-        "require_base64": False,
-        "async_process": True
-    }
-  ```
-</details>
-
-</br>
-
-example code (Python)：
 ```python
-def generate(params: dict) -> dict:
+host = "http://127.0.0.1:8888"
+
+def text2img(params: dict) -> dict:
     """
     text to image
     """
-    date = json.dumps(params)
-    response = requests.post(url="http://127.0.0.1:8888/v1/generation/text-to-image",
-                        data=date,
-                        timeout=30)
-    return response.json()
+    result = requests.post(url=f"{host}/v1/generation/text-to-image",
+                           data=json.dumps(params),
+                           headers={"Content-Type": "application/json"})
+    return result.json()
+
+result =text2img({
+    "prompt": "1girl sitting on the ground",
+    "async_process": True})
+print(result)
 ```
 
 ## image-upscale-vary
@@ -165,8 +111,8 @@ DataType: form|json
 
 **requests params**
 
-| Name | Type | Description                                                                                                                               |
-| ---- | ---- |-------------------------------------------------------------------------------------------------------------------------------------------|
+| Name | Type | Description             |
+| ---- | ---- |---------------------------|
 | input_image | string($binary) | binary imagge                                                                                                                             |
 | uov_method | Enum | 'Vary (Subtle)','Vary (Strong)','Upscale (1.5x)','Upscale (2x)','Upscale (Fast 2x)','Upscale (Custom)'                                    |
 | upscale_value | float | default to None , 1.0-5.0, magnification, only for uov_method is 'Upscale (Custom)'                                                       |
@@ -180,48 +126,28 @@ This interface returns a universal response structure, refer to [response](#resp
 
 **requests example：**
 
-<details>
-  <summary>example params</summary>
-
-  ```python
-    params = {
-      "uov_method": "Upscale (2x)",
-      "prompt": "",
-      "negative_prompt": "",
-      "style_selections": "",
-      "performance_selection": "Speed",
-      "aspect_ratios_selection": '1152*896',
-      "image_number": 1,
-      "image_seed": -1,
-      "sharpness": 2,
-      "guidance_scale": 4,
-      "base_model_name": "juggernautXL_version6Rundiffusion.safetensors",
-      "refiner_model_name": None,
-      "refiner_switch": 0.5,
-      "loras": '[{"model_name":"sd_xl_offset_example-lora_1.0.safetensors","weight":0.1}]',
-      "advanced_params": '',
-      "require_base64": False,
-      "async_process": True
-    }
-  ```
-</details>
-
-</br>
-
-example code（Python）：
-
 ```python
-def upscale(input_image: bytes, params: dict) -> dict:
-    """
-    upscale or vary
-    """
-    response = requests.post(url="http://127.0.0.1:8888/v1/generation/image-upscale-vary",
-                             data=params,
-                             files={"input_image": input_image},
-                             timeout=30)
-    return response.json()
-```
+# headers should not contain {"Content-Type": "application/json"}
 
+host = "http://127.0.0.1:8888"
+image = open("./examples/imgs/bear.jpg", "rb").read()
+
+def upscale_vary(image, params: dict) -> dict:
+    """
+    Upscale or Vary
+    """
+    response = requests.post(url=f"{host}/v1/generation/image-upscale-vary",
+                        data=params,
+                        files={"input_image": image})
+    return response.json()
+
+result =upscale_vary(image=image,
+                     params={
+                         "uov_method": "Upscale (2x)",
+                         "async_process": True
+                     })
+print(json.dumps(result, indent=4, ensure_ascii=False))
+```
 
 ### V2
 
@@ -239,85 +165,27 @@ This interface returns a universal response structure, refer to [response](#resp
 
 **requests params：**
 
-<details>
-  <summary>example params</summary>
-
-  ```python
-    params = {
-        "prompt": "a girl in the ground",
-        "negative_prompt": "",
-        "style_selections": [
-            "Fooocus V2",
-            "Fooocus Enhance",
-            "Fooocus Sharp"
-        ],
-        "performance_selection": "Speed",
-        "aspect_ratios_selection": "1152*896",
-        "image_number": 1,
-        "image_seed": -1,
-        "sharpness": 2,
-        "guidance_scale": 4,
-        "base_model_name": "juggernautXL_version6Rundiffusion.safetensors",
-        "refiner_model_name": "None",
-        "refiner_switch": 0.5,
-        "loras": [
-            {
-                "model_name": "sd_xl_offset_example-lora_1.0.safetensors",
-                "weights": 0.1
-            }
-        ],
-        "advanced_params": {
-            "adm_scaler_positive": 1.5,
-            "adm_scaler_negative": 0.6,
-            "adm_scaler_end": 0.3,
-            "refiner_swap_method": "joint",
-            "adaptive_cfg": 7,
-            "sampler_name": "dpmpp_2m_sde_gpu",
-            "scheduler_name": "karras",
-            "overwrite_step": -1,
-            "overwrite_switch": -1,
-            "overwrite_width": -1,
-            "overwrite_height": -1,
-            "overwrite_vary_strength": -1,
-            "overwrite_upscale_strength": -1,
-            "mixing_image_prompt_and_vary_upscale": False,
-            "mixing_image_prompt_and_inpaint": False,
-            "debugging_cn_preprocessor": False,
-            "skipping_cn_preprocessor": False,
-            "controlnet_softness": 0.25,
-            "canny_low_threshold": 64,
-            "canny_high_threshold": 128,
-            "inpaint_engine": "v1",
-            "freeu_enabled": False,
-            "freeu_b1": 1.01,
-            "freeu_b2": 1.02,
-            "freeu_s1": 0.99,
-            "freeu_s2": 0.95
-        },
-        "require_base64": False,
-        "async_process": True,
-        "uov_method": "Upscale (2x)",
-        "input_image": ""
-    }
-  ```
-</details>
-
-</br>
-
-example code（Python）：
-
 ```python
-def upscale_vary(image, params = params) -> dict:
+host = "http://127.0.0.1:8888"
+image = open("./examples/imgs/bear.jpg", "rb").read()
+
+def upscale_vary(image, params: dict) -> dict:
     """
     Upscale or Vary
     """
-    params["input_image"] = image
-    data = json.dumps(params)
-    response = requests.post(url="http://127.0.0.1:8888/v2/generation/image-upscale-vary",
-                        data=data,
-                        headers=headers,
+    params["input_image"] = base64.b64encode(image).decode('utf-8') 
+    response = requests.post(url=f"{host}/v2/generation/image-upscale-vary",
+                        data=json.dumps(params),
+                        headers={"Content-Type": "application/json"},
                         timeout=300)
     return response.json()
+
+result =upscale_vary(image=image,
+                     params={
+                         "uov_method": "Upscale (2x)",
+                         "async_process": True
+                     })
+print(json.dumps(result, indent=4, ensure_ascii=False))
 ```
 
 ## image-inpaint-outpaint
@@ -340,7 +208,7 @@ DataType: form|json
 | input_image | string($binary) | binary imagge                                                                                                             |
 | input_mask | string($binary) | binary imagge                                                                                                             |
 | inpaint_additional_prompt | string | additional_prompt                                                                                                         |
-| outpaint_selections | List | Image extension direction , 'Left', 'Right', 'Top', 'Bottom' seg with comma                                               |
+| outpaint_selections | str | Image extension direction , 'Left', 'Right', 'Top', 'Bottom' seg with comma                                               |
 | outpaint_distance_left | int | Image extension distance, default to 0                                                                                    |
 | outpaint_distance_right | int | Image extension distance, default to 0                                                                                                             |
 | outpaint_distance_top | int | Image extension distance, default to 0                                                                                                             |
@@ -355,56 +223,39 @@ This interface returns a universal response structure, refer to [response](#resp
 
 **requests example：**
 
-<details>
-  <summary>example params</summary>
-
-  ```python
-    params = {
-      "inpaint_additional_prompt": "",
-      "outpaint_selections": "Left,Right",
-      "outpaint_distance_left": 0,
-      "outpaint_distance_right": 0,
-      "outpaint_distance_top": 0,
-      "outpaint_distance_bottom": 0,
-      "prompt": "",
-      "negative_prompt": "",
-      "style_selections": "",
-      "performance_selection": "Speed",
-      "aspect_ratios_selection": '1152*896',
-      "image_number": 1,
-      "image_seed": -1,
-      "sharpness": 2,
-      "guidance_scale": 4,
-      "base_model_name": "juggernautXL_version6Rundiffusion.safetensors",
-      "refiner_model_name": None,
-      "refiner_switch": 0.5,
-      "loras": '[{"model_name":"sd_xl_offset_example-lora_1.0.safetensors","weight":0.1}]',
-      "advanced_params": '',
-      "require_base64": False,
-      "async_process": True
-    }
-  ```
-</details>
-
-</br>
-
-example code（Python）：
-
 ```python
-def inpaint_outpaint(input_image: bytes, params: dict, input_mask: bytes = None) -> dict:
+# example for inpaint outpaint v1
+host = "http://127.0.0.1:8888"
+image = open("./examples/imgs/bear.jpg", "rb").read()
+
+def inpaint_outpaint(params: dict, input_image: bytes, input_mask: bytes = None) -> dict:
     """
-    inpaint or outpaint
+    example for inpaint outpaint v1
     """
-    response = requests.post(url="http://127.0.0.1:8888//v1/generation/image-inpait-outpaint",
-                             data=params,
-                             files={"input_image": input_image,
-                                    "input_mask": input_mask,},
-                             timeout=30)
+    response = requests.post(url=f"{host}/v1/generation/image-inpait-outpaint",
+                        data=params,
+                        files={"input_image": input_image,
+                               "input_mask": input_mask})
     return response.json()
+
+# image extension example
+result = inpaint_outpaint(params={
+                            "outpaint_selections": "Left,Right",
+                            "async_process": True},
+                          input_image=image,
+                          input_mask=None)
+print(json.dumps(result, indent=4, ensure_ascii=False))
+
+# image inpaint example
+source = open("./examples/imgs/s.jpg", "rb").read()
+mask = open("./examples/imgs/m.png", "rb").read()
+result = inpaint_outpaint(params={
+                            "prompt": "a cat",
+                            "async_process": True},
+                          input_image=source,
+                          input_mask=mask)
+print(json.dumps(result, indent=4, ensure_ascii=False))
 ```
-
-> this params only show `outpaint`, `inpaint` need two image, And choose whether to proceed simultaneously as needed `outpaint`,  in addition, `inpaint` without `prompt` the effect is manifested as removing elements, It can be used to remove clutter and watermarks in images, and adding 'prompt' can be used to replace elements in images
-
 
 ### V2
 
@@ -427,102 +278,46 @@ This interface returns a universal response structure, refer to [response](#resp
 
 **requests example：**
 
-<details>
-  <summary>example params</summary>
-
-  ```python
-    params = {
-        "prompt": "",
-        "negative_prompt": "",
-        "style_selections": [
-            "Fooocus V2",
-            "Fooocus Enhance",
-            "Fooocus Sharp"
-        ],
-        "performance_selection": "Speed",
-        "aspect_ratios_selection": "1152*896",
-        "image_number": 1,
-        "image_seed": -1,
-        "sharpness": 2,
-        "guidance_scale": 4,
-        "base_model_name": "juggernautXL_version6Rundiffusion.safetensors",
-        "refiner_model_name": "None",
-        "refiner_switch": 0.5,
-        "loras": [
-            {
-            "model_name": "sd_xl_offset_example-lora_1.0.safetensors",
-            "weight": 0.1
-            }
-        ],
-        "advanced_params": {
-            "disable_preview": False,
-            "adm_scaler_positive": 1.5,
-            "adm_scaler_negative": 0.8,
-            "adm_scaler_end": 0.3,
-            "refiner_swap_method": "joint",
-            "adaptive_cfg": 7,
-            "sampler_name": "dpmpp_2m_sde_gpu",
-            "scheduler_name": "karras",
-            "overwrite_step": -1,
-            "overwrite_switch": -1,
-            "overwrite_width": -1,
-            "overwrite_height": -1,
-            "overwrite_vary_strength": -1,
-            "overwrite_upscale_strength": -1,
-            "mixing_image_prompt_and_vary_upscale": False,
-            "mixing_image_prompt_and_inpaint": False,
-            "debugging_cn_preprocessor": False,
-            "skipping_cn_preprocessor": False,
-            "controlnet_softness": 0.25,
-            "canny_low_threshold": 64,
-            "canny_high_threshold": 128,
-            "freeu_enabled": False,
-            "freeu_b1": 1.01,
-            "freeu_b2": 1.02,
-            "freeu_s1": 0.99,
-            "freeu_s2": 0.95,
-            "debugging_inpaint_preprocessor": False,
-            "inpaint_disable_initial_latent": False,
-            "inpaint_engine": "v1",
-            "inpaint_strength": 1,
-            "inpaint_respective_field": 1
-        },
-        "require_base64": False,
-        "async_process": False,
-        "input_image": "",
-        "input_mask": None,
-        "inpaint_additional_prompt": None,
-        "outpaint_selections": []
-        "outpaint_distance_left": 0,
-        "outpaint_distance_right": 0,
-        "outpaint_distance_top": 0,
-        "outpaint_distance_bottom": 0
-        }
-  ```
-</details>
-
-</br>
-
-example code（Python）：
-
 ```python
-def inpaint_outpaint(input_image: str, input_mask: str = None, params = params) -> dict:
+# example for inpaint outpaint v2
+host = "http://127.0.0.1:8888"
+image = open("./examples/imgs/bear.jpg", "rb").read()
+
+def inpaint_outpaint(params: dict) -> dict:
     """
-    Inpaint or Outpaint
+    example for inpaint outpaint v2
     """
-    params["input_image"] = input_image
-    params["input_mask"] = input_mask
-    params["outpaint_selections"] = ["Left", "Right"]
-    params["prompt"] = "cat"
-    data = json.dumps(params)
-    response = requests.post(url="http://127.0.0.1:8888/v2/generation/image-inpaint-outpaint",
-                        data=data,
-                        headers=headers,
-                        timeout=300)
+    response = requests.post(url=f"{host}/v2/generation/image-inpait-outpaint",
+                        data=json.dumps(params),
+                        headers={"Content-Type": "application/json"})
     return response.json()
+
+# image extension example
+result = inpaint_outpaint(params={
+                            "input_image": base64.b64encode(image).decode('utf-8'),
+                            "input_mask": None,
+                            "outpaint_selections": ["Left", "Right"],
+                            "async_process": True})
+print(json.dumps(result, indent=4, ensure_ascii=False))
+
+# image inpaint example
+source = open("./examples/imgs/s.jpg", "rb").read()
+mask = open("./examples/imgs/m.png", "rb").read()
+result = inpaint_outpaint(params={
+                            "prompt": "a cat",
+                            "input_image": base64.b64encode(source).decode('utf-8'),
+                            "input_mask": base64.b64encode(mask).decode('utf-8'),
+                            "async_process": True})
+print(json.dumps(result, indent=4, ensure_ascii=False))
 ```
 
 ## image-prompt
+
+`v0.3.27` has a break change. Interface based on change to [inpaint-outpaint](#image-inpaint-outpaint)
+
+after v0.3.27, this interface implements the functions of `inpaint_outpaint` and `image-prompt`.
+
+>  Multi-function interface, which does not implement the functions of `inpaint_outpaint` and `image-prompt` at the same time in the same request
 
 **base info：**
 
@@ -537,8 +332,16 @@ DataType: form|json
 
 **requests params**
 
-| Name | Type | Description                                                                                                                     |
-| ---- | ---- |---------------------------------------------------------------------------------------------------------------------------------|
+| Name | Type | Description                    |
+| ---- | ---- |--------------------------------|
+| input_image | Bytes | binary image, use for inpaint    |
+| input_mask | Bytes | binary image mask, use for inpaint |
+| inpaint_additional_prompt | str | inpaint additional prompt |
+| outpaint_selections | str | Image extension direction , 'Left', 'Right', 'Top', 'Bottom' seg with comma |
+| outpaint_distance_left | int | Image extension distance, default to 0 |
+| outpaint_distance_right | int | Image extension distance, default to 0 |
+| outpaint_distance_top | int | Image extension distance, default to 0 |
+| outpaint_distance_bottom | int | Image extension distance, default to 0 |
 | cn_img1 | string($binary) | binary image                                                                                                                    |
 | cn_stop1 | float | default to 0.6                                                                                                                  |
 | cn_weight1 | float | default to 0.6                                                                                                                  |
@@ -565,66 +368,70 @@ This interface returns a universal response structure, refer to [response](#resp
 
 **requests example：**
 
-<details>
-  <summary>example params</summary>
-
-  ```python
-    params = {
-      "cn_stop1": 0.6,
-      "cn_weight1": 0.6,
-      "cn_type1": "ImagePrompt",
-      "cn_stop2": 0.6,
-      "cn_weight2": 0.6,
-      "cn_type2": "ImagePrompt",
-      "cn_stop3": 0.6,
-      "cn_weight3": 0.6,
-      "cn_type3": "ImagePrompt",
-      "cn_stop4": 0.6,
-      "cn_weight4": 0.6,
-      "cn_type4": "ImagePrompt",
-      "prompt": "",
-      "negative_prompt": "",
-      "style_selections": "",
-      "performance_selection": "Speed",
-      "aspect_ratios_selection": '1152*896',
-      "image_number": 1,
-      "image_seed": -1,
-      "sharpness": 2,
-      "guidance_scale": 4,
-      "base_model_name": "juggernautXL_version6Rundiffusion.safetensors",
-      "refiner_model_name": None,
-      "refiner_switch": 0.5,
-      "loras": '[{"model_name":"sd_xl_offset_example-lora_1.0.safetensors","weight":0.1}]',
-      "advanced_params": '',
-      "require_base64": False,
-      "async_process": True
-    }
-  ```
-</details>
-
-</br>
-
-example code（Python）：
-
 ```python
-def image_prompt(cn_img1: bytes,
-                 cn_img2: bytes = None,
-                 cn_img3: bytes = None,
-                 cn_img4: bytes = None,
-                 params: dict = {}) -> dict:
+# image_prompt v1 example
+host = "http://127.0.0.1:8888"
+image = open("./examples/imgs/bear.jpg", "rb").read()
+source = open("./examples/imgs/s.jpg", "rb").read()
+mask = open("./examples/imgs/m.png", "rb").read()
+
+def image_prompt(params: dict,
+                 input_iamge: bytes,
+                 input_mask: bytes=None,
+                 cn_img1: bytes=None,
+                 cn_img2: bytes=None,
+                 cn_img3: bytes=None,
+                 cn_img4: bytes=None,) -> dict:
     """
-    image_prompt
+    image prompt
     """
-    response = requests.post(url="http://127.0.0.1:8888/v1/generation/image-prompt",
-                            data=params,
-                            files={
-                                "cn_img1": cn_img1,
-                                "cn_img2": cn_img2,
-                                "cn_img3": cn_img3,
-                                "cn_img4": cn_img4
-                            },
-                            timeout=30)
+    response = requests.post(url=f"{host}/v1/generation/image-prompt",
+                             data=params,
+                             files={
+                                 "input_image": input_iamge,
+                                 "input_mask": input_mask,
+                                 "cn_img1": cn_img1,
+                                 "cn_img2": cn_img2,
+                                 "cn_img3": cn_img3,
+                                 "cn_img4": cn_img4,
+                              })
     return response.json()
+
+# image extend
+params = {
+    "outpaint_selections": ["Left", "Right"],
+    "image_prompts": [] # 必传参数，可以为空列表
+}
+result = image_prompt(params=params, input_iamge=image)
+print(json.dumps(result, indent=4, ensure_ascii=False))
+
+# inpaint
+
+params = {
+    "prompt": "1girl sitting on the chair",
+    "image_prompts": [], # required, can be empty list
+    "async_process": True
+}
+result = image_prompt(params=params, input_iamge=source, input_mask=mask)
+print(json.dumps(result, indent=4, ensure_ascii=False))
+
+# image prompt
+
+params = {
+    "prompt": "1girl sitting on the chair",
+    "image_prompts": [
+        {
+            "cn_stop": 0.6,
+            "cn_weight": 0.6,
+            "cn_type": "ImagePrompt"
+        },{
+            "cn_stop": 0.6,
+            "cn_weight": 0.6,
+            "cn_type": "ImagePrompt"
+        }]
+    }
+result = image_prompt(params=params, input_iamge=image, cn_img1=image, cn_img2=source)
+print(json.dumps(result, indent=4, ensure_ascii=False))
 ```
 
 ### V2
@@ -633,6 +440,14 @@ def image_prompt(cn_img1: bytes,
 
 | Name | Type | Description                                     |
 | ---- | ---- |-------------------------------------------------|
+| input_image | str | base64 image, use for inpaint    |
+| input_mask | str | base64 image mask, use for inpaint |
+| inpaint_additional_prompt | str | inpaint additional prompt |
+| outpaint_selections | List[] | Image extension direction , 'Left', 'Right', 'Top', 'Bottom' seg with comma |
+| outpaint_distance_left | int | Image extension distance, default to 0 |
+| outpaint_distance_right | int | Image extension distance, default to 0 |
+| outpaint_distance_top | int | Image extension distance, default to 0 |
+| outpaint_distance_bottom | int | Image extension distance, default to 0 |
 | image_prompts | List[ImagePrompt] | image list, include config, ImagePrompt struct： |
 
 **ImagePrompt**
@@ -650,104 +465,118 @@ This interface returns a universal response structure, refer to [response](#resp
 
 **requests example：**
 
-<details>
-  <summary>example params</summary>
+```python
+# image_prompt v2 example
+host = "http://127.0.0.1:8888"
+image = open("./examples/imgs/bear.jpg", "rb").read()
+source = open("./examples/imgs/s.jpg", "rb").read()
+mask = open("./examples/imgs/m.png", "rb").read()
 
-  ```python
-    params = {
-        "prompt": "",
-        "negative_prompt": "",
-        "style_selections": [
-            "Fooocus V2",
-            "Fooocus Enhance",
-            "Fooocus Sharp"
-        ],
-        "performance_selection": "Speed",
-        "aspect_ratios_selection": "1152*896",
-        "image_number": 1,
-        "image_seed": -1,
-        "sharpness": 2,
-        "guidance_scale": 4,
-        "base_model_name": "juggernautXL_version6Rundiffusion.safetensors",
-        "refiner_model_name": "None",
-        "refiner_switch": 0.5,
-        "loras": [
-            {
-            "model_name": "sd_xl_offset_example-lora_1.0.safetensors",
-            "weight": 0.1
-            }
-        ],
-        "advanced_params": {
-            "disable_preview": False,
-            "adm_scaler_positive": 1.5,
-            "adm_scaler_negative": 0.8,
-            "adm_scaler_end": 0.3,
-            "refiner_swap_method": "joint",
-            "adaptive_cfg": 7,
-            "sampler_name": "dpmpp_2m_sde_gpu",
-            "scheduler_name": "karras",
-            "overwrite_step": -1,
-            "overwrite_switch": -1,
-            "overwrite_width": -1,
-            "overwrite_height": -1,
-            "overwrite_vary_strength": -1,
-            "overwrite_upscale_strength": -1,
-            "mixing_image_prompt_and_vary_upscale": False,
-            "mixing_image_prompt_and_inpaint": False,
-            "debugging_cn_preprocessor": False,
-            "skipping_cn_preprocessor": False,
-            "controlnet_softness": 0.25,
-            "canny_low_threshold": 64,
-            "canny_high_threshold": 128,
-            "freeu_enabled": False,
-            "freeu_b1": 1.01,
-            "freeu_b2": 1.02,
-            "freeu_s1": 0.99,
-            "freeu_s2": 0.95,
-            "debugging_inpaint_preprocessor": False,
-            "inpaint_disable_initial_latent": False,
-            "inpaint_engine": inpaint_engine,
-            "inpaint_strength": 1,
-            "inpaint_respective_field": 1
-        },
-        "require_base64": False,
-        "async_process": False,
-        "image_prompts": []
-        }
-  ```
-</details>
+def image_prompt(params: dict) -> dict:
+    """
+    image prompt
+    """
+    response = requests.post(url=f"{host}/v2/generation/image-prompt",
+                             data=json.dumps(params),
+                             headers={"Content-Type": "application/json"})
+    return response.json()
 
-</br>
+# image extend
+params = {
+    "input_image": base64.b64encode(image).decode('utf-8'),
+    "outpaint_selections": ["Left", "Right"],
+    "image_prompts": [] # required, can be empty list
+}
+result = image_prompt(params)
+print(json.dumps(result, indent=4, ensure_ascii=False))
 
-example code（Python）：
+# inpaint
+
+params = {
+    "prompt": "1girl sitting on the chair",
+    "input_image": base64.b64encode(source).decode('utf-8'),
+    "input_mask": base64.b64encode(mask).decode('utf-8'),
+    "image_prompts": [], # required, can be empty list
+    "async_process": True
+}
+result = image_prompt(params)
+print(json.dumps(result, indent=4, ensure_ascii=False))
+
+# image prompt
+
+params = {
+    "prompt": "1girl sitting on the chair",
+    "input_image": base64.b64encode(source).decode('utf-8'),
+    # input_image here is useless，but is required。may be a bug
+    "image_prompts": [
+        {
+            "cn_img": base64.b64encode(source).decode('utf-8'),
+            "cn_stop": 0.6,
+            "cn_weight": 0.6,
+            "cn_type": "ImagePrompt"
+        },{
+            "cn_img": base64.b64encode(image).decode('utf-8'),
+            "cn_stop": 0.6,
+            "cn_weight": 0.6,
+            "cn_type": "ImagePrompt"
+        }]
+    }
+result = image_prompt(params)
+print(json.dumps(result, indent=4, ensure_ascii=False))
+```
+
+## text to image with imageprompt
+
+this interface only provides v2 version
+
+**base info:**
+
+```yaml
+EndPoint: /v2/generation/text-to-image-with-ip
+Method: Post
+DataType: json
+```
+
+**requests params**
+
+| Name | Type | Description |
+| ---- | ---- | ----------- |
+| image_prompts | List[ImagePrompt] | 图像列表 |
+
+**requests example**:
 
 ```python
-img_prompt = [
-    {
-        "cn_img": image_base64,
-        "cn_stop": 0.6,
-        "cn_weight": 0.6,
-        "cn_type": "ImagePrompt"
-    },{
-        "cn_img": s_base64,
-        "cn_stop": 0.6,
-        "cn_weight": 0.6,
-        "cn_type": "ImagePrompt"
-    }
-]
-
-def image_prompt(img_prompt: list, params: dict) -> dict:
+# text to image with imageprompt example
+host = "http://127.0.0.1:8888"
+image = open("./examples/imgs/bear.jpg", "rb").read()
+source = open("./examples/imgs/s.jpg", "rb").read()
+def image_prompt(params: dict) -> dict:
     """
-    Image Prompt
+    image prompt
     """
-    params["prompt"] = "cat"
-    params["image_prompts"] = img_prompt
-    data = json.dumps(params)
-    response = requests.post(url="http://127.0.0.1:8888/v2/generation/image-prompt",
-                        data=data,
-                        headers=headers,
-                        timeout=300)
+    response = requests.post(url=f"{host}/v2/generation/text-to-image-with-ip",
+                             data=json.dumps(params),
+                             headers={"Content-Type": "application/json"})
     return response.json()
+
+params = {
+    "prompt": "A bear",
+    "image_prompts": [
+        {
+            "cn_img": base64.b64encode(source).decode('utf-8'),
+            "cn_stop": 0.6,
+            "cn_weight": 0.6,
+            "cn_type": "ImagePrompt"
+        },{
+            "cn_img": base64.b64encode(image).decode('utf-8'),
+            "cn_stop": 0.6,
+            "cn_weight": 0.6,
+            "cn_type": "ImagePrompt"
+        }
+    ]
+}
+result = image_prompt(params)
+print(json.dumps(result, indent=4, ensure_ascii=False))
 ```
 
 ## describe

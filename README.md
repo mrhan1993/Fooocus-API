@@ -194,6 +194,8 @@ For Fooocus CMD flags, see [here](https://github.com/lllyasviel/Fooocus?tab=read
 
 # Change log
 
+**[24/01/03] v0.3.28** : add text-to-image-with-ip interface
+
 **[23/12/29] v0.3.27** : Add describe interface，now you can get prompt from image
 
 **[23/12/29] v0.3.27** : Add query job hitory api. Add webhook_url support for each generation request.
