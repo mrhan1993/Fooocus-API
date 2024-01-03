@@ -43,8 +43,10 @@ def req_to_params(req: Text2ImgRequest) -> ImageGenerationParams:
     refiner_model_name = req.refiner_model_name
     refiner_switch = req.refiner_switch
     loras = [(lora.model_name, lora.weight) for lora in req.loras]
-    uov_input_image = None if not (isinstance(
-        req, ImgUpscaleOrVaryRequest) or isinstance(req, ImgUpscaleOrVaryRequestJson)) else read_input_image(req.input_image)
+    uov_input_image = None
+    if not isinstance(req, Text2ImgRequestWithPrompt):
+        if isinstance(req, ImgUpscaleOrVaryRequest) or isinstance(req, ImgUpscaleOrVaryRequestJson):
+            uov_input_image = read_input_image(req.input_image)
     uov_method = flags.disabled if not (isinstance(
         req, ImgUpscaleOrVaryRequest) or isinstance(req, ImgUpscaleOrVaryRequestJson)) else req.uov_method.value
     upscale_value = None if not (isinstance(
@@ -78,9 +80,9 @@ def req_to_params(req: Text2ImgRequest) -> ImageGenerationParams:
         }
 
     image_prompts = []
-    if isinstance(req, ImgPromptRequest) or isinstance(req, ImgPromptRequestJson):
+    if isinstance(req, ImgPromptRequest) or isinstance(req, ImgPromptRequestJson) or isinstance(req, Text2ImgRequestWithPrompt):
         # Auto set mixing_image_prompt_and_inpaint to True
-        if len(req.image_prompts) > 0 and req.input_image is not None and req.advanced_params is not None:
+        if len(req.image_prompts) > 0 and not isinstance(req, Text2ImgRequestWithPrompt) and req.input_image is not None and req.advanced_params is not None:
             req.advanced_params.mixing_image_prompt_and_inpaint = True
 
         for img_prompt in req.image_prompts:
