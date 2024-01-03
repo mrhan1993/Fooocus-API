@@ -28,3 +28,6 @@ class ImagePromptJson(BaseModel):
 class ImgPromptRequestJson(ImgInpaintOrOutpaintRequestJson):
     input_image: str | None = Field(None, description="Init image for inpaint or outpaint as base64")
     image_prompts: List[ImagePromptJson | ImagePrompt]
+
+class Text2ImgRequestWithPrompt(Text2ImgRequest):
+    image_prompts: List[ImagePromptJson] = []
