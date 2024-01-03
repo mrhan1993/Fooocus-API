@@ -225,7 +225,14 @@ def process_generate(async_task: QueueTask, params: ImageGenerationParams) -> Li
         denoising_strength = 1.0
         tiled = False
 
+        # Validate input format
+        if not aspect_ratios_selection.replace('*', ' ').replace(' ', '').isdigit():
+            raise ValueError("Invalid input format. Please enter aspect ratios in the form 'width*height'.")
         width, height = aspect_ratios_selection.replace('*', '*').replace('*', ' ').split(' ')[:2]
+        # Validate width and height are integers
+        if not (width.isdigit() and height.isdigit()):
+            raise ValueError("Invalid width or height. Please enter valid integers.")
+
         width, height = int(width), int(height)
 
         skip_prompt_processing = False
