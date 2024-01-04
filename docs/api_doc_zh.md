@@ -595,7 +595,7 @@ DataType: form
 
 | Name | Type | Description                 |
 |------|------|-----------------------------|
-| type | Enum | 反推类型, "Photo", "Animd" 中的一个 |
+| type | Enum | 反推类型, "Photo", "Anime" 中的一个 |
 
 **请求示例**:
 
