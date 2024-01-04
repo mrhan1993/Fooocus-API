@@ -125,7 +125,7 @@ def text_to_img_with_ip(req: Text2ImgRequestWithPrompt,
         req.image_number = 1
     else:
         streaming_output = False
-    
+
     default_image_promt = ImagePrompt(cn_img=None)
     image_prompts_files: List[ImagePrompt] = []
     for img_prompt in req.image_prompts:
@@ -257,7 +257,7 @@ def img_prompt(req: ImgPromptRequestJson,
         req.input_image = base64_to_stream(req.input_image)
     if req.input_mask is not None:
         req.input_mask = base64_to_stream(req.input_mask)
-    
+
     default_image_promt = ImagePrompt(cn_img=None)
     image_prompts_files: List[ImagePrompt] = []
     for img_prompt in req.image_prompts:
@@ -346,6 +346,6 @@ app.mount("/files", StaticFiles(directory=file_utils.output_dir), name="files")
 
 
 def start_app(args):
-    file_utils.static_serve_base_url = args.base_url + "/files/"
+    file_utils.static_serve_base_url = args.base_url + "/socus/files/"
     uvicorn.run("fooocusapi.api:app", host=args.host,
                 port=args.port, log_level=args.log_level)
