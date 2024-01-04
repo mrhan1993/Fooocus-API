@@ -24,7 +24,7 @@
 
 FastAPI powered API for [Fooocus](https://github.com/lllyasviel/Fooocus).
 
-Currently loaded Fooocus version: [2.1.852](https://github.com/lllyasviel/Fooocus/blob/main/update_log.md).
+Currently loaded Fooocus version: [2.1.860](https://github.com/lllyasviel/Fooocus/blob/main/update_log.md).
 
 ## Fooocus
 
@@ -193,6 +193,8 @@ For Fooocus CMD flags, see [here](https://github.com/lllyasviel/Fooocus?tab=read
 
 
 # Change log
+
+**[24/01/04] v0.3.29** : Merged Fooocus v2.1.860
 
 **[24/01/03] v0.3.28** : add text-to-image-with-ip interface
 

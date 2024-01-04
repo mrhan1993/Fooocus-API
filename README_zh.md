@@ -24,7 +24,7 @@
 
 使用 FastAPI 构建的 [Fooocus](https://github.com/lllyasviel/Fooocus) 的 API。
 
-当前支持的 Fooocus 版本: [2.1.852](https://github.com/lllyasviel/Fooocus/blob/main/update_log.md)。
+当前支持的 Fooocus 版本: [2.1.860](https://github.com/lllyasviel/Fooocus/blob/main/update_log.md)。
 
 ## Fooocus
 
@@ -193,6 +193,8 @@ python main.py --all-in-fp16 --always-gpu
 
 
 # 更新日志
+
+**[24/01/04] v0.3.29** : 合并了 Fooocus v2.1.860
 
 **[24/01/03] v0.3.28** : 增加 text-to-image-with-ip 接口
 
