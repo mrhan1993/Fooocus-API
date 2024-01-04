@@ -4,6 +4,8 @@ import time
 import numpy as np
 import torch
 import re
+import logging
+
 from typing import List
 from fooocusapi.file_utils import save_output_file
 from fooocusapi.parameters import GenerationFinishReason, ImageGenerationParams, ImageGenerationResult
@@ -223,7 +225,14 @@ def process_generate(async_task: QueueTask, params: ImageGenerationParams) -> Li
         denoising_strength = 1.0
         tiled = False
 
+        # Validate input format
+        if not aspect_ratios_selection.replace('*', ' ').replace(' ', '').isdigit():
+            raise ValueError("Invalid input format. Please enter aspect ratios in the form 'width*height'.")
         width, height = aspect_ratios_selection.replace('*', '*').replace('*', ' ').split(' ')[:2]
+        # Validate width and height are integers
+        if not (width.isdigit() and height.isdigit()):
+            raise ValueError("Invalid width or height. Please enter valid integers.")
+
         width, height = int(width), int(height)
 
         skip_prompt_processing = False
@@ -830,6 +839,8 @@ def process_generate(async_task: QueueTask, params: ImageGenerationParams) -> Li
         return yield_result(None, results, tasks)
     except Exception as e:
         print('Worker error:', e)
+        logging.exception(e)
+
         if not async_task.is_finished:
             task_queue.finish_task(async_task.job_id)
             async_task.set_result([], True, str(e))
