@@ -1,5 +1,3 @@
-import json
-
 from fastapi import Form, UploadFile
 from fastapi.params import File
 from fastapi.exceptions import RequestValidationError
@@ -7,11 +5,23 @@ from fastapi.exceptions import RequestValidationError
 from pydantic import BaseModel, ConfigDict, Field, TypeAdapter, ValidationError
 from pydantic_core import InitErrorDetails
 
-from typing import List
+from typing import List, Tuple
 from enum import Enum
 
-from fooocusapi.parameters import GenerationFinishReason, defualt_styles, default_base_model_name, default_refiner_model_name, default_refiner_switch, default_loras, default_cfg_scale, default_prompt_negative, default_aspect_ratio, default_sampler, default_scheduler
+from fooocusapi.parameters import (GenerationFinishReason,
+                                   default_styles,
+                                   default_base_model_name,
+                                   default_refiner_model_name,
+                                   default_refiner_switch,
+                                   default_loras,
+                                   default_cfg_scale,
+                                   default_prompt_negative,
+                                   default_aspect_ratio,
+                                   default_sampler,
+                                   default_scheduler)
+
 from fooocusapi.task_queue import TaskType
+
 
 class Lora(BaseModel):
     model_name: str
@@ -23,7 +33,7 @@ class Lora(BaseModel):
 
 
 LoraList = TypeAdapter(List[Lora])
-default_loras_model = [Lora(model_name=l[0], weight=l[1]) for l in default_loras if l[0] != 'None']
+default_loras_model = [Lora(model_name=lora[0], weight=lora[1]) for lora in default_loras if lora[0] != 'None']
 default_loras_json = LoraList.dump_json(default_loras_model)
 
 
@@ -58,8 +68,7 @@ class ControlNetType(str, Enum):
 class ImagePrompt(BaseModel):
     cn_img: UploadFile | None = Field(default=None)
     cn_stop: float | None = Field(default=None, ge=0, le=1)
-    cn_weight: float | None = Field(
-        default=None, ge=0, le=2, description="None for default value")
+    cn_weight: float | None = Field(default=None, ge=0, le=2, description="None for default value")
     cn_type: ControlNetType = Field(default=ControlNetType.cn_ip)
 
 
@@ -100,11 +109,10 @@ class AdvancedParams(BaseModel):
 class Text2ImgRequest(BaseModel):
     prompt: str = ''
     negative_prompt: str = default_prompt_negative
-    style_selections: List[str] = defualt_styles
+    style_selections: List[str] = default_styles
     performance_selection: PerfomanceSelection = PerfomanceSelection.speed
     aspect_ratios_selection: str = default_aspect_ratio
-    image_number: int = Field(
-        default=1, description="Image number", ge=1, le=32)
+    image_number: int = Field(default=1, description="Image number", ge=1, le=32)
     image_seed: int = Field(default=-1, description="Seed to generate image, -1 for random")
     sharpness: float = Field(default=2.0, ge=0.0, le=30.0)
     guidance_scale: float = Field(default=default_cfg_scale, ge=1.0, le=30.0)
@@ -118,6 +126,69 @@ class Text2ImgRequest(BaseModel):
     webhook_url: str | None = Field(default=None, description="Optional URL for a webhook callback. If provided, the system will send a POST request to this URL upon task completion or failure."
                                                               " This allows for asynchronous notification of task status.")
 
+def style_selection_parser(style_selections: str) -> List[str]:
+    style_selection_arr: List[str] = []
+    if style_selections is None or len(style_selections) == 0:
+        return []
+    for part in style_selections:
+        if len(part) > 0:
+            for s in part.split(','):
+                style = s.strip()
+                style_selection_arr.append(style)
+    return style_selection_arr
+
+def lora_parser(loras: str) -> List[Lora]:
+    loras_model: List[Lora] = []
+    if loras is None or len(loras) == 0:
+        return []
+    try:
+        loras_model = LoraList.validate_json(loras)
+        return loras_model
+    except ValidationError as ve:
+        errs = ve.errors()
+        raise RequestValidationError(errors=[errs])
+
+def advanced_params_parser(advanced_params: str | None) -> AdvancedParams:
+    advanced_params_obj = None
+    if advanced_params is not None and len(advanced_params) > 0:
+        try:
+            advanced_params_obj = AdvancedParams.__pydantic_validator__.validate_json(advanced_params)
+            return advanced_params_obj
+        except ValidationError as ve:
+            errs = ve.errors()
+            raise RequestValidationError(errors=[errs])
+    return advanced_params_obj
+
+def oupaint_selections_parser(outpaint_selections: str) -> List[OutpaintExpansion]:
+    outpaint_selections_arr: List[OutpaintExpansion] = []
+    if outpaint_selections is None or len(outpaint_selections) == 0:
+        return []
+    for part in outpaint_selections:
+        if len(part) > 0:
+            for s in part.split(','):
+                try:
+                    expansion = OutpaintExpansion(s)
+                    outpaint_selections_arr.append(expansion)
+                except ValueError as ve:
+                    err = InitErrorDetails(type='enum', loc=['outpaint_selections'],
+                                           input=outpaint_selections,
+                                           ctx={
+                                               'expected': "Literal 'Left', 'Right', 'Top', 'Bottom' seperated by comma"
+                                            })
+                    raise RequestValidationError(errors=[err])
+    return outpaint_selections_arr
+
+def image_prompt_parser(image_prompts_config: List[Tuple]) -> List[ImagePrompt]:
+    image_prompts: List[ImagePrompt] = []
+    if image_prompts_config is None or len(image_prompts_config) == 0:
+        return []
+    for config in image_prompts_config:
+        cn_img, cn_stop, cn_weight, cn_type = config
+        image_prompts.append(ImagePrompt(cn_img=cn_img, cn_stop=cn_stop,
+                                         cn_weight=cn_weight, cn_type=cn_type))
+    return image_prompts
+
+
 class ImgUpscaleOrVaryRequest(Text2ImgRequest):
     input_image: UploadFile
     uov_method: UpscaleOrVaryMethod
@@ -129,47 +200,27 @@ class ImgUpscaleOrVaryRequest(Text2ImgRequest):
                 upscale_value: float | None = Form(None, description="Upscale custom value, None for default value", ge=1.0, le=5.0),
                 prompt: str = Form(''),
                 negative_prompt: str = Form(default_prompt_negative),
-                style_selections: List[str] = Form(defualt_styles, description="Fooocus style selections, seperated by comma"),
-                performance_selection: PerfomanceSelection = Form(
-                    PerfomanceSelection.speed),
-                aspect_ratios_selection: str = Form(default_aspect_ratio),
-                image_number: int = Form(
-                    default=1, description="Image number", ge=1, le=32),
+                style_selections: List[str] = Form(default_styles, description="Fooocus style selections, seperated by comma"),
+                performance_selection: PerfomanceSelection = Form(PerfomanceSelection.speed, description="Performance Selection, one of 'Speed','Quality','Extreme Speed'"),
+                aspect_ratios_selection: str = Form(default_aspect_ratio, description="Aspect Ratios Selection, default 1152*896"),
+                image_number: int = Form(default=1, description="Image number", ge=1, le=32),
                 image_seed: int = Form(default=-1, description="Seed to generate image, -1 for random"),
                 sharpness: float = Form(default=2.0, ge=0.0, le=30.0),
                 guidance_scale: float = Form(default=default_cfg_scale, ge=1.0, le=30.0),
-                base_model_name: str = Form(default_base_model_name),
-                refiner_model_name: str = Form(default_refiner_model_name),
+                base_model_name: str = Form(default_base_model_name, description="checkpoint file name"),
+                refiner_model_name: str = Form(default_refiner_model_name, description="refiner file name"),
                 refiner_switch: float = Form(default=default_refiner_switch, description="Refiner Switch At", ge=0.1, le=1.0),
                 loras: str | None = Form(default=default_loras_json, description='Lora config in JSON. Format as [{"model_name": "sd_xl_offset_example-lora_1.0.safetensors", "weight": 0.5}]'),
                 advanced_params: str | None = Form(default=None, description="Advanced parameters in JSON"),
                 require_base64: bool = Form(default=False, description="Return base64 data of generated image"),
                 async_process: bool = Form(default=False, description="Set to true will run async and return job info for retrieve generataion result later"),
                 ):
-        style_selection_arr: List[str] = []
-        for part in style_selections:
-            if len(part) > 0:
-                for s in part.split(','):
-                    style = s.strip()
-                    style_selection_arr.append(style)
+        style_selection_arr = style_selection_parser(style_selections)
+        loras_model = lora_parser(loras)
+        advanced_params_obj = advanced_params_parser(advanced_params)
 
-        loras_model: List[Lora] = []
-        if loras is not None and len(loras) > 0:
-            try:
-                loras_model = LoraList.validate_json(loras)
-            except ValidationError as ve:
-                errs = ve.errors()
-                raise RequestValidationError(errors=[errs])
-
-        advanced_params_obj = None
-        if advanced_params is not None and len(advanced_params) > 0:
-            try:
-                advanced_params_obj = AdvancedParams.__pydantic_validator__.validate_json(advanced_params)
-            except ValidationError as ve:
-                errs = ve.errors()
-                raise RequestValidationError(errors=[errs])
-
-        return cls(input_image=input_image, uov_method=uov_method,upscale_value=upscale_value, prompt=prompt, negative_prompt=negative_prompt, style_selections=style_selection_arr,
+        return cls(input_image=input_image, uov_method=uov_method,upscale_value=upscale_value,
+                   prompt=prompt, negative_prompt=negative_prompt, style_selections=style_selection_arr,
                    performance_selection=performance_selection, aspect_ratios_selection=aspect_ratios_selection,
                    image_number=image_number, image_seed=image_seed, sharpness=sharpness, guidance_scale=guidance_scale,
                    base_model_name=base_model_name, refiner_model_name=refiner_model_name, refiner_switch=refiner_switch,
@@ -188,24 +239,19 @@ class ImgInpaintOrOutpaintRequest(Text2ImgRequest):
 
     @classmethod
     def as_form(cls, input_image: UploadFile = Form(description="Init image for inpaint or outpaint"),
-                input_mask: UploadFile = Form(
-                    File(None), description="Inpaint or outpaint mask"),
+                input_mask: UploadFile = Form(File(None), description="Inpaint or outpaint mask"),
                 inpaint_additional_prompt: str | None = Form(None, description="Describe what you want to inpaint"),
-                outpaint_selections: List[str] = Form(
-                    [], description="Outpaint expansion selections, literal 'Left', 'Right', 'Top', 'Bottom' seperated by comma"),
-                
+                outpaint_selections: List[str] = Form([], description="Outpaint expansion selections, literal 'Left', 'Right', 'Top', 'Bottom' seperated by comma"),
                 outpaint_distance_left: int = Form(default=0, description="Set outpaint left distance, -1 for default"),
                 outpaint_distance_right: int = Form(default=0, description="Set outpaint right distance, -1 for default"),
                 outpaint_distance_top: int = Form(default=0, description="Set outpaint top distance, -1 for default"),
                 outpaint_distance_bottom: int = Form(default=0, description="Set outpaint bottom distance, -1 for default"),
                 prompt: str = Form(''),
                 negative_prompt: str = Form(default_prompt_negative),
-                style_selections: List[str] = Form(defualt_styles, description="Fooocus style selections, seperated by comma"),
-                performance_selection: PerfomanceSelection = Form(
-                    PerfomanceSelection.speed),
-                aspect_ratios_selection: str = Form(default_aspect_ratio),
-                image_number: int = Form(
-                    default=1, description="Image number", ge=1, le=32),
+                style_selections: List[str] = Form(default_styles, description="Fooocus style selections, seperated by comma"),
+                performance_selection: PerfomanceSelection = Form(PerfomanceSelection.speed, description="Performance Selection, one of 'Speed','Quality','Extreme Speed'"),
+                aspect_ratios_selection: str = Form(default_aspect_ratio, description="Aspect Ratios Selection, default 1152*896"),
+                image_number: int = Form(default=1, description="Image number", ge=1, le=32),
                 image_seed: int = Form(default=-1, description="Seed to generate image, -1 for random"),
                 sharpness: float = Form(default=2.0, ge=0.0, le=30.0),
                 guidance_scale: float = Form(default=default_cfg_scale, ge=1.0, le=30.0),
@@ -221,44 +267,15 @@ class ImgInpaintOrOutpaintRequest(Text2ImgRequest):
         if isinstance(input_mask, File):
             input_mask = None
         
-        outpaint_selections_arr: List[OutpaintExpansion] = []
-        for part in outpaint_selections:
-            if len(part) > 0:
-                for s in part.split(','):
-                    try:
-                        expansion = OutpaintExpansion(s)
-                        outpaint_selections_arr.append(expansion)
-                    except ValueError as ve:
-                        err = InitErrorDetails(type='enum', loc=['outpaint_selections'], input=outpaint_selections, ctx={
-                            'expected': "Literal 'Left', 'Right', 'Top', 'Bottom' seperated by comma"})
-                        raise RequestValidationError(errors=[err])
+        outpaint_selections_arr = oupaint_selections_parser(outpaint_selections)
+        style_selection_arr = style_selection_parser(style_selections)
+        loras_model = lora_parser(loras)
+        advanced_params_obj = advanced_params_parser(advanced_params)
 
-        style_selection_arr: List[str] = []
-        for part in style_selections:
-            if len(part) > 0:
-                for s in part.split(','):
-                    style = s.strip()
-                    style_selection_arr.append(style)
-
-        loras_model: List[Lora] = []
-        if loras is not None and len(loras) > 0:
-            try:
-                loras_model = LoraList.validate_json(loras)
-            except ValidationError as ve:
-                errs = ve.errors()
-                raise RequestValidationError(errors=[errs])
-
-        advanced_params_obj = None
-        if advanced_params is not None and len(advanced_params) > 0:
-            try:
-                advanced_params_obj = AdvancedParams.__pydantic_validator__.validate_json(advanced_params)
-            except ValidationError as ve:
-                errs = ve.errors()
-                raise RequestValidationError(errors=[errs])
-
-        return cls(input_image=input_image, input_mask=input_mask, inpaint_additional_prompt=inpaint_additional_prompt, outpaint_selections=outpaint_selections_arr,
-                   outpaint_distance_left=outpaint_distance_left, outpaint_distance_right=outpaint_distance_right, outpaint_distance_top=outpaint_distance_top, outpaint_distance_bottom=outpaint_distance_bottom,
-                   prompt=prompt, negative_prompt=negative_prompt, style_selections=style_selection_arr,
+        return cls(input_image=input_image, input_mask=input_mask, inpaint_additional_prompt=inpaint_additional_prompt,
+                   outpaint_selections=outpaint_selections_arr,outpaint_distance_left=outpaint_distance_left,
+                   outpaint_distance_right=outpaint_distance_right, outpaint_distance_top=outpaint_distance_top,
+                   outpaint_distance_bottom=outpaint_distance_bottom, prompt=prompt, negative_prompt=negative_prompt, style_selections=style_selection_arr,
                    performance_selection=performance_selection, aspect_ratios_selection=aspect_ratios_selection,
                    image_number=image_number, image_seed=image_seed, sharpness=sharpness, guidance_scale=guidance_scale,
                    base_model_name=base_model_name, refiner_model_name=refiner_model_name, refiner_switch=refiner_switch,
@@ -310,7 +327,7 @@ class ImgPromptRequest(ImgInpaintOrOutpaintRequest):
                     default=ControlNetType.cn_ip, description="ControlNet type for image prompt"),
                 prompt: str = Form(''),
                 negative_prompt: str = Form(default_prompt_negative),
-                style_selections: List[str] = Form(defualt_styles, description="Fooocus style selections, seperated by comma"),
+                style_selections: List[str] = Form(default_styles, description="Fooocus style selections, seperated by comma"),
                 performance_selection: PerfomanceSelection = Form(
                     PerfomanceSelection.speed),
                 aspect_ratios_selection: str = Form(default_aspect_ratio),
@@ -340,48 +357,16 @@ class ImgPromptRequest(ImgInpaintOrOutpaintRequest):
         if isinstance(cn_img4, File):
             cn_img4 = None
 
-        outpaint_selections_arr: List[OutpaintExpansion] = []
-        for part in outpaint_selections:
-            if len(part) > 0:
-                for s in part.split(','):
-                    try:
-                        expansion = OutpaintExpansion(s)
-                        outpaint_selections_arr.append(expansion)
-                    except ValueError as ve:
-                        err = InitErrorDetails(type='enum', loc=['outpaint_selections'], input=outpaint_selections, ctx={
-                            'expected': "Literal 'Left', 'Right', 'Top', 'Bottom' seperated by comma"})
-                        raise RequestValidationError(errors=[err])
+        outpaint_selections_arr = oupaint_selections_parser(outpaint_selections)
 
-        image_prompts: List[ImagePrompt] = []
-        image_prompt_config = [(cn_img1, cn_stop1, cn_weight1, cn_type1), (cn_img2, cn_stop2, cn_weight2, cn_type2),
-                               (cn_img3, cn_stop3, cn_weight3, cn_type3), (cn_img4, cn_stop4, cn_weight4, cn_type4)]
-        for config in image_prompt_config:
-            cn_img, cn_stop, cn_weight, cn_type = config
-            image_prompts.append(ImagePrompt(
-                cn_img=cn_img, cn_stop=cn_stop, cn_weight=cn_weight, cn_type=cn_type))
-
-        style_selection_arr: List[str] = []
-        for part in style_selections:
-            if len(part) > 0:
-                for s in part.split(','):
-                    style = s.strip()
-                    style_selection_arr.append(style)
-
-        loras_model: List[Lora] = []
-        if loras is not None and len(loras) > 0:
-            try:
-                loras_model = LoraList.validate_json(loras)
-            except ValidationError as ve:
-                errs = ve.errors()
-                raise RequestValidationError(errors=[errs])
-
-        advanced_params_obj = None
-        if advanced_params is not None and len(advanced_params) > 0:
-            try:
-                advanced_params_obj = AdvancedParams.__pydantic_validator__.validate_json(advanced_params)
-            except ValidationError as ve:
-                errs = ve.errors()
-                raise RequestValidationError(errors=[errs])
+        image_prompt_config = [(cn_img1, cn_stop1, cn_weight1, cn_type1),
+                               (cn_img2, cn_stop2, cn_weight2, cn_type2),
+                               (cn_img3, cn_stop3, cn_weight3, cn_type3),
+                               (cn_img4, cn_stop4, cn_weight4, cn_type4)]
+        image_prompts = image_prompt_parser(image_prompt_config)
+        style_selection_arr = style_selection_parser(style_selections)
+        loras_model = lora_parser(loras)
+        advanced_params_obj = advanced_params_parser(advanced_params)
 
         return cls(input_image=input_image, input_mask=input_mask, inpaint_additional_prompt=inpaint_additional_prompt, outpaint_selections=outpaint_selections_arr,
                    outpaint_distance_left=outpaint_distance_left, outpaint_distance_right=outpaint_distance_right, outpaint_distance_top=outpaint_distance_top, outpaint_distance_bottom=outpaint_distance_bottom,

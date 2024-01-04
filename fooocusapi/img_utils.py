@@ -29,7 +29,9 @@ def narray_to_bytesimg(narray) -> bytes:
     return byte_data
 
 
-def read_input_image(input_image: UploadFile) -> np.ndarray:
+def read_input_image(input_image: UploadFile | None) -> np.ndarray | None:
+    if input_image is None:
+        return None
     input_image_bytes = input_image.file.read()
     pil_image = Image.open(BytesIO(input_image_bytes))
     image = np.array(pil_image)

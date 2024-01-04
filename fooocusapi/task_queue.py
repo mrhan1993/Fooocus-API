@@ -137,7 +137,7 @@ class TaskQueue(object):
             self.history.append(task)
 
             # Clean history
-            if len(self.history) > self.history_size:
+            if len(self.history) > self.history_size and self.history_size != 0:
                 removed_task = self.history.pop(0)
                 if isinstance(removed_task.task_result, List):
                     for item in removed_task.task_result:
