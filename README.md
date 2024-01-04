@@ -24,7 +24,7 @@
 
 FastAPI powered API for [Fooocus](https://github.com/lllyasviel/Fooocus).
 
-Currently loaded Fooocus version: [2.1.852](https://github.com/lllyasviel/Fooocus/blob/main/update_log.md).
+Currently loaded Fooocus version: [2.1.860](https://github.com/lllyasviel/Fooocus/blob/main/update_log.md).
 
 ## Fooocus
 

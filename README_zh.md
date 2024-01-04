@@ -24,7 +24,7 @@
 
 使用 FastAPI 构建的 [Fooocus](https://github.com/lllyasviel/Fooocus) 的 API。
 
-当前支持的 Fooocus 版本: [2.1.852](https://github.com/lllyasviel/Fooocus/blob/main/update_log.md)。
+当前支持的 Fooocus 版本: [2.1.860](https://github.com/lllyasviel/Fooocus/blob/main/update_log.md)。
 
 ## Fooocus
 
