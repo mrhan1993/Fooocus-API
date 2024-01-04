@@ -68,7 +68,7 @@ def req_to_params(req: Text2ImgRequest) -> ImageGenerationParams:
 
     inpaint_input_image = None
     inpaint_additional_prompt = None
-    if isinstance(req, ImgInpaintOrOutpaintRequest) or isinstance(req, ImgInpaintOrOutpaintRequestJson):
+    if (isinstance(req, ImgInpaintOrOutpaintRequest) or isinstance(req, ImgInpaintOrOutpaintRequestJson)) and req.input_image is not None:
         inpaint_additional_prompt = req.inpaint_additional_prompt
         input_image = read_input_image(req.input_image)
         input_mask = None

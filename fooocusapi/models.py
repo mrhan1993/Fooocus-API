@@ -179,7 +179,7 @@ class ImgUpscaleOrVaryRequest(Text2ImgRequest):
 
 
 class ImgInpaintOrOutpaintRequest(Text2ImgRequest):
-    input_image: UploadFile
+    input_image: UploadFile | None
     input_mask: UploadFile | None
     inpaint_additional_prompt: str | None
     outpaint_selections: List[OutpaintExpansion]
@@ -271,7 +271,7 @@ class ImgPromptRequest(ImgInpaintOrOutpaintRequest):
     image_prompts: List[ImagePrompt]
 
     @classmethod
-    def as_form(cls, input_image: UploadFile = Form(Field(None), description="Init image for inpaint or outpaint"),
+    def as_form(cls, input_image: UploadFile = Form(File(None), description="Init image for inpaint or outpaint"),
                 input_mask: UploadFile = Form(File(None), description="Inpaint or outpaint mask"),
                 inpaint_additional_prompt: str | None = Form(None, description="Describe what you want to inpaint"),
                 outpaint_selections: List[str] = Form([], description="Outpaint expansion selections, literal 'Left', 'Right', 'Top', 'Bottom' seperated by comma"),
