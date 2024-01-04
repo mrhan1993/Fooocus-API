@@ -178,7 +178,7 @@ You can add `-e PIP_INDEX_URL={pypi-mirror-url}` to docker run command to change
 - `--skip-pip` Skip automatic pip install when setup
 - `--preload-pipeline` Preload pipeline before start http server
 - `--queue-size QUEUE_SIZE` Working queue size, default: 3, generation requests exceeding working queue size will return failure
-- `--queue-history QUEUE_HISTORY` Finished jobs reserve size, tasks exceeding the limit will be deleted, including output image files, default: 100
+- `--queue-history QUEUE_HISTORY` Finished jobs reserve size, tasks exceeding the limit will be deleted, including output image files, default: 0, means no limit
 - `--webhook-url WEBHOOK_URL` Webhook url for notify generation result, default: None
 
 Since v0.3.25, added CMD flags support of Fooocus. You can pass any argument which Fooocus supported.

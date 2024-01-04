@@ -6,7 +6,7 @@ import numpy as np
 default_inpaint_engine_version = 'v2.6'
 
 
-defualt_styles = ['Fooocus V2', 'Fooocus Enhance', 'Fooocus Sharp']
+default_styles = ['Fooocus V2', 'Fooocus Enhance', 'Fooocus Sharp']
 default_base_model_name = 'juggernautXL_version6Rundiffusion.safetensors'
 default_refiner_model_name = 'None'
 default_refiner_switch = 0.5

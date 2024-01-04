@@ -378,7 +378,7 @@ source = open("./examples/imgs/s.jpg", "rb").read()
 mask = open("./examples/imgs/m.png", "rb").read()
 
 def image_prompt(params: dict,
-                 input_iamge: bytes,
+                 input_iamge: bytes=None,
                  input_mask: bytes=None,
                  cn_img1: bytes=None,
                  cn_img2: bytes=None,
@@ -432,7 +432,7 @@ params = {
             "cn_type": "ImagePrompt"
         }]
     }
-result = image_prompt(params=params, input_iamge=image, cn_img1=image, cn_img2=source)
+result = image_prompt(params=params, cn_img1=image, cn_img2=source)
 print(json.dumps(result, indent=4, ensure_ascii=False))
 ```
 
@@ -508,8 +508,6 @@ print(json.dumps(result, indent=4, ensure_ascii=False))
 
 params = {
     "prompt": "1girl sitting on the chair",
-    "input_image": base64.b64encode(source).decode('utf-8'),
-    # 这里的 input_image 无作用，但不可为空。大概是个 bug
     "image_prompts": [
         {
             "cn_img": base64.b64encode(source).decode('utf-8'),
