@@ -104,6 +104,8 @@ class AdvancedParams(BaseModel):
     inpaint_engine: str = Field('v1', description="Inpaint Engine")
     inpaint_strength: float = Field(1.0, description="Inpaint Denoising Strength", ge=0.0, le=1.0)
     inpaint_respective_field: float = Field(1.0, description="Inpaint Respective Field", ge=0.0, le=1.0)
+    invert_mask_checkbox: bool = Field(False, description="Invert Mask")
+    inpaint_erode_or_dilate: int = Field(0, description="Mask Erode or Dilate", ge=-64, le=64)
 
 
 class Text2ImgRequest(BaseModel):
@@ -228,7 +230,7 @@ class ImgUpscaleOrVaryRequest(Text2ImgRequest):
 
 
 class ImgInpaintOrOutpaintRequest(Text2ImgRequest):
-    input_image: UploadFile
+    input_image: UploadFile | None
     input_mask: UploadFile | None
     inpaint_additional_prompt: str | None
     outpaint_selections: List[OutpaintExpansion]
@@ -286,7 +288,7 @@ class ImgPromptRequest(ImgInpaintOrOutpaintRequest):
     image_prompts: List[ImagePrompt]
 
     @classmethod
-    def as_form(cls, input_image: UploadFile = Form(Field(None), description="Init image for inpaint or outpaint"),
+    def as_form(cls, input_image: UploadFile = Form(File(None), description="Init image for inpaint or outpaint"),
                 input_mask: UploadFile = Form(File(None), description="Inpaint or outpaint mask"),
                 inpaint_additional_prompt: str | None = Form(None, description="Describe what you want to inpaint"),
                 outpaint_selections: List[str] = Form([], description="Outpaint expansion selections, literal 'Left', 'Right', 'Top', 'Bottom' seperated by comma"),

@@ -591,7 +591,7 @@ DataType: form
 
 | Name | Type | Description                              |
 |------|------|------------------------------------------|
-| type | Enum | type, should be one of "Photo", "Animd"  |
+| type | Enum | type, should be one of "Photo", "Anime"  |
 
 **requests example**:
 
