@@ -194,6 +194,8 @@ python main.py --all-in-fp16 --always-gpu
 
 # 更新日志
 
+**[24/01/04] v0.3.29** : 合并了 Fooocus v2.1.860
+
 **[24/01/03] v0.3.28** : 增加 text-to-image-with-ip 接口
 
 **[23/12/29] v0.3.27** : 增加 describe 接口，现在你可以使用图像反推提示词了
