@@ -54,7 +54,7 @@ def git_clone(url, dir, name, hash=None):
         except:
             if os.path.isdir(dir) or os.path.exists(dir):
                 print("Fooocus exists, but not a git repo. You can find how to solve this problem here: https://github.com/konieshadow/Fooocus-API#use-exist-fooocus")
-                sys.exit('1')
+                sys.exit(1)
             os.makedirs(dir, exist_ok=True)
             repo = pygit2.clone_repository(url, dir)
             print(f'{name} cloned from {url}.')
@@ -231,7 +231,7 @@ def download_models():
 def install_dependents(args):
     if not args.skip_pip:
         torch_index_url = os.environ.get('TORCH_INDEX_URL', "https://download.pytorch.org/whl/cu121")
-        
+
         # Check if need pip install
         requirements_file = 'requirements.txt'
         if not requirements_met(requirements_file):
@@ -298,7 +298,7 @@ def prepare_environments(args) -> bool:
     import modules.config as config
     import fooocusapi.parameters as parameters
     parameters.default_inpaint_engine_version = config.default_inpaint_engine_version
-    parameters.defualt_styles = config.default_styles
+    parameters.default_styles = config.default_styles
     parameters.default_base_model_name = config.default_base_model_name
     parameters.default_refiner_model_name = config.default_refiner_model_name
     parameters.default_refiner_switch = config.default_refiner_switch
@@ -317,7 +317,15 @@ def prepare_environments(args) -> bool:
 
     return True
 
-def pre_setup(skip_sync_repo: bool=False, disable_private_log: bool=False, skip_pip=False, load_all_models: bool=False, preload_pipeline: bool=False, always_gpu: bool=False, all_in_fp16: bool=False, preset: str | None=None):
+def pre_setup(skip_sync_repo: bool=False,
+              disable_private_log: bool=False,
+              skip_pip=False,
+              load_all_models: bool=False,
+              preload_pipeline: bool=False,
+              always_gpu: bool=False,
+              all_in_fp16: bool=False,
+              preset: str | None=None):
+
     class Args(object):
         host = '127.0.0.1'
         port = 8888
