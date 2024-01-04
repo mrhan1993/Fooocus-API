@@ -4,6 +4,8 @@ import time
 import numpy as np
 import torch
 import re
+import logging
+
 from typing import List
 from fooocusapi.file_utils import save_output_file
 from fooocusapi.parameters import GenerationFinishReason, ImageGenerationParams, ImageGenerationResult
@@ -42,7 +44,7 @@ def process_generate(async_task: QueueTask, params: ImageGenerationParams) -> Li
     import extras.ip_adapter as ip_adapter
     import extras.face_crop as face_crop
     import ldm_patched.modules.model_management as model_management
-    from modules.util import remove_empty_str, resize_image, HWC3, set_image_shape_ceil, get_image_shape_ceil, get_shape_ceil, resample_image
+    from modules.util import remove_empty_str, resize_image, HWC3, set_image_shape_ceil, get_image_shape_ceil, get_shape_ceil, resample_image, erode_or_dilate
     from modules.private_logger import log
     from modules.upscaler import perform_upscale
     from extras.expansion import safe_str
@@ -132,17 +134,10 @@ def process_generate(async_task: QueueTask, params: ImageGenerationParams) -> Li
         outpaint_distance_bottom = params.outpaint_distance_bottom
         inpaint_input_image = params.inpaint_input_image
         inpaint_additional_prompt = params.inpaint_additional_prompt
+        inpaint_mask_image_upload = None
+
         if inpaint_additional_prompt is None:
             inpaint_additional_prompt = ''
-
-        if inpaint_input_image is not None and inpaint_input_image['image'] is not None:
-            inpaint_image_size = inpaint_input_image['image'].shape[:2]
-            if inpaint_input_image['mask'] is None:
-                inpaint_input_image['mask'] = np.zeros(inpaint_image_size, dtype=np.uint8)
-            inpaint_input_image['mask'] = HWC3(inpaint_input_image['mask'])
-            if inpaint_input_image['mask'].shape[:2] != inpaint_image_size:
-                # Reset inpaint mask
-                inpaint_input_image['mask'] = resize_image(inpaint_input_image['mask'], width=inpaint_image_size[1], height=inpaint_image_size[0], resize_mode=0)
 
         image_seed = refresh_seed(image_seed is None, image_seed)
 
@@ -152,6 +147,16 @@ def process_generate(async_task: QueueTask, params: ImageGenerationParams) -> Li
             cn_tasks[cn_type].append([cn_img, cn_stop, cn_weight])
 
         advanced_parameters.set_all_advanced_parameters(*params.advanced_params)
+
+        if inpaint_input_image is not None and inpaint_input_image['image'] is not None:
+            inpaint_image_size = inpaint_input_image['image'].shape[:2]
+            if inpaint_input_image['mask'] is None:
+                inpaint_input_image['mask'] = np.zeros(inpaint_image_size, dtype=np.uint8)
+            else:
+                advanced_parameters.inpaint_mask_upload_checkbox = True
+
+            inpaint_input_image['mask'] = HWC3(inpaint_input_image['mask'])
+            inpaint_mask_image_upload = inpaint_input_image['mask']
 
         # Fooocus async_worker.py code start
 
@@ -223,7 +228,14 @@ def process_generate(async_task: QueueTask, params: ImageGenerationParams) -> Li
         denoising_strength = 1.0
         tiled = False
 
+        # Validate input format
+        if not aspect_ratios_selection.replace('*', ' ').replace(' ', '').isdigit():
+            raise ValueError("Invalid input format. Please enter aspect ratios in the form 'width*height'.")
         width, height = aspect_ratios_selection.replace('*', '*').replace('*', ' ').split(' ')[:2]
+        # Validate width and height are integers
+        if not (width.isdigit() and height.isdigit()):
+            raise ValueError("Invalid width or height. Please enter valid integers.")
+
         width, height = int(width), int(height)
 
         skip_prompt_processing = False
@@ -280,6 +292,22 @@ def process_generate(async_task: QueueTask, params: ImageGenerationParams) -> Li
                     and isinstance(inpaint_input_image, dict):
                 inpaint_image = inpaint_input_image['image']
                 inpaint_mask = inpaint_input_image['mask'][:, :, 0]
+
+                if advanced_parameters.inpaint_mask_upload_checkbox:
+                    if isinstance(inpaint_mask_image_upload, np.ndarray):
+                        if inpaint_mask_image_upload.ndim == 3:
+                            H, W, C = inpaint_image.shape
+                            inpaint_mask_image_upload = resample_image(inpaint_mask_image_upload, width=W, height=H)
+                            inpaint_mask_image_upload = np.mean(inpaint_mask_image_upload, axis=2)
+                            inpaint_mask_image_upload = (inpaint_mask_image_upload > 127).astype(np.uint8) * 255
+                            inpaint_mask = inpaint_mask_image_upload
+
+                if int(advanced_parameters.inpaint_erode_or_dilate) != 0:
+                    inpaint_mask = erode_or_dilate(inpaint_mask, advanced_parameters.inpaint_erode_or_dilate)
+
+                if advanced_parameters.invert_mask_checkbox:
+                    inpaint_mask = 255 - inpaint_mask
+
                 inpaint_image = HWC3(inpaint_image)
                 if isinstance(inpaint_image, np.ndarray) and isinstance(inpaint_mask, np.ndarray) \
                         and (np.any(inpaint_mask > 127) or len(outpaint_selections) > 0):
@@ -830,6 +858,8 @@ def process_generate(async_task: QueueTask, params: ImageGenerationParams) -> Li
         return yield_result(None, results, tasks)
     except Exception as e:
         print('Worker error:', e)
+        logging.exception(e)
+
         if not async_task.is_finished:
             task_queue.finish_task(async_task.job_id)
             async_task.set_result([], True, str(e))

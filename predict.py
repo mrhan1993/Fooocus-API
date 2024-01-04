@@ -2,16 +2,26 @@
 # https://github.com/replicate/cog/blob/main/docs/python.md
 
 import os
-import sys
+import numpy as np
+
+from PIL import Image
 from typing import List
 from cog import BasePredictor, Input, Path
-
-from fooocusapi.parameters import GenerationFinishReason, ImageGenerationParams, available_aspect_ratios, uov_methods, outpaint_expansions, defualt_styles, default_base_model_name, default_refiner_model_name, default_loras, default_refiner_switch, default_cfg_scale, default_prompt_negative
-from fooocusapi.task_queue import TaskType
 from fooocusapi.worker import process_generate, task_queue
 from fooocusapi.file_utils import output_dir
-import numpy as np
-from PIL import Image
+from fooocusapi.parameters import (GenerationFinishReason,
+                                   ImageGenerationParams,
+                                   available_aspect_ratios,
+                                   uov_methods,
+                                   outpaint_expansions,
+                                   default_styles,
+                                   default_base_model_name,
+                                   default_refiner_model_name,
+                                   default_loras,
+                                   default_refiner_switch,
+                                   default_cfg_scale,
+                                   default_prompt_negative)
+from fooocusapi.task_queue import TaskType
 
 
 class Predictor(BasePredictor):
@@ -25,7 +35,7 @@ class Predictor(BasePredictor):
         prompt: str = Input( default='', description="Prompt for image generation"),
         negative_prompt: str = Input( default=default_prompt_negative, 
                                 description="Negtive prompt for image generation"),
-        style_selections: str = Input(default=','.join(defualt_styles),
+        style_selections: str = Input(default=','.join(default_styles),
                                 description="Fooocus styles applied for image generation, seperated by comma"),
         performance_selection: str = Input( default='Speed', 
                                 description="Performance selection", choices=['Speed', 'Quality', 'Extreme Speed']),

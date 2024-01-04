@@ -24,7 +24,7 @@
 
 使用 FastAPI 构建的 [Fooocus](https://github.com/lllyasviel/Fooocus) 的 API。
 
-当前支持的 Fooocus 版本: [2.1.852](https://github.com/lllyasviel/Fooocus/blob/main/update_log.md)。
+当前支持的 Fooocus 版本: [2.1.860](https://github.com/lllyasviel/Fooocus/blob/main/update_log.md)。
 
 ## Fooocus
 
@@ -178,7 +178,7 @@ docker run -d --gpus=all \
 - `--skip-pip` 跳过启动时的 pip 安装
 - `--preload-pipeline` 启动 http server 之前加载 pipeline
 - `--queue-size QUEUE_SIZE` 工作队列大小，默认是 3 ，超过队列的请求会返回失败
-- `--queue-history QUEUE_HISTORY` 保留的作业历史，默认 100，超过会被删除，包括生成的图像
+- `--queue-history QUEUE_HISTORY` 保留的作业历史，默认 0 即无限制，超过会被删除，包括生成的图像
 - `--webhook-url WEBHOOK_URL` 通知生成结果的 webhook 地址，默认为 None
 
 从 v0.3.25 开始, Fooocus 的命令行选项也被支持，你可以在启动时加上 Fooocus 支持的选项
@@ -193,6 +193,8 @@ python main.py --all-in-fp16 --always-gpu
 
 
 # 更新日志
+
+**[24/01/04] v0.3.29** : 合并了 Fooocus v2.1.860
 
 **[24/01/03] v0.3.28** : 增加 text-to-image-with-ip 接口
 

@@ -6,7 +6,7 @@ import numpy as np
 default_inpaint_engine_version = 'v2.6'
 
 
-defualt_styles = ['Fooocus V2', 'Fooocus Enhance', 'Fooocus Sharp']
+default_styles = ['Fooocus V2', 'Fooocus Enhance', 'Fooocus Sharp']
 default_base_model_name = 'juggernautXL_version6Rundiffusion.safetensors'
 default_refiner_model_name = 'None'
 default_refiner_switch = 0.5
@@ -158,6 +158,10 @@ class ImageGenerationParams(object):
             inpaint_engine = default_inpaint_engine_version
             inpaint_strength = 1.0
             inpaint_respective_field = 0.618
+            inpaint_mask_upload_checkbox = False
+            invert_mask_checkbox = False
+            inpaint_erode_or_dilate = 0
+
 
             # Auto set mixing_image_prompt_and_inpaint to True
             if len(self.image_prompts) > 0 and inpaint_input_image is not None:
@@ -171,7 +175,8 @@ class ImageGenerationParams(object):
                 debugging_cn_preprocessor, skipping_cn_preprocessor, controlnet_softness, canny_low_threshold, canny_high_threshold, \
                 refiner_swap_method, \
                 freeu_enabled, freeu_b1, freeu_b2, freeu_s1, freeu_s2, \
-                debugging_inpaint_preprocessor, inpaint_disable_initial_latent, inpaint_engine, inpaint_strength, inpaint_respective_field
+                debugging_inpaint_preprocessor, inpaint_disable_initial_latent, inpaint_engine, inpaint_strength, inpaint_respective_field, \
+                inpaint_mask_upload_checkbox, invert_mask_checkbox, inpaint_erode_or_dilate
             ]
         else:
             self.advanced_params = advanced_params

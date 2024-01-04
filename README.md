@@ -24,7 +24,7 @@
 
 FastAPI powered API for [Fooocus](https://github.com/lllyasviel/Fooocus).
 
-Currently loaded Fooocus version: [2.1.852](https://github.com/lllyasviel/Fooocus/blob/main/update_log.md).
+Currently loaded Fooocus version: [2.1.860](https://github.com/lllyasviel/Fooocus/blob/main/update_log.md).
 
 ## Fooocus
 
@@ -178,7 +178,7 @@ You can add `-e PIP_INDEX_URL={pypi-mirror-url}` to docker run command to change
 - `--skip-pip` Skip automatic pip install when setup
 - `--preload-pipeline` Preload pipeline before start http server
 - `--queue-size QUEUE_SIZE` Working queue size, default: 3, generation requests exceeding working queue size will return failure
-- `--queue-history QUEUE_HISTORY` Finished jobs reserve size, tasks exceeding the limit will be deleted, including output image files, default: 100
+- `--queue-history QUEUE_HISTORY` Finished jobs reserve size, tasks exceeding the limit will be deleted, including output image files, default: 0, means no limit
 - `--webhook-url WEBHOOK_URL` Webhook url for notify generation result, default: None
 
 Since v0.3.25, added CMD flags support of Fooocus. You can pass any argument which Fooocus supported.
@@ -193,6 +193,8 @@ For Fooocus CMD flags, see [here](https://github.com/lllyasviel/Fooocus?tab=read
 
 
 # Change log
+
+**[24/01/04] v0.3.29** : Merged Fooocus v2.1.860
 
 **[24/01/03] v0.3.28** : add text-to-image-with-ip interface
 

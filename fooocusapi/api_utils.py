@@ -68,7 +68,7 @@ def req_to_params(req: Text2ImgRequest) -> ImageGenerationParams:
 
     inpaint_input_image = None
     inpaint_additional_prompt = None
-    if isinstance(req, ImgInpaintOrOutpaintRequest) or isinstance(req, ImgInpaintOrOutpaintRequestJson):
+    if (isinstance(req, ImgInpaintOrOutpaintRequest) or isinstance(req, ImgInpaintOrOutpaintRequestJson)) and req.input_image is not None:
         inpaint_additional_prompt = req.inpaint_additional_prompt
         input_image = read_input_image(req.input_image)
         input_mask = None
@@ -123,7 +123,8 @@ def req_to_params(req: Text2ImgRequest) -> ImageGenerationParams:
             adp.debugging_cn_preprocessor, adp.skipping_cn_preprocessor, adp.controlnet_softness, adp.canny_low_threshold, adp.canny_high_threshold, \
             adp.refiner_swap_method, \
             adp.freeu_enabled, adp.freeu_b1, adp.freeu_b2, adp.freeu_s1, adp.freeu_s2, \
-            adp.debugging_inpaint_preprocessor, adp.inpaint_disable_initial_latent, adp.inpaint_engine, adp.inpaint_strength, adp.inpaint_respective_field
+            adp.debugging_inpaint_preprocessor, adp.inpaint_disable_initial_latent, adp.inpaint_engine, adp.inpaint_strength, adp.inpaint_respective_field, \
+            False, adp.invert_mask_checkbox, adp.inpaint_erode_or_dilate
         ]
 
     return ImageGenerationParams(prompt=prompt,
