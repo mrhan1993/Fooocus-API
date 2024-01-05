@@ -346,6 +346,6 @@ app.mount("/files", StaticFiles(directory=file_utils.output_dir), name="files")
 
 
 def start_app(args):
-    file_utils.static_serve_base_url = args.base_url + "/socus/files/"
+    file_utils.static_serve_base_url = args.base_url + "/files/"
     uvicorn.run("fooocusapi.api:app", host=args.host,
                 port=args.port, log_level=args.log_level)
