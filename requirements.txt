@@ -19,3 +19,5 @@ pydantic==2.4.2
 pydantic_core==2.10.1
 python-multipart==0.0.6
 uvicorn[standard]==0.23.2
+redis
+pymysql

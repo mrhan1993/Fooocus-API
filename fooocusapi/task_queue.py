@@ -1,12 +1,14 @@
-from enum import Enum
-import time
-import numpy as np
 import uuid
-from typing import List, Tuple
+import time
 import requests
-from fooocusapi.file_utils import delete_output_file, get_file_serve_url
+import numpy as np
 
+from enum import Enum
+from typing import List, Tuple
+
+from fooocusapi.file_utils import delete_output_file, get_file_serve_url
 from fooocusapi.img_utils import narray_to_base64img
+from fooocusapi.database.database import add_history
 from fooocusapi.parameters import ImageGenerationResult, GenerationFinishReason
 
 
@@ -135,6 +137,10 @@ class TaskQueue(object):
             # Move task to history
             self.queue.remove(task)
             self.history.append(task)
+            add_history(task.req_param, task.type, task.job_id,
+                        ','.join([job["url"] for job in data["job_result"]]),
+                        task.task_result[0].finish_reason)
+
 
             # Clean history
             if len(self.history) > self.history_size and self.history_size != 0:
