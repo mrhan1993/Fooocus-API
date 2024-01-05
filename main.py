@@ -283,7 +283,8 @@ def prepare_environments(args) -> bool:
         if host == '0.0.0.0':
             host = 'wasai.sy.soyoung.com'
             # host = '127.0.0.1'
-        args.base_url = f"http://{host}:{args.port}"
+        #args.base_url = f"http://{host}:{args.port}"
+        args.base_url = f"https://{host}"
 
     sys.argv = [sys.argv[0]]
 
@@ -294,7 +295,7 @@ def prepare_environments(args) -> bool:
         if os.path.exists(preset_folder):
             shutil.rmtree(preset_folder)
         shutil.copytree(origin_preset_folder, preset_folder)
-        
+
     import modules.config as config
     import fooocusapi.parameters as parameters
     parameters.default_inpaint_engine_version = config.default_inpaint_engine_version
@@ -359,7 +360,7 @@ def pre_setup(skip_sync_repo: bool=False,
         sys.argv.append(args.preset)
 
     install_dependents(args)
-    
+
     import fooocusapi.args as _
     prepare_environments(args)
 
