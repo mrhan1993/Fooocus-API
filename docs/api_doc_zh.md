@@ -157,7 +157,7 @@ print(json.dumps(result, indent=4, ensure_ascii=False))
 | ---- | ---- | ----------- |
 | uov_method | UpscaleOrVaryMethod | 是个枚举类型, 包括 'Vary (Subtle)','Vary (Strong)','Upscale (1.5x)','Upscale (2x)','Upscale (Fast 2x)','Upscale (Custom)' |
 | upscale_value | float | 默认为 None , 1.0-5.0, 放大倍数, 仅在 'Upscale (Custom)' 中有效 |
-| input_image | str | 输入图像, base64 格式 |
+| input_image | str | 输入图像, base64 格式, 或者一个URL |
 
 **响应参数：**
 
@@ -263,8 +263,8 @@ print(json.dumps(result, indent=4, ensure_ascii=False))
 
 | Name | Type | Description                                                     |
 | ---- | ---- |-----------------------------------------------------------------|
-| input_image | str | 输入图像, base64 格式                                                 |
-| input_mask | str | 输入遮罩, base64 格式                                                 |
+| input_image | str | 输入图像, base64 格式, 或者一个URL                                                 |
+| input_mask | str | 输入遮罩, base64 格式, 或者一个URL                                                 |
 | inpaint_additional_prompt | str | 附加描述词                                                           |
 | outpaint_selections | List[OutpaintExpansion] | OutpaintExpansion 是一个枚举类型, 值包括 "Left", "Right", "Top", "Bottom" |
 | outpaint_distance_left | int | 图像扩展距离, 默认 0                                                    |
@@ -442,8 +442,8 @@ print(json.dumps(result, indent=4, ensure_ascii=False))
 
 | Name | Type | Description |
 | ---- | ---- | ----------- |
-| input_image | str | base64 图像, 用于局部重绘 |
-| input_mask | str | base64 图像遮罩, 用于局部重绘 |
+| input_image | str | base64 图像, 或者一个URL, 用于局部重绘 |
+| input_mask | str | base64 图像遮罩, 或者一个URL, 用于局部重绘 |
 | inpaint_additional_prompt | str | inpaint 附加提示词 |
 | outpaint_selections | List[OutpaintExpansion] | 图像扩展选项, 逗号分割的 "Left", "Right", "Top", "Bottom" |
 | outpaint_distance_left | int | 图像扩展距离, 默认 0 |
@@ -456,7 +456,7 @@ print(json.dumps(result, indent=4, ensure_ascii=False))
 
 | Name | Type | Description |
 | ---- | ---- | ----------- |
-| cn_img | str | 输入图像, 作为 base64 编码 |
+| cn_img | str | 输入图像, base64 编码, 或者一个URL |
 | cn_stop | float | 停止位置, 范围 0-1, 默认 0.5 |
 | cn_weight | float | 权重, 范围 0-2, 默认 1.0 |
 | cn_type | ControlNetType | 控制网络类型, 是一个枚举类型, 包括: "ImagePrompt", "FaceSwap", "PyraCanny", "CPDS" |
