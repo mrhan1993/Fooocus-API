@@ -22,6 +22,9 @@ re_requirement = re.compile(r"\s*([-_a-zA-Z0-9]+)\s*(?:==\s*([-+_.a-zA-Z0-9]+))?
 
 fooocus_name = 'Fooocus'
 
+fooocus_gitee_repo = 'https://gitee.com/mirrors/fooocus'
+fooocus_github_repo = 'https://github.com/lllyasviel/Fooocus'
+
 modules_path = os.path.dirname(os.path.realpath(__file__))
 script_path = modules_path
 dir_repos = "repositories"
@@ -45,7 +48,7 @@ def git_clone(url, dir, name, hash=None):
         try:
             repo = pygit2.Repository(dir)
             remote_url = repo.remotes['origin'].url
-            if remote_url != url:
+            if remote_url not in [fooocus_gitee_repo, fooocus_github_repo]:
                 print(f'{name} exists but remote URL will be updated.')
                 del repo
                 raise url
@@ -58,7 +61,8 @@ def git_clone(url, dir, name, hash=None):
             os.makedirs(dir, exist_ok=True)
             repo = pygit2.clone_repository(url, dir)
             print(f'{name} cloned from {url}.')
-
+        
+        url = remote_url
         remote = repo.remotes['origin']
         remote.fetch()
 
@@ -177,11 +181,8 @@ def download_repositories():
         print(f"Using https proxy for git clone: {https_proxy}")
         os.environ['https_proxy'] = https_proxy
 
-    fooocus_gitee_repo = 'https://gitee.com/mirrors/fooocus'
-    fooocus_github_repo = 'https://github.com/lllyasviel/Fooocus'
-
     try:
-        requests.get("https://policies.google.com/privacy", timeout=30)
+        requests.get("https://policies.google.com/privacy", timeout=5)
         fooocus_repo_url = fooocus_github_repo
     except:
         fooocus_repo_url = fooocus_gitee_repo

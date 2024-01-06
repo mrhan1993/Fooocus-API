@@ -14,6 +14,7 @@ from fooocusapi.parameters import GenerationFinishReason, ImageGenerationResult
 from fooocusapi.task_queue import TaskType
 from fooocusapi.worker import process_generate, task_queue, process_top
 from fooocusapi.models_v2 import *
+from fooocusapi.database.config import db_conf
 from fooocusapi.img_utils import base64_to_stream, read_input_image
 
 from concurrent.futures import ThreadPoolExecutor
@@ -302,6 +303,17 @@ def get_history():
     hitory = [JobHistoryInfo(job_id=item.job_id, is_finished=item.is_finished) for item in task_queue.history]
     queue = [JobHistoryInfo(job_id=item.job_id, is_finished=item.is_finished) for item in task_queue.queue]
     return JobHistoryResponse(history=hitory, queue=queue)
+
+
+@app.get("/v1/generation/history")
+def request_history(task_id: str = None,
+                    page: int = 0,
+                    page_size: int = 20,
+                    order_by: str = 'date_time'):
+    from fooocusapi.database.database import query_history
+
+    result = query_history(task_id, page, page_size, order_by)
+    return result
 
 
 @app.post("/v1/generation/stop", response_model=StopResponse, description="Job stoping")

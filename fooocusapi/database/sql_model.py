@@ -1,6 +1,7 @@
 from typing import Optional
 from sqlalchemy import Integer, Float,VARCHAR, Boolean, JSON, Text, create_engine
 from sqlalchemy.orm import declarative_base, Session, Mapped, mapped_column
+from fooocusapi.database.config import db_conf
 
 
 Base = declarative_base()
@@ -59,8 +60,12 @@ class GenerateRecord(Base):
                 upscale_value={self.upscale_value!r}, webhook_url={self.webhook_url!r}, require_base64={self.require_base64!r}, \
                 async_process={self.async_process!r})"
 
-engine = create_engine("mysql+pymysql://root:12345678@192.168.63.246/fooocus")
-session = Session(engine)
+if db_conf["backend"] == "mysql":
+    engine = create_engine(f"mysql+pymysql://{db_conf['user']}:{db_conf['password']}@{db_conf['host']}:{db_conf['port']}/{db_conf['database']}")
+if db_conf["backend"] == "sqlite":
+    print(db_conf["dbpath"])
+    engine = create_engine(f"sqlite:///{db_conf['dbpath']}")
 
-Base.metadata.create_all(engine)
+session = Session(engine)
+Base.metadata.create_all(engine, checkfirst=True)
 session.close()

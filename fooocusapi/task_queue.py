@@ -119,15 +119,22 @@ class TaskQueue(object):
             # Use the task's webhook_url if available, else use the default
             webhook_url = task.webhook_url or self.webhook_url
 
+            data = { "job_id": task.job_id, "job_result": [] }
+            for item in task.task_result:
+                data["job_result"].append({
+                    "url": get_file_serve_url(item.im) if item.im else None,
+                    "seed": item.seed if item.seed else "-1",
+                })
+
             # Send webhook
             if task.is_finished and webhook_url:
-                data = { "job_id": task.job_id, "job_result": [] }
-                if isinstance(task.task_result, List):
-                    for item in task.task_result:
-                        data["job_result"].append({
-                            "url": get_file_serve_url(item.im) if item.im else None,
-                            "seed": item.seed if item.seed else "-1",
-                        })
+                # data = { "job_id": task.job_id, "job_result": [] }
+                # if isinstance(task.task_result, List):
+                #     for item in task.task_result:
+                #         data["job_result"].append({
+                #             "url": get_file_serve_url(item.im) if item.im else None,
+                #             "seed": item.seed if item.seed else "-1",
+                #         })
                 try:
                     res = requests.post(webhook_url, json=data)
                     print(f'Call webhook response status: {res.status_code}')
