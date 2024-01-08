@@ -157,7 +157,7 @@ print(json.dumps(result, indent=4, ensure_ascii=False))
 | ---- | ---- |---------------------------------------------------------------------------------------------------------------------------------------|
 | uov_method | UpscaleOrVaryMethod | Enum type, value should one of 'Vary (Subtle)','Vary (Strong)','Upscale (1.5x)','Upscale (2x)','Upscale (Fast 2x)','Upscale (Custom)' |
 | upscale_value | float | default to None , 1.0-5.0, magnification, only for uov_method is 'Upscale (Custom)'                                                   |
-| input_image | str | input image, base64 str                                                                                                               |
+| input_image | str | input image, base64 str, or a URL                                                                                                               |
 
 **response params：**
 
@@ -263,8 +263,8 @@ print(json.dumps(result, indent=4, ensure_ascii=False))
 
 | Name | Type | Description                                                                     |
 | ---- | ---- |---------------------------------------------------------------------------------|
-| input_image | str | input image, base64 str                                                         |
-| input_mask | str | input mask, base64 str                                                          |
+| input_image | str | input image, base64 str, or a URL                                                         |
+| input_mask | str | input mask, base64 str, or a URL                                                          |
 | inpaint_additional_prompt | str | additional prompt                                                               |
 | outpaint_selections | List[OutpaintExpansion] | OutpaintExpansion is Enum, value shoule one of "Left", "Right", "Top", "Bottom" |
 | outpaint_distance_left | int | Image extension distance, default to 0                                                                    |
@@ -440,8 +440,8 @@ print(json.dumps(result, indent=4, ensure_ascii=False))
 
 | Name | Type | Description                                     |
 | ---- | ---- |-------------------------------------------------|
-| input_image | str | base64 image, use for inpaint    |
-| input_mask | str | base64 image mask, use for inpaint |
+| input_image | str | base64 image, or a URL, use for inpaint    |
+| input_mask | str | base64 image mask, or a URL, use for inpaint |
 | inpaint_additional_prompt | str | inpaint additional prompt |
 | outpaint_selections | List[] | Image extension direction , 'Left', 'Right', 'Top', 'Bottom' seg with comma |
 | outpaint_distance_left | int | Image extension distance, default to 0 |
@@ -454,7 +454,7 @@ print(json.dumps(result, indent=4, ensure_ascii=False))
 
 | Name | Type | Description                                                                         |
 | ---- | ---- |-------------------------------------------------------------------------------------|
-| cn_img | str | input image, base64 str                                                             |
+| cn_img | str | input image, base64 str, or a URL                                                             |
 | cn_stop | float | 0-1, default to 0.5                                                                 |
 | cn_weight | float | weight, 0-2, default to 1.0                                                         |
 | cn_type | ControlNetType | ControlNetType Enum, should one of "ImagePrompt", "FaceSwap", "PyraCanny", "CPDS" |
