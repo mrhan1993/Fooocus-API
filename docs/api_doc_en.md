@@ -48,7 +48,7 @@ DataType: json
 | ---- | ---- | ----------- |
 | prompt | string | prompt, default to empty string |
 | negative_prompt | string | negative_prompt |
-| style | List[str] | list of style, must be supported style, you can get all supported [style](#styles) here |
+| style_selections | List[str] | list of style, must be supported style, you can get all supported [style](#styles) here |
 | performance_selection | Enum | performance_selection, must be one of `Speed`, `Quality`, `Extreme Speed` default to `Speed`|
 | aspect_ratios_selection | str | resolution, default to  `1152*896` |
 | image_number | int | the num of image to generate, default to 1 , max num is 32, note: Not a parallel interface |
@@ -116,7 +116,7 @@ DataType: form|json
 | input_image | string($binary) | binary imagge                                                                                                                             |
 | uov_method | Enum | 'Vary (Subtle)','Vary (Strong)','Upscale (1.5x)','Upscale (2x)','Upscale (Fast 2x)','Upscale (Custom)'                                    |
 | upscale_value | float | default to None , 1.0-5.0, magnification, only for uov_method is 'Upscale (Custom)'                                                       |
-| style | List[str] | list Fooocus style seg with comma                                                                                                         |
+| style_selections | List[str] | list Fooocus style seg with comma                                                                                                         |
 | loras | str(List[Lora]) | list for lora, with configure, lora: [Lora](#lora), example: [{"model_name": "sd_xl_offset_example-lora_1.0.safetensors", "weight": 0.5}] |
 | advanced_params | str(AdvacedParams) | AdvancedParams, AdvancedParams: [AdvancedParams](#advanceparams), send with str, None is available                                        |
 
@@ -213,7 +213,7 @@ DataType: form|json
 | outpaint_distance_right | int | Image extension distance, default to 0                                                                                                             |
 | outpaint_distance_top | int | Image extension distance, default to 0                                                                                                             |
 | outpaint_distance_bottom | int | Image extension distance, default to 0                                                                                                             |
-| style | List[str] | list Fooocus style seg with comma                                                                                                       |
+| style_selections | List[str] | list Fooocus style seg with comma                                                                                                       |
 | loras | str(List[Lora]) | list for lora, with configure, lora: Lora, example: [{"model_name": "sd_xl_offset_example-lora_1.0.safetensors", "weight": 0.5}] |
 | advanced_params | str(AdvacedParams) | AdvancedParams, AdvancedParams: AdvancedParams, send with str, None is available                                                  |
 
@@ -358,7 +358,7 @@ DataType: form|json
 | cn_stop4 | float | default to 0.6                                                                                                                  |
 | cn_weight4 | float | default to 0.6                                                                                                                  |
 | cn_type4 | Emum | should one of "ImagePrompt", "FaceSwap", "PyraCanny", "CPDS"                                                                |
-| style | List[str] | list Fooocus style seg with comma                                                                                               |
+| style_selections | List[str] | list Fooocus style seg with comma                                                                                               |
 | loras | str(List[Lora]) | list for lora, with configure, lora: Lora, example: [{"model_name": "sd_xl_offset_example-lora_1.0.safetensors", "weight": 0.5}] |
 | advanced_params | str(AdvacedParams) | AdvancedParams, AdvancedParams: AdvancedParams, send with str, None is available                                                |
 
