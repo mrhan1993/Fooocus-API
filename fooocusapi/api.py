@@ -177,6 +177,19 @@ def img_upscale_or_vary_v2(req: ImgUpscaleOrVaryRequestJson,
         streaming_output = False
     req.input_image = base64_to_stream(req.input_image)
 
+    default_image_promt = ImagePrompt(cn_img=None)
+    image_prompts_files: List[ImagePrompt] = []
+    for img_prompt in req.image_prompts:
+        img_prompt.cn_img = base64_to_stream(img_prompt.cn_img)
+        image = ImagePrompt(cn_img=img_prompt.cn_img,
+                            cn_stop=img_prompt.cn_stop,
+                            cn_weight=img_prompt.cn_weight,
+                            cn_type=img_prompt.cn_type)
+        image_prompts_files.append(image)
+    while len(image_prompts_files) <= 4:
+        image_prompts_files.append(default_image_promt)
+    req.image_prompts = image_prompts_files
+
     results = call_worker(req, accept)
     return generation_output(results, streaming_output, req.require_base64)
 
@@ -216,6 +229,19 @@ def img_inpaint_or_outpaint_v2(req: ImgInpaintOrOutpaintRequestJson,
     req.input_image = base64_to_stream(req.input_image)
     if req.input_mask is not None:
         req.input_mask = base64_to_stream(req.input_mask)
+    default_image_promt = ImagePrompt(cn_img=None)
+    image_prompts_files: List[ImagePrompt] = []
+    for img_prompt in req.image_prompts:
+        img_prompt.cn_img = base64_to_stream(img_prompt.cn_img)
+        image = ImagePrompt(cn_img=img_prompt.cn_img,
+                            cn_stop=img_prompt.cn_stop,
+                            cn_weight=img_prompt.cn_weight,
+                            cn_type=img_prompt.cn_type)
+        image_prompts_files.append(image)
+    while len(image_prompts_files) <= 4:
+        image_prompts_files.append(default_image_promt)
+    req.image_prompts = image_prompts_files
+    
     results = call_worker(req, accept)
     return generation_output(results, streaming_output, req.require_base64)
 
