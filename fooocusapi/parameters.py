@@ -165,7 +165,11 @@ class ImageGenerationParams(object):
 
             # Auto set mixing_image_prompt_and_inpaint to True
             if len(self.image_prompts) > 0 and inpaint_input_image is not None:
+                print('Mixing Image Prompts and Inpaint Enabled')
                 mixing_image_prompt_and_inpaint = True
+            if len(self.image_prompts) > 0 and uov_input_image is not None:
+                print('Mixing Image Prompts and Vary Upscale Enabled')
+                mixing_image_prompt_and_vary_upscale = True
 
             self.advanced_params = [
                 disable_preview, adm_scaler_positive, adm_scaler_negative, adm_scaler_end, adaptive_cfg, sampler_name, \
