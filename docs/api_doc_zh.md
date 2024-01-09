@@ -48,7 +48,7 @@ DataType: json
 | ---- | ---- | ----------- |
 | prompt | string | 描述词, 默认为空字符串 |
 | negative_prompt | string | 描述词, 反向描述词 |
-| style | List[str] | 风格列表, 需要是受支持的风格, 可以通过 [样式接口](#样式--styles) 获取所有支持的样式 |
+| style_selections | List[str] | 风格列表, 需要是受支持的风格, 可以通过 [样式接口](#样式--styles) 获取所有支持的样式 |
 | performance_selection | Enum | 性能选择, `Speed`, `Quality`, `Extreme Speed` 中的一个, 默认 `Speed`|
 | aspect_ratios_selection | str | 分辨率, 默认 '1152*896' |
 | image_number | int | 生成图片数量, 默认 1 , 最大32, 注: 非并行接口 |
@@ -116,7 +116,7 @@ DataType: form|json
 | input_image | string($binary) | 二进制 str 图像 |
 | uov_method | Enum | 'Vary (Subtle)','Vary (Strong)','Upscale (1.5x)','Upscale (2x)','Upscale (Fast 2x)','Upscale (Custom)' |
 | upscale_value | float | 默认为 None , 1.0-5.0, 放大倍数, 仅在 'Upscale (Custom)' 中有效 |
-| style | List[str] | 以逗号分割的 Fooocus 风格列表 |
+| style_selections | List[str] | 以逗号分割的 Fooocus 风格列表 |
 | loras | str(List[Lora]) | lora 模型列表, 包含配置, lora 结构: [Lora](#lora), 比如: [{"model_name": "sd_xl_offset_example-lora_1.0.safetensors", "weight": 0.5}] |
 | advanced_params | str(AdvacedParams) | 高级参数, AdvancedParams 结构 [AdvancedParams](#高级参数--advanceparams), 以字符串形式发送, 可以为空 |
 
@@ -213,7 +213,7 @@ DataType: form|json
 | outpaint_distance_right | int | 图像扩展距离, 默认 0 |
 | outpaint_distance_top | int | 图像扩展距离, 默认 0 |
 | outpaint_distance_bottom | int | 图像扩展距离, 默认 0 |
-| style | List[str] | 以逗号分割的 Fooocus 风格列表 |
+| style_selections | List[str] | 以逗号分割的 Fooocus 风格列表 |
 | loras | str(List[Lora]) | lora 模型列表, 包含配置, lora 结构: [Lora](#lora), 比如: [{"model_name": "sd_xl_offset_example-lora_1.0.safetensors", "weight": 0.5}] |
 | advanced_params | str(AdvacedParams) | 高级参数, AdvancedParams 结构 [AdvancedParams](#高级参数--advanceparams), 以字符串形式发送 |
 
@@ -360,7 +360,7 @@ DataType: form|json
 | cn_stop4 | float | 默认 0.6 |
 | cn_weight4 | float | 默认 0.6 |
 | cn_type4 | Emum | "ImagePrompt", "FaceSwap", "PyraCanny", "CPDS" 中的一个 |
-| style | List[str] | 以逗号分割的 Fooocus 风格列表 |
+| style_selections | List[str] | 以逗号分割的 Fooocus 风格列表 |
 | loras | str(List[Lora]) | lora 模型列表, 包含配置, lora 结构: [Lora](#lora), 比如: [{"model_name": "sd_xl_offset_example-lora_1.0.safetensors", "weight": 0.5}] |
 | advanced_params | str(AdvacedParams) | 高级参数, AdvancedParams 结构 [AdvancedParams](#高级参数--advanceparams), 以字符串形式发送 |
 
