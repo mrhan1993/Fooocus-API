@@ -14,7 +14,7 @@ class ImgInpaintOrOutpaintRequestJson(Text2ImgRequest):
     outpaint_distance_right: int | None = Field(-1, description="Set outpaint right distance")
     outpaint_distance_top: int | None = Field(-1, description="Set outpaint top distance")
     outpaint_distance_bottom: int | None = Field(-1, description="Set outpaint bottom distance")
-    image_prompts: List[ImagePromptJson | ImagePrompt]
+    image_prompts: List[ImagePromptJson | ImagePrompt] = []
 
 class ImgPromptRequestJson(ImgInpaintOrOutpaintRequestJson):
     input_image: str | None = Field(None, description="Init image for inpaint or outpaint as base64")
@@ -27,4 +27,4 @@ class ImgUpscaleOrVaryRequestJson(Text2ImgRequest):
     uov_method: UpscaleOrVaryMethod = "Upscale (2x)"
     upscale_value: float | None = Field(1.0, ge=1.0, le=5.0, description="Upscale custom value, 1.0 for default value")
     input_image: str = Field(description="Init image for upsacale or outpaint as base64")
-    image_prompts: List[ImagePromptJson | ImagePrompt]
+    image_prompts: List[ImagePromptJson | ImagePrompt] = []
