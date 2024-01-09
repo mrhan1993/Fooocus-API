@@ -4,6 +4,7 @@ import re
 import shutil
 import subprocess
 import sys
+sys.path.append(os.path.dirname(os.path.realpath(__file__))
 from importlib.util import find_spec
 from threading import Thread
 
