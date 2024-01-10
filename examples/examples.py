@@ -5,6 +5,7 @@ import base64
 
 inpaint_engine = 'v1'
 
+
 class Config():
     fooocus_host = 'http://127.0.0.1:8888'
 
@@ -21,22 +22,23 @@ class Config():
 
     res_path = '/v1/generation/temp'
 
+
 cfg = Config()
 
 upscale_params = {
-  "uov_method": "Upscale (Custom)",
-  "upscale_value": 3,
-  "input_image": ""
+    "uov_method": "Upscale (Custom)",
+    "upscale_value": 3,
+    "input_image": ""
 }
 
 inpaint_params = {
-  "input_image": "",
-  "input_mask": None,
-  "inpaint_additional_prompt": None,
+    "input_image": "",
+    "input_mask": None,
+    "inpaint_additional_prompt": None,
 }
 
 img_prompt_params = {
-  "image_prompts": []
+    "image_prompts": []
 }
 
 headers = {
@@ -47,33 +49,34 @@ imgs_base_path = os.path.join(os.path.dirname(__file__), 'imgs')
 
 with open(os.path.join(imgs_base_path, "bear.jpg"), "rb") as f:
     img1 = f.read()
-    image_base64 = base64.b64encode(img1).decode('utf-8')  
+    image_base64 = base64.b64encode(img1).decode('utf-8')
     f.close()
 
 with open(os.path.join(imgs_base_path, "s.jpg"), "rb") as f:
     s = f.read()
-    s_base64 = base64.b64encode(s).decode('utf-8')  
+    s_base64 = base64.b64encode(s).decode('utf-8')
     f.close()
 
 with open(os.path.join(imgs_base_path, "m.png"), "rb") as f:
     m = f.read()
-    m_base64 = base64.b64encode(m).decode('utf-8')  
+    m_base64 = base64.b64encode(m).decode('utf-8')
     f.close()
 
 
-def upscale_vary(image, params = upscale_params) -> dict:
+def upscale_vary(image, params=upscale_params) -> dict:
     """
     Upscale or Vary
     """
     params["input_image"] = image
     data = json.dumps(params)
     response = requests.post(url=f"{cfg.fooocus_host}{cfg.img_upscale}",
-                        data=data,
-                        headers=headers,
-                        timeout=300)
+                             data=data,
+                             headers=headers,
+                             timeout=300)
     return response.json()
 
-def inpaint_outpaint(input_image: str, input_mask: str = None, params = inpaint_params) -> dict:
+
+def inpaint_outpaint(input_image: str, input_mask: str = None, params=inpaint_params) -> dict:
     """
     Inpaint or Outpaint
     """
@@ -83,10 +86,11 @@ def inpaint_outpaint(input_image: str, input_mask: str = None, params = inpaint_
     params["prompt"] = "cat"
     data = json.dumps(params)
     response = requests.post(url=f"{cfg.fooocus_host}{cfg.inpaint_outpaint}",
-                        data=data,
-                        headers=headers,
-                        timeout=300)
+                             data=data,
+                             headers=headers,
+                             timeout=300)
     return response.json()
+
 
 def image_prompt(img_prompt: list, params: dict) -> dict:
     """
@@ -95,10 +99,11 @@ def image_prompt(img_prompt: list, params: dict) -> dict:
     params["image_prompts"] = img_prompt
     data = json.dumps(params)
     response = requests.post(url=f"{cfg.fooocus_host}{cfg.img_prompt}",
-                        data=data,
-                        headers=headers,
-                        timeout=300)
+                             data=data,
+                             headers=headers,
+                             timeout=300)
     return response.json()
+
 
 def image_prompt_with_inpaint(img_prompt: list, input_image: str, input_mask: str, params: dict) -> dict:
     """
@@ -110,9 +115,9 @@ def image_prompt_with_inpaint(img_prompt: list, input_image: str, input_mask: st
     params["outpaint_selections"] = ["Left", "Right"]
     data = json.dumps(params)
     response = requests.post(url=f"{cfg.fooocus_host}{cfg.img_prompt}",
-                        data=data,
-                        headers=headers,
-                        timeout=300)
+                             data=data,
+                             headers=headers,
+                             timeout=300)
     return response.json()
 
 
