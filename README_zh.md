@@ -180,6 +180,7 @@ docker run -d --gpus=all \
 - `--queue-size QUEUE_SIZE` 工作队列大小，默认是 3 ，超过队列的请求会返回失败
 - `--queue-history QUEUE_HISTORY` 保留的作业历史，默认 0 即无限制，超过会被删除，包括生成的图像
 - `--webhook-url WEBHOOK_URL` 通知生成结果的 webhook 地址，默认为 None
+- `--presistent` 持久化历史记录到SQLite数据库，默认关闭
 
 从 v0.3.25 开始, Fooocus 的命令行选项也被支持，你可以在启动时加上 Fooocus 支持的选项
 
@@ -193,6 +194,10 @@ python main.py --all-in-fp16 --always-gpu
 
 
 # 更新日志
+
+**[24/01/10] v0.3.29** : 支持将历史生成数据持久化到数据库，并且支持从数据库中读取历史数据
+
+**[24/01/09] v0.3.29** : Image Prompt Mixing requirements implemented, With this implementation, you can send image prompts, and perform inpainting or upscaling with a single request.
 
 **[24/01/04] v0.3.29** : 合并了 Fooocus v2.1.860
 
