@@ -1,14 +1,16 @@
-from enum import Enum
-import time
-import numpy as np
 import uuid
-from typing import List, Tuple
+import time
 import requests
+import numpy as np
+
+from enum import Enum
+from typing import List, Tuple
+
+from fooocusapi.args import args
 from fooocusapi.file_utils import delete_output_file, get_file_serve_url
-
 from fooocusapi.img_utils import narray_to_base64img
+from fooocusapi.sql_client import add_history
 from fooocusapi.parameters import ImageGenerationResult, GenerationFinishReason
-
 
 class TaskType(str, Enum):
     text_2_img = 'Text to Image'
@@ -117,15 +119,15 @@ class TaskQueue(object):
             # Use the task's webhook_url if available, else use the default
             webhook_url = task.webhook_url or self.webhook_url
 
+            data = { "job_id": task.job_id, "job_result": [] }
+            for item in task.task_result:
+                data["job_result"].append({
+                    "url": get_file_serve_url(item.im) if item.im else None,
+                    "seed": item.seed if item.seed else "-1",
+                })
+
             # Send webhook
             if task.is_finished and webhook_url:
-                data = { "job_id": task.job_id, "job_result": [] }
-                if isinstance(task.task_result, List):
-                    for item in task.task_result:
-                        data["job_result"].append({
-                            "url": get_file_serve_url(item.im) if item.im else None,
-                            "seed": item.seed if item.seed else "-1",
-                        })
                 try:
                     res = requests.post(webhook_url, json=data)
                     print(f'Call webhook response status: {res.status_code}')
@@ -135,6 +137,11 @@ class TaskQueue(object):
             # Move task to history
             self.queue.remove(task)
             self.history.append(task)
+
+            if args.presistent:
+                add_history(task.req_param, task.type, task.job_id,
+                            ','.join([job["url"] for job in data["job_result"]]),
+                            task.task_result[0].finish_reason)
 
             # Clean history
             if len(self.history) > self.history_size and self.history_size != 0:

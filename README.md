@@ -180,6 +180,7 @@ You can add `-e PIP_INDEX_URL={pypi-mirror-url}` to docker run command to change
 - `--queue-size QUEUE_SIZE` Working queue size, default: 3, generation requests exceeding working queue size will return failure
 - `--queue-history QUEUE_HISTORY` Finished jobs reserve size, tasks exceeding the limit will be deleted, including output image files, default: 0, means no limit
 - `--webhook-url WEBHOOK_URL` Webhook url for notify generation result, default: None
+- `--presistent` Store history to db
 
 Since v0.3.25, added CMD flags support of Fooocus. You can pass any argument which Fooocus supported.
 
@@ -193,6 +194,10 @@ For Fooocus CMD flags, see [here](https://github.com/lllyasviel/Fooocus?tab=read
 
 
 # Change log
+
+**[24/01/10] v0.3.29** : support for store history to db
+
+**[24/01/09] v0.3.29** : Image Prompt Mixing requirements implemented, With this implementation, you can send image prompts, and perform inpainting or upscaling with a single request.
 
 **[24/01/04] v0.3.29** : Merged Fooocus v2.1.860
 
