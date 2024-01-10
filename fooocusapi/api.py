@@ -7,6 +7,8 @@ from fastapi.params import File
 from fastapi.staticfiles import StaticFiles
 from fastapi.middleware.cors import CORSMiddleware
 
+from fooocusapi.args import args
+from fooocusapi.sql_client import query_history
 from fooocusapi.models import *
 from fooocusapi.api_utils import generation_output, req_to_params
 import fooocusapi.file_utils as file_utils
@@ -322,12 +324,19 @@ def job_queue():
     return JobQueueInfo(running_size=len(task_queue.queue), finished_size=len(task_queue.history), last_job_id=task_queue.last_job_id)
 
 
-@app.get("/v1/generation/job-history", response_model=JobHistoryResponse, description="Query historical job data")
-def get_history():
+@app.get("/v1/generation/job-history", response_model=JobHistoryResponse|dict, description="Query historical job data")
+def get_history(job_id: str=None, page: int = 0, page_size: int = 20):
     # Fetch and return the historical tasks
-    hitory = [JobHistoryInfo(job_id=item.job_id, is_finished=item.is_finished) for item in task_queue.history]
     queue = [JobHistoryInfo(job_id=item.job_id, is_finished=item.is_finished) for item in task_queue.queue]
-    return JobHistoryResponse(history=hitory, queue=queue)
+    if not args.presistent:
+        history = [JobHistoryInfo(job_id=item.job_id, is_finished=item.is_finished) for item in task_queue.history]
+        return JobHistoryResponse(history=history, queue=queue)
+    else:
+        history = query_history(task_id=job_id, page=page, page_size=page_size)
+        return {
+            "history": history,
+            "queue": queue
+        }
 
 
 @app.post("/v1/generation/stop", response_model=StopResponse, description="Job stoping")
