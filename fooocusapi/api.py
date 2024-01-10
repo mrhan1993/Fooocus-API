@@ -21,7 +21,6 @@ from fooocusapi.img_utils import base64_to_stream, read_input_image
 from concurrent.futures import ThreadPoolExecutor
 from modules.util import HWC3
 
-
 app = FastAPI()
 
 app.add_middleware(
@@ -33,7 +32,7 @@ app.add_middleware(
 )
 
 work_executor = ThreadPoolExecutor(
-    max_workers=task_queue.queue_size*2, thread_name_prefix="worker_")
+    max_workers=task_queue.queue_size * 2, thread_name_prefix="worker_")
 
 img_generate_responses = {
     "200": {
@@ -86,8 +85,10 @@ def call_worker(req: Text2ImgRequest, accept: str):
 
     return results
 
+
 def stop_worker():
     process_top()
+
 
 @app.get("/")
 def home():
@@ -97,6 +98,7 @@ def home():
 @app.get("/ping", description="Returns a simple 'pong' response")
 def ping():
     return Response(content='pong', media_type="text/html")
+
 
 @app.post("/v1/generation/text-to-image", response_model=List[GeneratedImageResult] | AsyncJobResponse, responses=img_generate_responses)
 def text2img_generation(req: Text2ImgRequest, accept: str = Header(None),
@@ -114,10 +116,11 @@ def text2img_generation(req: Text2ImgRequest, accept: str = Header(None),
     results = call_worker(req, accept)
     return generation_output(results, streaming_output, req.require_base64)
 
+
 @app.post("/v2/generation/text-to-image-with-ip", response_model=List[GeneratedImageResult] | AsyncJobResponse, responses=img_generate_responses)
 def text_to_img_with_ip(req: Text2ImgRequestWithPrompt,
-                            accept: str = Header(None),
-                            accept_query: str | None = Query(None, alias='accept', description="Parameter to overvide 'Accept' header, 'image/png' for output bytes")):
+                        accept: str = Header(None),
+                        accept_query: str | None = Query(None, alias='accept', description="Parameter to overvide 'Accept' header, 'image/png' for output bytes")):
     if accept_query is not None and len(accept_query) > 0:
         accept = accept_query
 
@@ -127,7 +130,7 @@ def text_to_img_with_ip(req: Text2ImgRequestWithPrompt,
         req.image_number = 1
     else:
         streaming_output = False
-    
+
     default_image_promt = ImagePrompt(cn_img=None)
     image_prompts_files: List[ImagePrompt] = []
     for img_prompt in req.image_prompts:
@@ -145,6 +148,7 @@ def text_to_img_with_ip(req: Text2ImgRequestWithPrompt,
 
     results = call_worker(req, accept)
     return generation_output(results, streaming_output, req.require_base64)
+
 
 @app.post("/v1/generation/image-upscale-vary", response_model=List[GeneratedImageResult] | AsyncJobResponse, responses=img_generate_responses)
 def img_upscale_or_vary(input_image: UploadFile, req: ImgUpscaleOrVaryRequest = Depends(ImgUpscaleOrVaryRequest.as_form),
@@ -216,8 +220,8 @@ def img_inpaint_or_outpaint(input_image: UploadFile, req: ImgInpaintOrOutpaintRe
 
 @app.post("/v2/generation/image-inpait-outpaint", response_model=List[GeneratedImageResult] | AsyncJobResponse, responses=img_generate_responses)
 def img_inpaint_or_outpaint_v2(req: ImgInpaintOrOutpaintRequestJson,
-                            accept: str = Header(None),
-                            accept_query: str | None = Query(None, alias='accept', description="Parameter to overvide 'Accept' header, 'image/png' for output bytes")):
+                               accept: str = Header(None),
+                               accept_query: str | None = Query(None, alias='accept', description="Parameter to overvide 'Accept' header, 'image/png' for output bytes")):
     if accept_query is not None and len(accept_query) > 0:
         accept = accept_query
 
@@ -243,7 +247,7 @@ def img_inpaint_or_outpaint_v2(req: ImgInpaintOrOutpaintRequestJson,
     while len(image_prompts_files) <= 4:
         image_prompts_files.append(default_image_promt)
     req.image_prompts = image_prompts_files
-    
+
     results = call_worker(req, accept)
     return generation_output(results, streaming_output, req.require_base64)
 
@@ -285,7 +289,7 @@ def img_prompt(req: ImgPromptRequestJson,
         req.input_image = base64_to_stream(req.input_image)
     if req.input_mask is not None:
         req.input_mask = base64_to_stream(req.input_mask)
-    
+
     default_image_promt = ImagePrompt(cn_img=None)
     image_prompts_files: List[ImagePrompt] = []
     for img_prompt in req.image_prompts:
@@ -324,8 +328,8 @@ def job_queue():
     return JobQueueInfo(running_size=len(task_queue.queue), finished_size=len(task_queue.history), last_job_id=task_queue.last_job_id)
 
 
-@app.get("/v1/generation/job-history", response_model=JobHistoryResponse|dict, description="Query historical job data")
-def get_history(job_id: str=None, page: int = 0, page_size: int = 20):
+@app.get("/v1/generation/job-history", response_model=JobHistoryResponse | dict, description="Query historical job data")
+def get_history(job_id: str = None, page: int = 0, page_size: int = 20):
     # Fetch and return the historical tasks
     queue = [JobHistoryInfo(job_id=item.job_id, is_finished=item.is_finished) for item in task_queue.queue]
     if not args.presistent:

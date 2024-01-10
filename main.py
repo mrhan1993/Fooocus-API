@@ -4,12 +4,13 @@ import re
 import shutil
 import subprocess
 import sys
-sys.path.append(os.path.dirname(os.path.realpath(__file__)))
 from importlib.util import find_spec
 from threading import Thread
 
 from fooocus_api_version import version
 from fooocusapi.repositories_versions import fooocus_commit_hash
+sys.path.append(os.path.dirname(os.path.realpath(__file__)))
+
 
 print('[System ARGV] ' + str(sys.argv))
 
@@ -113,7 +114,7 @@ def run(command, desc=None, errdesc=None, custom_env=None, live: bool = default_
             error_bits.append(f"stderr: {result.stderr}")
         raise RuntimeError("\n".join(error_bits))
 
-    return (result.stdout or "")
+    return result.stdout or ""
 
 
 # This function was copied from [Fooocus](https://github.com/lllyasviel/Fooocus) repository.
@@ -128,11 +129,10 @@ def run_pip(command, desc=None, live=default_command_live):
         return None
 
 
-
 # This function was copied from [Fooocus](https://github.com/lllyasviel/Fooocus) repository.
 def requirements_met(requirements_file):
     """
-    Does a simple parse of a requirements.txt file to determine if all rerqirements in it
+    Does a simple parse of a requirements.txt file to determine if all requirements in it
     are already installed. Returns True if so, False if not installed or parsing fails.
     """
 
@@ -173,12 +173,12 @@ def download_repositories():
 
     http_proxy = os.environ.get('HTTP_PROXY')
     https_proxy = os.environ.get('HTTPS_PROXY')
-    
-    if http_proxy != None:
+
+    if http_proxy is not None:
         print(f"Using http proxy for git clone: {http_proxy}")
         os.environ['http_proxy'] = http_proxy
 
-    if https_proxy != None:
+    if https_proxy is not None:
         print(f"Using https proxy for git clone: {https_proxy}")
         os.environ['https_proxy'] = https_proxy
 
@@ -191,7 +191,7 @@ def download_repositories():
         'FOOOCUS_REPO', fooocus_repo_url)
     git_clone(fooocus_repo, repo_dir(fooocus_name),
               "Fooocus", fooocus_commit_hash)
-    
+
 
 def is_installed(package):
     try:
@@ -207,12 +207,17 @@ def download_models():
         ('xlvaeapp.pth', 'https://huggingface.co/lllyasviel/misc/resolve/main/xlvaeapp.pth'),
         ('vaeapp_sd15.pth', 'https://huggingface.co/lllyasviel/misc/resolve/main/vaeapp_sd15.pt'),
         ('xl-to-v1_interposer-v3.1.safetensors',
-        'https://huggingface.co/lllyasviel/misc/resolve/main/xl-to-v1_interposer-v3.1.safetensors')
+         'https://huggingface.co/lllyasviel/misc/resolve/main/xl-to-v1_interposer-v3.1.safetensors')
     ]
 
     from modules.model_loader import load_file_from_url
-    from modules.config import path_checkpoints as modelfile_path, path_loras as lorafile_path,path_vae_approx as vae_approx_path,path_fooocus_expansion as fooocus_expansion_path, \
-        checkpoint_downloads, path_embeddings as embeddings_path, embeddings_downloads, lora_downloads
+    from modules.config import (path_checkpoints as modelfile_path,
+                                path_loras as lorafile_path,
+                                path_vae_approx as vae_approx_path,
+                                path_fooocus_expansion as fooocus_expansion_path,
+                                checkpoint_downloads,
+                                path_embeddings as embeddings_path,
+                                embeddings_downloads, lora_downloads)
 
     for file_name, url in checkpoint_downloads.items():
         load_file_from_url(url=url, model_dir=modelfile_path, file_name=file_name)
@@ -234,7 +239,7 @@ def install_dependents(args):
     if not args.skip_pip:
         torch_index_url = os.environ.get('TORCH_INDEX_URL', "https://download.pytorch.org/whl/cu121")
 
-        # Check if need pip install
+        # Check if you need pip install
         requirements_file = 'requirements.txt'
         if not requirements_met(requirements_file):
             run_pip(f"install -r \"{requirements_file}\"", "requirements")
@@ -296,7 +301,7 @@ def prepare_environments(args) -> bool:
         if os.path.exists(preset_folder):
             shutil.rmtree(preset_folder)
         shutil.copytree(origin_preset_folder, preset_folder)
-        
+
     import modules.config as config
     import fooocusapi.parameters as parameters
     parameters.default_inpaint_engine_version = config.default_inpaint_engine_version
@@ -319,15 +324,15 @@ def prepare_environments(args) -> bool:
 
     return True
 
-def pre_setup(skip_sync_repo: bool=False,
-              disable_private_log: bool=False,
-              skip_pip=False,
-              load_all_models: bool=False,
-              preload_pipeline: bool=False,
-              always_gpu: bool=False,
-              all_in_fp16: bool=False,
-              preset: str | None=None):
 
+def pre_setup(skip_sync_repo: bool = False,
+              disable_private_log: bool = False,
+              skip_pip=False,
+              load_all_models: bool = False,
+              preload_pipeline: bool = False,
+              always_gpu: bool = False,
+              all_in_fp16: bool = False,
+              preset: str | None = None):
     class Args(object):
         host = '127.0.0.1'
         port = 8888
@@ -361,7 +366,7 @@ def pre_setup(skip_sync_repo: bool=False,
         sys.argv.append(args.preset)
 
     install_dependents(args)
-    
+
     import fooocusapi.args as _
     prepare_environments(args)
 
@@ -410,4 +415,5 @@ if __name__ == "__main__":
 
         # Start api server
         from fooocusapi.api import start_app
+
         start_app(args)
