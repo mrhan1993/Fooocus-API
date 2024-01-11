@@ -53,3 +53,4 @@ experiment.py
 /auth.json
 .cog/
 /presets
+*.db

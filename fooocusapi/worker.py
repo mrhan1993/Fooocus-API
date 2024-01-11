@@ -108,7 +108,7 @@ def process_generate(async_task: QueueTask, params: ImageGenerationParams) -> Li
 
         execution_start_time = time.perf_counter()
 
-        # Transform pamameters
+        # Transform parameters
         prompt = params.prompt
         negative_prompt = params.negative_prompt
         style_selections = params.style_selections
