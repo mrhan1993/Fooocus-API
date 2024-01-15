@@ -1,4 +1,5 @@
 from fooocusapi.models import *
+
 class ImagePromptJson(BaseModel):
     cn_img: str | None = Field(None, description="Input image for image prompt as base64")
     cn_stop: float | None = Field(0, ge=0, le=1, description="Stop at for image prompt, 0 for default value")

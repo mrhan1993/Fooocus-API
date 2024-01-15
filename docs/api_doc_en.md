@@ -400,7 +400,7 @@ def image_prompt(params: dict,
 # image extend
 params = {
     "outpaint_selections": ["Left", "Right"],
-    "image_prompts": [] # 必传参数，可以为空列表
+    "image_prompts": [] # required, can be empty list
 }
 result = image_prompt(params=params, input_iamge=image)
 print(json.dumps(result, indent=4, ensure_ascii=False))
@@ -539,7 +539,7 @@ DataType: json
 
 | Name | Type | Description |
 | ---- | ---- | ----------- |
-| image_prompts | List[ImagePrompt] | 图像列表 |
+| image_prompts | List[ImagePrompt] | Image list |
 
 **requests example**:
 

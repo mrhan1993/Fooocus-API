@@ -25,10 +25,10 @@ app = FastAPI()
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # 允许所有来源访问
+    allow_origins=["*"],  # Allow access from all sources
     allow_credentials=True,
-    allow_methods=["*"],  # 允许所有HTTP方法
-    allow_headers=["*"],  # 允许所有请求头
+    allow_methods=["*"],  # Allow all HTTP methods
+    allow_headers=["*"],  # Allow all request headers
 )
 
 work_executor = ThreadPoolExecutor(
