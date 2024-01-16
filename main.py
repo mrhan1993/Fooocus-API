@@ -289,8 +289,10 @@ def prepare_environments(args) -> bool:
     if args.base_url is None or len(args.base_url.strip()) == 0:
         host = args.host
         if host == '0.0.0.0':
-            host = '127.0.0.1'
-        args.base_url = f"http://{host}:{args.port}"
+            # host = '127.0.0.1'
+            host = 'wasai.sy.soyoung.com'
+        # args.base_url = f"http://{host}:{args.port}"
+       args.base_url = f"https://{host}"
 
     sys.argv = [sys.argv[0]]
 
