@@ -292,7 +292,7 @@ def prepare_environments(args) -> bool:
             # host = '127.0.0.1'
             host = 'wasai.sy.soyoung.com'
         # args.base_url = f"http://{host}:{args.port}"
-       args.base_url = f"https://{host}"
+        args.base_url = f"https://{host}"
 
     sys.argv = [sys.argv[0]]
 
