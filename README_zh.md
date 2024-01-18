@@ -180,7 +180,7 @@ docker run -d --gpus=all \
 - `--queue-size QUEUE_SIZE` 工作队列大小，默认是 3 ，超过队列的请求会返回失败
 - `--queue-history QUEUE_HISTORY` 保留的作业历史，默认 0 即无限制，超过会被删除，包括生成的图像
 - `--webhook-url WEBHOOK_URL` 通知生成结果的 webhook 地址，默认为 None
-- `--presistent` 持久化历史记录到SQLite数据库，默认关闭
+- `--persistent` 持久化历史记录到SQLite数据库，默认关闭
 
 从 v0.3.25 开始, Fooocus 的命令行选项也被支持，你可以在启动时加上 Fooocus 支持的选项
 
