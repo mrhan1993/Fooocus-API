@@ -7,7 +7,6 @@ import numpy as np
 from PIL import Image
 from typing import List
 from cog import BasePredictor, Input, Path
-from fooocusapi.worker import process_generate, task_queue
 from fooocusapi.file_utils import output_dir
 from fooocusapi.parameters import (GenerationFinishReason,
                                    ImageGenerationParams,
@@ -102,6 +101,7 @@ class Predictor(BasePredictor):
         """Run a single prediction on the model"""
         import modules.flags as flags
         from modules.sdxl_styles import legal_style_names
+        from fooocusapi.worker import process_generate, task_queue
 
         base_model_name = default_base_model_name
         refiner_model_name = default_refiner_model_name
