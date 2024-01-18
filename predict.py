@@ -7,7 +7,6 @@ import numpy as np
 from PIL import Image
 from typing import List
 from cog import BasePredictor, Input, Path
-from fooocusapi.worker import process_generate, task_queue
 from fooocusapi.file_utils import output_dir
 from fooocusapi.parameters import (GenerationFinishReason,
                                    ImageGenerationParams,
@@ -28,7 +27,7 @@ class Predictor(BasePredictor):
     def setup(self) -> None:
         """Load the model into memory to make running multiple predictions efficient"""
         from main import pre_setup
-        pre_setup(disable_private_log=True, skip_pip=True, preload_pipeline=True, preset=None)
+        pre_setup(disable_image_log=True, skip_pip=True, preload_pipeline=True, preset=None)
 
     def predict(
         self,
@@ -102,6 +101,7 @@ class Predictor(BasePredictor):
         """Run a single prediction on the model"""
         import modules.flags as flags
         from modules.sdxl_styles import legal_style_names
+        from fooocusapi.worker import process_generate, task_queue
 
         base_model_name = default_base_model_name
         refiner_model_name = default_refiner_model_name

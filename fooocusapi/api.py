@@ -331,7 +331,7 @@ def job_queue():
 def get_history(job_id: str = None, page: int = 0, page_size: int = 20):
     # Fetch and return the historical tasks
     queue = [JobHistoryInfo(job_id=item.job_id, is_finished=item.is_finished) for item in task_queue.queue]
-    if not args.presistent:
+    if not args.persistent:
         history = [JobHistoryInfo(job_id=item.job_id, is_finished=item.is_finished) for item in task_queue.history]
         return JobHistoryResponse(history=history, queue=queue)
     else:
