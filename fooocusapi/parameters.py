@@ -6,7 +6,7 @@ import numpy as np
 default_inpaint_engine_version = 'v2.6'
 
 
-defualt_styles = [
+default_styles = [
     "Fooocus V2",
     "Fooocus Masterpiece",
     "SAI Anime",
