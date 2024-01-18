@@ -9,7 +9,6 @@ from typing import List, Tuple
 from fooocusapi.args import args
 from fooocusapi.file_utils import delete_output_file, get_file_serve_url
 from fooocusapi.img_utils import narray_to_base64img
-from fooocusapi.sql_client import add_history
 from fooocusapi.parameters import ImageGenerationResult, GenerationFinishReason
 
 class TaskType(str, Enum):
@@ -139,6 +138,7 @@ class TaskQueue(object):
             self.history.append(task)
 
             if args.presistent:
+                from fooocusapi.sql_client import add_history
                 add_history(task.req_param, task.type, task.job_id,
                             ','.join([job["url"] for job in data["job_result"]]),
                             task.task_result[0].finish_reason)
