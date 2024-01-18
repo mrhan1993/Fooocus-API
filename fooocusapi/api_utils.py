@@ -43,8 +43,10 @@ def req_to_params(req: Text2ImgRequest) -> ImageGenerationParams:
     refiner_model_name = req.refiner_model_name
     refiner_switch = req.refiner_switch
     loras = [(lora.model_name, lora.weight) for lora in req.loras]
-    uov_input_image = None if not (isinstance(
-        req, ImgUpscaleOrVaryRequest) or isinstance(req, ImgUpscaleOrVaryRequestJson)) else read_input_image(req.input_image)
+    uov_input_image = None
+    if not isinstance(req, Text2ImgRequestWithPrompt):
+        if isinstance(req, ImgUpscaleOrVaryRequest) or isinstance(req, ImgUpscaleOrVaryRequestJson):
+            uov_input_image = read_input_image(req.input_image)
     uov_method = flags.disabled if not (isinstance(
         req, ImgUpscaleOrVaryRequest) or isinstance(req, ImgUpscaleOrVaryRequestJson)) else req.uov_method.value
     upscale_value = None if not (isinstance(
@@ -66,7 +68,7 @@ def req_to_params(req: Text2ImgRequest) -> ImageGenerationParams:
 
     inpaint_input_image = None
     inpaint_additional_prompt = None
-    if isinstance(req, ImgInpaintOrOutpaintRequest) or isinstance(req, ImgInpaintOrOutpaintRequestJson):
+    if (isinstance(req, ImgInpaintOrOutpaintRequest) or isinstance(req, ImgInpaintOrOutpaintRequestJson)) and req.input_image is not None:
         inpaint_additional_prompt = req.inpaint_additional_prompt
         input_image = read_input_image(req.input_image)
         input_mask = None
@@ -78,13 +80,21 @@ def req_to_params(req: Text2ImgRequest) -> ImageGenerationParams:
         }
 
     image_prompts = []
-    if isinstance(req, ImgPromptRequest) or isinstance(req, ImgPromptRequestJson):
+    if isinstance(req, ImgPromptRequest) or isinstance(req, ImgPromptRequestJson) or isinstance(req, Text2ImgRequestWithPrompt) or isinstance(req, ImgUpscaleOrVaryRequestJson) or isinstance(req, ImgInpaintOrOutpaintRequestJson):
+        # Auto set mixing_image_prompt_and_inpaint to True
+        if len(req.image_prompts) > 0 and uov_input_image is not None:
+            print("[INFO] Mixing image prompt and vary upscale is set to True")
+            req.advanced_params.mixing_image_prompt_and_vary_upscale = True
+        elif len(req.image_prompts) > 0 and not isinstance(req, Text2ImgRequestWithPrompt) and req.input_image is not None and req.advanced_params is not None:
+            print("[INFO] Mixing image prompt and inpaint is set to True")
+            req.advanced_params.mixing_image_prompt_and_inpaint = True
+
         for img_prompt in req.image_prompts:
             if img_prompt.cn_img is not None:
                 cn_img = read_input_image(img_prompt.cn_img)
-                if img_prompt.cn_stop is None:
+                if img_prompt.cn_stop is None or img_prompt.cn_stop == 0:
                     img_prompt.cn_stop = flags.default_parameters[img_prompt.cn_type.value][0]
-                if img_prompt.cn_weight is None:
+                if img_prompt.cn_weight is None or img_prompt.cn_weight == 0:
                     img_prompt.cn_weight = flags.default_parameters[img_prompt.cn_type.value][1]
                 image_prompts.append(
                     (cn_img, img_prompt.cn_stop, img_prompt.cn_weight, img_prompt.cn_type.value))
@@ -117,7 +127,8 @@ def req_to_params(req: Text2ImgRequest) -> ImageGenerationParams:
             adp.debugging_cn_preprocessor, adp.skipping_cn_preprocessor, adp.controlnet_softness, adp.canny_low_threshold, adp.canny_high_threshold, \
             adp.refiner_swap_method, \
             adp.freeu_enabled, adp.freeu_b1, adp.freeu_b2, adp.freeu_s1, adp.freeu_s2, \
-            adp.debugging_inpaint_preprocessor, adp.inpaint_disable_initial_latent, adp.inpaint_engine, adp.inpaint_strength, adp.inpaint_respective_field
+            adp.debugging_inpaint_preprocessor, adp.inpaint_disable_initial_latent, adp.inpaint_engine, adp.inpaint_strength, adp.inpaint_respective_field, \
+            False, adp.invert_mask_checkbox, adp.inpaint_erode_or_dilate
         ]
 
     return ImageGenerationParams(prompt=prompt,
@@ -167,7 +178,7 @@ def generation_output(results: QueueTask | List[ImageGenerationResult], streamin
 
                     job_result = generation_output(task.task_result, False, task_result_require_base64)
         job_step_preview = None if not require_step_preivew else task.task_step_preview
-        return AsyncJobResponse(job_id=task.seq,
+        return AsyncJobResponse(job_id=task.job_id,
                                 job_type=task.type,
                                 job_stage=job_stage,
                                 job_progress=task.finish_progress,
