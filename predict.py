@@ -1,6 +1,7 @@
 # Prediction interface for Cog ⚙️
 # https://github.com/replicate/cog/blob/main/docs/python.md
 
+import copy
 import os
 import numpy as np
 
@@ -105,7 +106,7 @@ class Predictor(BasePredictor):
 
         base_model_name = default_base_model_name
         refiner_model_name = default_refiner_model_name
-        loras = default_loras
+        loras = copy.copy(default_loras)
 
         style_selections_arr = []
         for s in style_selections.strip().split(','):
