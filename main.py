@@ -248,6 +248,9 @@ def install_dependents(args):
             print(f"torch_index_url: {torch_index_url}")
             run_pip(f"install torch==2.1.0 torchvision==0.16.0 --extra-index-url {torch_index_url}", "torch")
 
+        if args.persistent and not is_installed("sqlalchemy"):
+            run_pip(f"install sqlalchemy==2.0.25", "sqlalchemy")
+
     skip_sync_repo = False
     if args.sync_repo is not None:
         if args.sync_repo == 'only':
@@ -276,12 +279,6 @@ def install_dependents(args):
 
 
 def prepare_environments(args) -> bool:
-    import fooocusapi.worker as worker
-    worker.task_queue.queue_size = args.queue_size
-    worker.task_queue.history_size = args.queue_history
-    worker.task_queue.webhook_url = args.webhook_url
-    print(f"[Fooocus-API] Task queue size: {args.queue_size}, queue history size: {args.queue_history}, webhook url: {args.webhook_url}")
-
     if args.gpu_device_id is not None:
         os.environ['CUDA_VISIBLE_DEVICES'] = str(args.gpu_device_id)
         print("Set device to:", args.gpu_device_id)
@@ -317,18 +314,22 @@ def prepare_environments(args) -> bool:
     parameters.default_aspect_ratio = parameters.get_aspect_ratio_value(config.default_aspect_ratio)
     parameters.available_aspect_ratios = [parameters.get_aspect_ratio_value(a) for a in config.available_aspect_ratios]
 
-    ini_cbh_args()
-
     download_models()
 
     if args.preload_pipeline:
         preplaod_pipeline()
 
+    # Init task queue
+    import fooocusapi.worker as worker
+    from fooocusapi.task_queue import TaskQueue
+    worker.task_queue = TaskQueue(queue_size=args.queue_size, hisotry_size=args.queue_history, webhook_url=args.webhook_url, persistent=args.persistent)
+    print(f"[Fooocus-API] Task queue size: {args.queue_size}, queue history size: {args.queue_history}, webhook url: {args.webhook_url}")
+
     return True
 
 
 def pre_setup(skip_sync_repo: bool = False,
-              disable_private_log: bool = False,
+              disable_image_log: bool = False,
               skip_pip=False,
               load_all_models: bool = False,
               preload_pipeline: bool = False,
@@ -340,12 +341,14 @@ def pre_setup(skip_sync_repo: bool = False,
         port = 8888
         base_url = None
         sync_repo = None
-        disable_private_log = False
+        disable_image_log = False
         skip_pip = False
         preload_pipeline = False
         queue_size = 3
         queue_history = 0
         preset = None
+        webhook_url = None
+        persistent = False
         always_gpu = False
         all_in_fp16 = False
         gpu_device_id = None
@@ -355,7 +358,7 @@ def pre_setup(skip_sync_repo: bool = False,
     args = Args()
     if skip_sync_repo:
         args.sync_repo = 'skip'
-    args.disable_private_log = disable_private_log
+    args.disable_image_log = disable_image_log
     args.skip_pip = skip_pip
     args.preload_pipeline = preload_pipeline
     args.always_gpu = always_gpu
@@ -366,6 +369,9 @@ def pre_setup(skip_sync_repo: bool = False,
     if args.preset is not None:
         sys.argv.append('--preset')
         sys.argv.append(args.preset)
+
+    if args.disable_image_log:
+        sys.argv.append('--disable-image-log')
 
     install_dependents(args)
 
@@ -381,12 +387,6 @@ def pre_setup(skip_sync_repo: bool = False,
         config.downloading_controlnet_cpds()
         config.downloading_ip_adapters()
     print("[Pre Setup] Finished")
-
-
-# This function was copied from [Fooocus](https://github.com/lllyasviel/Fooocus) repository.
-def ini_cbh_args():
-    from args_manager import args
-    return args
 
 
 def preplaod_pipeline():

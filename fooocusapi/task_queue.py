@@ -6,10 +6,8 @@ import numpy as np
 from enum import Enum
 from typing import List, Tuple
 
-from fooocusapi.args import args
 from fooocusapi.file_utils import delete_output_file, get_file_serve_url
 from fooocusapi.img_utils import narray_to_base64img
-from fooocusapi.sql_client import add_history
 from fooocusapi.parameters import ImageGenerationResult, GenerationFinishReason
 
 class TaskType(str, Enum):
@@ -64,11 +62,13 @@ class TaskQueue(object):
     history: List[QueueTask] = []
     last_job_id = None
     webhook_url: str | None = None
+    persistent: bool = False
 
-    def __init__(self, queue_size: int, hisotry_size: int, webhook_url: str | None = None):
+    def __init__(self, queue_size: int, hisotry_size: int, webhook_url: str | None = None, persistent: bool | None = False):
         self.queue_size = queue_size
         self.history_size = hisotry_size
         self.webhook_url = webhook_url
+        self.persistent = False if persistent is None else persistent
 
     def add_task(self, type: TaskType, req_param: dict, webhook_url: str | None = None) -> QueueTask | None:
         """
@@ -138,7 +138,8 @@ class TaskQueue(object):
             self.queue.remove(task)
             self.history.append(task)
 
-            if args.presistent:
+            if self.persistent:
+                from fooocusapi.sql_client import add_history
                 add_history(task.req_param, task.type, task.job_id,
                             ','.join([job["url"] for job in data["job_result"]]),
                             task.task_result[0].finish_reason)
