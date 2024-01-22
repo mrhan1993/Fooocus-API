@@ -11,9 +11,7 @@ from fooocusapi.file_utils import save_output_file
 from fooocusapi.parameters import GenerationFinishReason, ImageGenerationParams, ImageGenerationResult
 from fooocusapi.task_queue import QueueTask, TaskQueue, TaskOutputs
 
-
-task_queue = TaskQueue(queue_size=3, hisotry_size=6, webhook_url=None)
-
+task_queue: TaskQueue
 
 def process_top():
     import ldm_patched.modules.model_management

@@ -8,7 +8,6 @@ from fastapi.staticfiles import StaticFiles
 from fastapi.middleware.cors import CORSMiddleware
 
 from fooocusapi.args import args
-from fooocusapi.sql_client import query_history
 from fooocusapi.models import *
 from fooocusapi.api_utils import generation_output, req_to_params
 import fooocusapi.file_utils as file_utils
@@ -332,10 +331,11 @@ def job_queue():
 def get_history(job_id: str = None, page: int = 0, page_size: int = 20):
     # Fetch and return the historical tasks
     queue = [JobHistoryInfo(job_id=item.job_id, is_finished=item.is_finished) for item in task_queue.queue]
-    if not args.presistent:
+    if not args.persistent:
         history = [JobHistoryInfo(job_id=item.job_id, is_finished=item.is_finished) for item in task_queue.history]
         return JobHistoryResponse(history=history, queue=queue)
     else:
+        from fooocusapi.sql_client import query_history
         history = query_history(task_id=job_id, page=page, page_size=page_size)
         return {
             "history": history,
