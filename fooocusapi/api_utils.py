@@ -85,7 +85,7 @@ def req_to_params(req: Text2ImgRequest) -> ImageGenerationParams:
         if len(req.image_prompts) > 0 and uov_input_image is not None:
             print("[INFO] Mixing image prompt and vary upscale is set to True")
             req.advanced_params.mixing_image_prompt_and_vary_upscale = True
-        elif len(req.image_prompts) > 0 and not isinstance(req, Text2ImgRequestWithPrompt) and req.input_image is not None and req.advanced_params is not None:
+        elif len(req.image_prompts) > 0 and not isinstance(req, Text2ImgRequestWithPrompt) and req.input_image is not None:
             print("[INFO] Mixing image prompt and inpaint is set to True")
             req.advanced_params.mixing_image_prompt_and_inpaint = True
 
