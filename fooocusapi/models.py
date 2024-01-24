@@ -125,7 +125,7 @@ class Text2ImgRequest(BaseModel):
     advanced_params: AdvancedParams | None = AdvancedParams()
     require_base64: bool = Field(default=False, description="Return base64 data of generated image")
     async_process: bool = Field(default=False, description="Set to true will run async and return job info for retrieve generataion result later")
-    webhook_url: str | None = Field(default=None, description="Optional URL for a webhook callback. If provided, the system will send a POST request to this URL upon task completion or failure."
+    webhook_url: str | None = Field(default='', description="Optional URL for a webhook callback. If provided, the system will send a POST request to this URL upon task completion or failure."
                                                               " This allows for asynchronous notification of task status.")
 
 def style_selection_parser(style_selections: str) -> List[str]:
