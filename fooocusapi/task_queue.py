@@ -120,11 +120,13 @@ class TaskQueue(object):
             webhook_url = task.webhook_url or self.webhook_url
 
             data = { "job_id": task.job_id, "job_result": [] }
-            for item in task.task_result:
-                data["job_result"].append({
-                    "url": get_file_serve_url(item.im) if item.im else None,
-                    "seed": item.seed if item.seed else "-1",
-                })
+            
+            if isinstance(task.task_result, List):
+                for item in task.task_result:
+                    data["job_result"].append({
+                        "url": get_file_serve_url(item.im) if item.im else None,
+                        "seed": item.seed if item.seed else "-1",
+                    })
 
             # Send webhook
             if task.is_finished and webhook_url:

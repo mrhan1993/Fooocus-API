@@ -842,6 +842,7 @@ def process_generate(async_task: QueueTask, params: ImageGenerationParams) -> Li
                 break
             except Exception as e:
                 print('Process error:', e)
+                logging.exception(e)
                 results.append(ImageGenerationResult(
                     im=None, seed=task['task_seed'], finish_reason=GenerationFinishReason.error))
                 async_task.set_result(results, True, str(e))
@@ -859,7 +860,7 @@ def process_generate(async_task: QueueTask, params: ImageGenerationParams) -> Li
         logging.exception(e)
 
         if not async_task.is_finished:
-            task_queue.finish_task(async_task.job_id)
             async_task.set_result([], True, str(e))
+            task_queue.finish_task(async_task.job_id)
             print(f"[Task Queue] Finish task with error, job_id={async_task.job_id}")
         return []
