@@ -102,7 +102,7 @@ class Predictor(BasePredictor):
         """Run a single prediction on the model"""
         import modules.flags as flags
         from modules.sdxl_styles import legal_style_names
-        from fooocusapi.worker import process_generate, task_queue
+        from fooocusapi.worker import process_generate, worker_queue
 
         base_model_name = default_base_model_name
         refiner_model_name = default_refiner_model_name
@@ -178,12 +178,13 @@ class Predictor(BasePredictor):
                                         outpaint_distance_left=outpaint_distance_left,
                                         outpaint_distance_top=outpaint_distance_top,
                                         outpaint_distance_right=outpaint_distance_right,
-                                        outpaint_distance_bottom=outpaint_distance_bottom
+                                        outpaint_distance_bottom=outpaint_distance_bottom,
+                                        require_base64=False,
                                        )
 
         print(f"[Predictor Predict] Params: {params.__dict__}")
 
-        queue_task = task_queue.add_task(TaskType.text_2_img, {'params': params.__dict__, 'require_base64': False})
+        queue_task = worker_queue.add_task(TaskType.text_2_img, {'params': params.__dict__, 'require_base64': False})
         if queue_task is None:
             print("[Task Queue] The task queue has reached limit")
             raise Exception(

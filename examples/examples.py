@@ -131,5 +131,5 @@ img_prompt = [
 ]
 # print(upscale_vary(image=image_base64))
 # print(inpaint_outpaint(input_image=s_base64, input_mask=m_base64))
-# print(image_prompt(img_prompt=img_prompt, params=img_prompt_params))
+print(image_prompt(img_prompt=img_prompt, params=img_prompt_params))
 print(image_prompt_with_inpaint(img_prompt=img_prompt, input_image=s_base64, input_mask=m_base64, params=img_prompt_params))

@@ -177,7 +177,7 @@ You can add `-e PIP_INDEX_URL={pypi-mirror-url}` to docker run command to change
 - `--sync-repo SYNC_REPO` Sync dependent git repositories to local, 'skip' for skip sync action, 'only' for only do the sync action and not launch app
 - `--skip-pip` Skip automatic pip install when setup
 - `--preload-pipeline` Preload pipeline before start http server
-- `--queue-size QUEUE_SIZE` Working queue size, default: 3, generation requests exceeding working queue size will return failure
+- `--queue-size QUEUE_SIZE` Working queue size, default: 100, generation requests exceeding working queue size will return failure
 - `--queue-history QUEUE_HISTORY` Finished jobs reserve size, tasks exceeding the limit will be deleted, including output image files, default: 0, means no limit
 - `--webhook-url WEBHOOK_URL` Webhook url for notify generation result, default: None
 - `--persistent` Store history to db

@@ -1,7 +1,6 @@
 import uvicorn
 
 from typing import List, Optional
-from fastapi.responses import JSONResponse
 from fastapi import Depends, FastAPI, Header, Query, Response, UploadFile
 from fastapi.params import File
 from fastapi.staticfiles import StaticFiles
@@ -12,12 +11,11 @@ from fooocusapi.models import *
 from fooocusapi.api_utils import req_to_params, generate_async_output, generate_streaming_output, generate_image_result_output
 import fooocusapi.file_utils as file_utils
 from fooocusapi.parameters import GenerationFinishReason, ImageGenerationResult
-from fooocusapi.task_queue import QueueTask, TaskType
-from fooocusapi.worker import process_generate, task_queue, process_top
+from fooocusapi.task_queue import TaskType
+from fooocusapi.worker import worker_queue, process_top, blocking_get_task_result
 from fooocusapi.models_v2 import *
 from fooocusapi.img_utils import base64_to_stream, read_input_image
 
-from concurrent.futures import ThreadPoolExecutor
 from modules.util import HWC3
 
 app = FastAPI()
@@ -29,9 +27,6 @@ app.add_middleware(
     allow_methods=["*"],  # Allow all HTTP methods
     allow_headers=["*"],  # Allow all request headers
 )
-
-work_executor = ThreadPoolExecutor(
-    max_workers=task_queue.queue_size * 2, thread_name_prefix="worker_")
 
 img_generate_responses = {
     "200": {
@@ -64,43 +59,29 @@ def get_task_type(req: Text2ImgRequest) -> TaskType:
     elif isinstance(req, ImgPromptRequest) or isinstance(req, ImgPromptRequestJson):
         return TaskType.img_prompt
     elif isinstance(req, ImgInpaintOrOutpaintRequest) or isinstance(req, ImgInpaintOrOutpaintRequestJson):
-        return TaskType.img_inpaint_outpaint
+        return TaskType.img_inpaint_outpaiFnt
     else:
         return TaskType.text_2_img
 
 
-def call_worker(req: Text2ImgRequest, accept: str) -> Tuple[QueueTask | None, List[ImageGenerationResult] | None]:
+def call_worker(req: Text2ImgRequest, accept: str) -> Response | AsyncJobResponse | List[GeneratedImageResult]:
+    if accept == 'image/png':
+        streaming_output = True
+        # image_number auto set to 1 in streaming mode
+        req.image_number = 1
+    else:
+        streaming_output = False
+
     task_type = get_task_type(req)
     params = req_to_params(req)
-    queue_task = task_queue.add_task(
-        task_type, {'params': params.__dict__, 'accept': accept, 'require_base64': req.require_base64},
-        webhook_url=req.webhook_url)
+    async_task = worker_queue.add_task(task_type, params, req.webhook_url)
 
-    if queue_task is None:
-        print("[Task Queue] The task queue has reached limit")
-        return None, [ImageGenerationResult(im=None, seed='',
-                                         finish_reason=GenerationFinishReason.queue_is_full)]
-    elif req.async_process:
-        work_executor.submit(process_generate, queue_task, params)
-        return queue_task, None
-    else:
-        results = process_generate(queue_task, params)
-        return queue_task, results
-
-
-def build_generation_response(req: Text2ImgRequest,
-                 streaming_output: bool,
-                 task: QueueTask | None,
-                 results: List[ImageGenerationResult] | None) -> Response | AsyncJobResponse | List[GeneratedImageResult]:
-    if streaming_output:
-        return generate_streaming_output([] if results is None else results)
-
-    job_result: List[GeneratedImageResult] = []
-    if results is not None:
-        job_result = generate_image_result_output(results, req.require_base64)
-
-    if task is None:
+    if async_task is None:
         # add to worker queue failed
+        failure_results = [ImageGenerationResult(im=None, seed='', finish_reason=GenerationFinishReason.queue_is_full)]
+
+        if streaming_output:
+            return generate_streaming_output(failure_results)
         if req.async_process:
             return AsyncJobResponse(job_id='',
                                     job_type=get_task_type(req),
@@ -108,13 +89,21 @@ def build_generation_response(req: Text2ImgRequest,
                                     job_progress=0,
                                     job_status=None,
                                     job_step_preview=None,
-                                    job_result=job_result)
-        return job_result
+                                    job_result=failure_results)
+        else:
+            return generate_image_result_output(failure_results, False)
 
     if req.async_process:
-        return generate_async_output(task)
+        # return async response directly
+        return generate_async_output(async_task)
+    
+    # blocking get generation result
+    results = blocking_get_task_result(async_task.job_id)
+
+    if streaming_output:
+        return generate_streaming_output(results)
     else:
-        return job_result
+        return generate_image_result_output(results, req.require_base64)
 
 
 def stop_worker():
@@ -137,15 +126,7 @@ def text2img_generation(req: Text2ImgRequest, accept: str = Header(None),
     if accept_query is not None and len(accept_query) > 0:
         accept = accept_query
 
-    if accept == 'image/png':
-        streaming_output = True
-        # image_number auto set to 1 in streaming mode
-        req.image_number = 1
-    else:
-        streaming_output = False
-
-    task, results = call_worker(req, accept)
-    return build_generation_response(req, streaming_output, task, results)
+    return call_worker(req, accept)
 
 
 @app.post("/v2/generation/text-to-image-with-ip", response_model=List[GeneratedImageResult] | AsyncJobResponse, responses=img_generate_responses)
@@ -154,13 +135,6 @@ def text_to_img_with_ip(req: Text2ImgRequestWithPrompt,
                         accept_query: str | None = Query(None, alias='accept', description="Parameter to overvide 'Accept' header, 'image/png' for output bytes")):
     if accept_query is not None and len(accept_query) > 0:
         accept = accept_query
-
-    if accept == 'image/png':
-        streaming_output = True
-        # image_number auto set to 1 in streaming mode
-        req.image_number = 1
-    else:
-        streaming_output = False
 
     default_image_promt = ImagePrompt(cn_img=None)
     image_prompts_files: List[ImagePrompt] = []
@@ -177,8 +151,7 @@ def text_to_img_with_ip(req: Text2ImgRequestWithPrompt,
 
     req.image_prompts = image_prompts_files
 
-    task, results = call_worker(req, accept)
-    return build_generation_response(req, streaming_output, task, results)
+    return call_worker(req, accept)
 
 
 @app.post("/v1/generation/image-upscale-vary", response_model=List[GeneratedImageResult] | AsyncJobResponse, responses=img_generate_responses)
@@ -188,15 +161,7 @@ def img_upscale_or_vary(input_image: UploadFile, req: ImgUpscaleOrVaryRequest = 
     if accept_query is not None and len(accept_query) > 0:
         accept = accept_query
 
-    if accept == 'image/png':
-        streaming_output = True
-        # image_number auto set to 1 in streaming mode
-        req.image_number = 1
-    else:
-        streaming_output = False
-
-    task, results = call_worker(req, accept)
-    return build_generation_response(req, streaming_output, task, results)
+    return call_worker(req, accept)
 
 
 @app.post("/v2/generation/image-upscale-vary", response_model=List[GeneratedImageResult] | AsyncJobResponse, responses=img_generate_responses)
@@ -206,12 +171,6 @@ def img_upscale_or_vary_v2(req: ImgUpscaleOrVaryRequestJson,
     if accept_query is not None and len(accept_query) > 0:
         accept = accept_query
 
-    if accept == 'image/png':
-        streaming_output = True
-        # image_number auto set to 1 in streaming mode
-        req.image_number = 1
-    else:
-        streaming_output = False
     req.input_image = base64_to_stream(req.input_image)
 
     default_image_promt = ImagePrompt(cn_img=None)
@@ -227,8 +186,7 @@ def img_upscale_or_vary_v2(req: ImgUpscaleOrVaryRequestJson,
         image_prompts_files.append(default_image_promt)
     req.image_prompts = image_prompts_files
 
-    task, results = call_worker(req, accept)
-    return build_generation_response(req, streaming_output, task, results)
+    return call_worker(req, accept)
 
 
 @app.post("/v1/generation/image-inpait-outpaint", response_model=List[GeneratedImageResult] | AsyncJobResponse, responses=img_generate_responses)
@@ -238,15 +196,7 @@ def img_inpaint_or_outpaint(input_image: UploadFile, req: ImgInpaintOrOutpaintRe
     if accept_query is not None and len(accept_query) > 0:
         accept = accept_query
 
-    if accept == 'image/png':
-        streaming_output = True
-        # image_number auto set to 1 in streaming mode
-        req.image_number = 1
-    else:
-        streaming_output = False
-
-    task, results = call_worker(req, accept)
-    return build_generation_response(req, streaming_output, task, results)
+    return call_worker(req, accept)
 
 
 @app.post("/v2/generation/image-inpait-outpaint", response_model=List[GeneratedImageResult] | AsyncJobResponse, responses=img_generate_responses)
@@ -255,13 +205,6 @@ def img_inpaint_or_outpaint_v2(req: ImgInpaintOrOutpaintRequestJson,
                                accept_query: str | None = Query(None, alias='accept', description="Parameter to overvide 'Accept' header, 'image/png' for output bytes")):
     if accept_query is not None and len(accept_query) > 0:
         accept = accept_query
-
-    if accept == 'image/png':
-        streaming_output = True
-        # image_number auto set to 1 in streaming mode
-        req.image_number = 1
-    else:
-        streaming_output = False
 
     req.input_image = base64_to_stream(req.input_image)
     if req.input_mask is not None:
@@ -279,8 +222,7 @@ def img_inpaint_or_outpaint_v2(req: ImgInpaintOrOutpaintRequestJson,
         image_prompts_files.append(default_image_promt)
     req.image_prompts = image_prompts_files
 
-    task, results = call_worker(req, accept)
-    return build_generation_response(req, streaming_output, task, results)
+    return call_worker(req, accept)
 
 
 @app.post("/v1/generation/image-prompt", response_model=List[GeneratedImageResult] | AsyncJobResponse, responses=img_generate_responses)
@@ -291,15 +233,7 @@ def img_prompt(cn_img1: Optional[UploadFile] = File(None),
     if accept_query is not None and len(accept_query) > 0:
         accept = accept_query
 
-    if accept == 'image/png':
-        streaming_output = True
-        # image_number auto set to 1 in streaming mode
-        req.image_number = 1
-    else:
-        streaming_output = False
-
-    task, results = call_worker(req, accept)
-    return build_generation_response(req, streaming_output, task, results)
+    return call_worker(req, accept)
 
 
 @app.post("/v2/generation/image-prompt", response_model=List[GeneratedImageResult] | AsyncJobResponse, responses=img_generate_responses)
@@ -308,13 +242,6 @@ def img_prompt(req: ImgPromptRequestJson,
                accept_query: str | None = Query(None, alias='accept', description="Parameter to overvide 'Accept' header, 'image/png' for output bytes")):
     if accept_query is not None and len(accept_query) > 0:
         accept = accept_query
-
-    if accept == 'image/png':
-        streaming_output = True
-        # image_number auto set to 1 in streaming mode
-        req.image_number = 1
-    else:
-        streaming_output = False
 
     if req.input_image is not None:
         req.input_image = base64_to_stream(req.input_image)
@@ -336,13 +263,12 @@ def img_prompt(req: ImgPromptRequestJson,
 
     req.image_prompts = image_prompts_files
 
-    task, results = call_worker(req, accept)
-    return build_generation_response(req, streaming_output, task, results)
+    return call_worker(req, accept)
 
 
 @app.get("/v1/generation/query-job", response_model=AsyncJobResponse, description="Query async generation job")
 def query_job(req: QueryJobRequest = Depends()):
-    queue_task = task_queue.get_task(req.job_id, True)
+    queue_task = worker_queue.get_task(req.job_id, True)
     if queue_task is None:
         result = AsyncJobResponse(job_id="",
                                  job_type=TaskType.not_found,
@@ -351,20 +277,20 @@ def query_job(req: QueryJobRequest = Depends()):
                                  job_status="Job not found")
         content = result.model_dump_json()
         return Response(content=content, media_type='application/json', status_code=404)
-    return generate_async_output(queue_task)
+    return generate_async_output(queue_task, req.require_step_preview)
 
 
 @app.get("/v1/generation/job-queue", response_model=JobQueueInfo, description="Query job queue info")
 def job_queue():
-    return JobQueueInfo(running_size=len(task_queue.queue), finished_size=len(task_queue.history), last_job_id=task_queue.last_job_id)
+    return JobQueueInfo(running_size=len(worker_queue.queue), finished_size=len(worker_queue.history), last_job_id=worker_queue.last_job_id)
 
 
 @app.get("/v1/generation/job-history", response_model=JobHistoryResponse | dict, description="Query historical job data")
 def get_history(job_id: str = None, page: int = 0, page_size: int = 20):
     # Fetch and return the historical tasks
-    queue = [JobHistoryInfo(job_id=item.job_id, is_finished=item.is_finished) for item in task_queue.queue]
+    queue = [JobHistoryInfo(job_id=item.job_id, is_finished=item.is_finished) for item in worker_queue.queue]
     if not args.persistent:
-        history = [JobHistoryInfo(job_id=item.job_id, is_finished=item.is_finished) for item in task_queue.history]
+        history = [JobHistoryInfo(job_id=item.job_id, is_finished=item.is_finished) for item in worker_queue.history]
         return JobHistoryResponse(history=history, queue=queue)
     else:
         from fooocusapi.sql_client import query_history
