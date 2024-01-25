@@ -159,54 +159,54 @@ def req_to_params(req: Text2ImgRequest) -> ImageGenerationParams:
                                  )
 
 
-def generation_output(results: QueueTask | List[ImageGenerationResult], streaming_output: bool, require_base64: bool, require_step_preivew: bool=False) -> Response | List[GeneratedImageResult] | AsyncJobResponse:
-    if isinstance(results, QueueTask):
-        task = results
-        job_stage = AsyncJobStage.running
-        job_result = None
-        if task.start_millis == 0:
-            job_stage = AsyncJobStage.waiting
-        if task.is_finished:
-            if task.finish_with_error:
-                job_stage = AsyncJobStage.error
-            else:
-                if task.task_result != None:
-                    job_stage = AsyncJobStage.success
-                    task_result_require_base64 = False
-                    if 'require_base64' in task.req_param and task.req_param['require_base64']:
-                        task_result_require_base64 = True
+def generate_async_output(task: QueueTask) -> AsyncJobResponse:
+    job_stage = AsyncJobStage.running
+    job_result = None
 
-                    job_result = generation_output(task.task_result, False, task_result_require_base64)
-        job_step_preview = None if not require_step_preivew else task.task_step_preview
-        return AsyncJobResponse(job_id=task.job_id,
-                                job_type=task.type,
-                                job_stage=job_stage,
-                                job_progress=task.finish_progress,
-                                job_status=task.task_status,
-                                job_step_preview=job_step_preview,
-                                job_result=job_result)
+    if task.start_millis == 0:
+        job_stage = AsyncJobStage.waiting
 
-    if streaming_output:
-        if len(results) == 0:
-            return Response(status_code=500)
-        result = results[0]
-        if result.finish_reason == GenerationFinishReason.queue_is_full:
-            return Response(status_code=409, content=result.finish_reason.value)
-        elif result.finish_reason == GenerationFinishReason.user_cancel:
-            return Response(status_code=400, content=result.finish_reason.value)
-        elif result.finish_reason == GenerationFinishReason.error:
-            return Response(status_code=500, content=result.finish_reason.value)
-        
-        bytes = output_file_to_bytesimg(results[0].im)
-        return Response(bytes, media_type='image/png')
-    else:
-        results = [GeneratedImageResult(
-            base64=output_file_to_base64img(
-                item.im) if require_base64 else None,
+    if task.is_finished:
+        if task.finish_with_error:
+            job_stage = AsyncJobStage.error
+        elif task.task_result != None:
+            job_stage = AsyncJobStage.success
+            task_result_require_base64 = False
+            if 'require_base64' in task.req_param and task.req_param['require_base64']:
+                task_result_require_base64 = True
+
+            job_result = generate_image_result_output(task.task_result, task_result_require_base64)
+    return AsyncJobResponse(job_id=task.job_id,
+                            job_type=task.type,
+                            job_stage=job_stage,
+                            job_progress=task.finish_progress,
+                            job_status=task.task_status,
+                            job_step_preview=task.task_step_preview,
+                            job_result=job_result)
+
+
+def generate_streaming_output(results: List[ImageGenerationResult]) -> Response:
+    if len(results) == 0:
+        return Response(status_code=500)
+    result = results[0]
+    if result.finish_reason == GenerationFinishReason.queue_is_full:
+        return Response(status_code=409, content=result.finish_reason.value)
+    elif result.finish_reason == GenerationFinishReason.user_cancel:
+        return Response(status_code=400, content=result.finish_reason.value)
+    elif result.finish_reason == GenerationFinishReason.error:
+        return Response(status_code=500, content=result.finish_reason.value)
+    
+    bytes = output_file_to_bytesimg(results[0].im)
+    return Response(bytes, media_type='image/png')
+
+
+def generate_image_result_output(results: List[ImageGenerationResult], require_base64: bool) -> List[GeneratedImageResult]:
+    results = [GeneratedImageResult(
+            base64=output_file_to_base64img(item.im) if require_base64 else None,
             url=get_file_serve_url(item.im),
             seed=item.seed,
             finish_reason=item.finish_reason) for item in results]
-        return results
+    return results
 
 
 class QueueReachLimitException(Exception):
