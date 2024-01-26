@@ -604,6 +604,7 @@ def describe_image(image: bytes,
     describe-image
     """
     response = requests.post(url="http://127.0.0.1:8888/v1/tools/describe-image",
+                        params=params,
                         files={
                             "image": image
                         },
