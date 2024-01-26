@@ -12,8 +12,8 @@ class Config():
     text2img = '/v1/generation/text-to-image'
     img_upscale = '/v2/generation/image-upscale-vary'
     img_upscale1 = '/v1/generation/image-upscale-vary'
-    inpaint_outpaint = '/v2/generation/image-inpait-outpaint'
-    inpaint_outpaint1 = '/v1/generation/image-inpait-outpaint'
+    inpaint_outpaint = '/v2/generation/image-inpaint-outpaint'
+    inpaint_outpaint1 = '/v1/generation/image-inpaint-outpaint'
     img_prompt = '/v2/generation/image-prompt'
     img_prompt1 = '/v1/generation/image-prompt'
 
