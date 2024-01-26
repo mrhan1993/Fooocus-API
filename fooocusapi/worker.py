@@ -8,10 +8,10 @@ import logging
 
 from typing import List
 from fooocusapi.file_utils import save_output_file
-from fooocusapi.parameters import GenerationFinishReason, ImageGenerationParams, ImageGenerationResult
+from fooocusapi.parameters import GenerationFinishReason, ImageGenerationResult
 from fooocusapi.task_queue import QueueTask, TaskQueue, TaskOutputs
 
-task_queue: TaskQueue
+worker_queue: TaskQueue = None
 
 def process_top():
     import ldm_patched.modules.model_management
@@ -20,13 +20,45 @@ def process_top():
 
 @torch.no_grad()
 @torch.inference_mode()
-def process_generate(async_task: QueueTask, params: ImageGenerationParams) -> List[ImageGenerationResult]:
+def task_schedule_loop():
+    while True:
+        if len(worker_queue.queue) == 0:
+            time.sleep(0.05)
+            continue
+        
+        current_task = worker_queue.queue[0]
+        if current_task.start_millis == 0:
+            process_generate(current_task)
+
+
+@torch.no_grad()
+@torch.inference_mode()
+def blocking_get_task_result(job_id: str) -> List[ImageGenerationResult]:
+    waiting_sleep_steps: int = 0
+    waiting_start_time = time.perf_counter()
+    while not worker_queue.is_task_finished(job_id):
+        if waiting_sleep_steps == 0:
+            print(f"[Task Queue] Waiting for task finished, job_id={job_id}")
+        delay = 0.05
+        time.sleep(delay)
+        waiting_sleep_steps += 1
+        if waiting_sleep_steps % int(10 / delay) == 0:
+            waiting_time = time.perf_counter() - waiting_start_time
+            print(f"[Task Queue] Already waiting for {round(waiting_time, 1)} seconds, job_id={job_id}")
+
+    task = worker_queue.get_task(job_id, True)
+    return task.task_result
+
+
+@torch.no_grad()
+@torch.inference_mode()
+def process_generate(async_task: QueueTask):
     try:
         import modules.default_pipeline as pipeline
     except Exception as e:
         print('Import default pipeline error:', e)
         if not async_task.is_finished:
-            task_queue.finish_task(async_task.job_id)
+            worker_queue.finish_task(async_task.job_id)
             async_task.set_result([], True, str(e))
             print(f"[Task Queue] Finish task with error, seq={async_task.job_id}")
         return []
@@ -78,35 +110,20 @@ def process_generate(async_task: QueueTask, params: ImageGenerationParams) -> Li
             img_filename = save_output_file(im)
             results.append(ImageGenerationResult(im=img_filename, seed=str(seed), finish_reason=GenerationFinishReason.success))
         async_task.set_result(results, False)
-        task_queue.finish_task(async_task.job_id)
+        worker_queue.finish_task(async_task.job_id)
         print(f"[Task Queue] Finish task, job_id={async_task.job_id}")
 
         outputs.append(['results', imgs])
         pipeline.prepare_text_encoder(async_call=True)
-        return results
 
     try:
-        waiting_sleep_steps: int = 0
-        waiting_start_time = time.perf_counter()
-        while not task_queue.is_task_ready_to_start(async_task.job_id):
-            if waiting_sleep_steps == 0:
-                print(
-                    f"[Task Queue] Waiting for task queue become free, job_id={async_task.job_id}")
-            delay = 0.1
-            time.sleep(delay)
-            waiting_sleep_steps += 1
-            if waiting_sleep_steps % int(10 / delay) == 0:
-                waiting_time = time.perf_counter() - waiting_start_time
-                print(
-                    f"[Task Queue] Already waiting for {waiting_time}S, seq={async_task.job_id}")
-
-        print(f"[Task Queue] Task queue is free, start task, job_id={async_task.job_id}")
-
-        task_queue.start_task(async_task.job_id)
+        print(f"[Task Queue] Task queue start task, job_id={async_task.job_id}")
+        worker_queue.start_task(async_task.job_id)
 
         execution_start_time = time.perf_counter()
 
         # Transform parameters
+        params = async_task.req_param
         prompt = params.prompt
         negative_prompt = params.negative_prompt
         style_selections = params.style_selections
@@ -530,7 +547,8 @@ def process_generate(async_task: QueueTask, params: ImageGenerationParams) -> Li
             if direct_return:
                 d = [('Upscale (Fast)', '2x')]
                 log(uov_input_image, d)
-                return yield_result(async_task, uov_input_image, tasks)
+                yield_result(async_task, uov_input_image, tasks)
+                return
 
             tiled = True
             denoising_strength = 0.382
@@ -611,8 +629,9 @@ def process_generate(async_task: QueueTask, params: ImageGenerationParams) -> Li
             )
 
             if advanced_parameters.debugging_inpaint_preprocessor:
-                return yield_result(async_task, inpaint_worker.current_task.visualize_mask_processing(),
+                yield_result(async_task, inpaint_worker.current_task.visualize_mask_processing(),
                              do_not_show_finished_images=True)
+                return
 
             progressbar(async_task, 13, 'VAE Inpaint encoding ...')
 
@@ -674,7 +693,8 @@ def process_generate(async_task: QueueTask, params: ImageGenerationParams) -> Li
                 cn_img = HWC3(cn_img)
                 task[0] = core.numpy_to_pytorch(cn_img)
                 if advanced_parameters.debugging_cn_preprocessor:
-                    return yield_result(async_task, cn_img, tasks)
+                    yield_result(async_task, cn_img, tasks)
+                    return
             for task in cn_tasks[flags.cn_cpds]:
                 cn_img, cn_stop, cn_weight = task
                 cn_img = resize_image(HWC3(cn_img), width=width, height=height)
@@ -685,7 +705,8 @@ def process_generate(async_task: QueueTask, params: ImageGenerationParams) -> Li
                 cn_img = HWC3(cn_img)
                 task[0] = core.numpy_to_pytorch(cn_img)
                 if advanced_parameters.debugging_cn_preprocessor:
-                    return yield_result(async_task, cn_img, tasks)
+                    yield_result(async_task, cn_img, tasks)
+                    return
             for task in cn_tasks[flags.cn_ip]:
                 cn_img, cn_stop, cn_weight = task
                 cn_img = HWC3(cn_img)
@@ -695,7 +716,8 @@ def process_generate(async_task: QueueTask, params: ImageGenerationParams) -> Li
 
                 task[0] = ip_adapter.preprocess(cn_img, ip_adapter_path=ip_adapter_path)
                 if advanced_parameters.debugging_cn_preprocessor:
-                    return yield_result(async_task, cn_img, tasks)
+                    yield_result(async_task, cn_img, tasks)
+                    return
             for task in cn_tasks[flags.cn_ip_face]:
                 cn_img, cn_stop, cn_weight = task
                 cn_img = HWC3(cn_img)
@@ -708,7 +730,8 @@ def process_generate(async_task: QueueTask, params: ImageGenerationParams) -> Li
 
                 task[0] = ip_adapter.preprocess(cn_img, ip_adapter_path=ip_adapter_face_path)
                 if advanced_parameters.debugging_cn_preprocessor:
-                    return yield_result(async_task, cn_img, tasks)
+                    yield_result(async_task, cn_img, tasks)
+                    return
 
             all_ip_tasks = cn_tasks[flags.cn_ip] + cn_tasks[flags.cn_ip_face]
 
@@ -852,15 +875,15 @@ def process_generate(async_task: QueueTask, params: ImageGenerationParams) -> Li
             print(f'Generating and saving time: {execution_time:.2f} seconds')
 
         if async_task.finish_with_error:
-            task_queue.finish_task(async_task.job_id)
+            worker_queue.finish_task(async_task.job_id)
             return async_task.task_result
-        return yield_result(None, results, tasks)
+        yield_result(None, results, tasks)
+        return
     except Exception as e:
         print('Worker error:', e)
         logging.exception(e)
 
         if not async_task.is_finished:
             async_task.set_result([], True, str(e))
-            task_queue.finish_task(async_task.job_id)
+            worker_queue.finish_task(async_task.job_id)
             print(f"[Task Queue] Finish task with error, job_id={async_task.job_id}")
-        return []

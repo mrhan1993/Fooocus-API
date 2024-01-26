@@ -177,7 +177,7 @@ docker run -d --gpus=all \
 - `--sync-repo SYNC_REPO` 同步 Fooocus 仓库到本地，`skip` 用于在启动时跳过同步，`only` 只同步不启动程序
 - `--skip-pip` 跳过启动时的 pip 安装
 - `--preload-pipeline` 启动 http server 之前加载 pipeline
-- `--queue-size QUEUE_SIZE` 工作队列大小，默认是 3 ，超过队列的请求会返回失败
+- `--queue-size QUEUE_SIZE` 工作队列大小，默认是 100 ，超过队列的请求会返回失败
 - `--queue-history QUEUE_HISTORY` 保留的作业历史，默认 0 即无限制，超过会被删除，包括生成的图像
 - `--webhook-url WEBHOOK_URL` 通知生成结果的 webhook 地址，默认为 None
 - `--persistent` 持久化历史记录到SQLite数据库，默认关闭

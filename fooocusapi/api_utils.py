@@ -156,10 +156,11 @@ def req_to_params(req: Text2ImgRequest) -> ImageGenerationParams:
                                  inpaint_additional_prompt=inpaint_additional_prompt,
                                  image_prompts=image_prompts,
                                  advanced_params=advanced_params,
+                                 require_base64=req.require_base64,
                                  )
 
 
-def generate_async_output(task: QueueTask) -> AsyncJobResponse:
+def generate_async_output(task: QueueTask, require_step_preview: bool = False) -> AsyncJobResponse:
     job_stage = AsyncJobStage.running
     job_result = None
 
@@ -171,17 +172,13 @@ def generate_async_output(task: QueueTask) -> AsyncJobResponse:
             job_stage = AsyncJobStage.error
         elif task.task_result != None:
             job_stage = AsyncJobStage.success
-            task_result_require_base64 = False
-            if 'require_base64' in task.req_param and task.req_param['require_base64']:
-                task_result_require_base64 = True
-
-            job_result = generate_image_result_output(task.task_result, task_result_require_base64)
+            job_result = generate_image_result_output(task.task_result, task.req_param.require_base64)
     return AsyncJobResponse(job_id=task.job_id,
                             job_type=task.type,
                             job_stage=job_stage,
                             job_progress=task.finish_progress,
                             job_status=task.task_status,
-                            job_step_preview=task.task_step_preview,
+                            job_step_preview= task.task_step_preview if require_step_preview else None,
                             job_result=job_result)
 
 

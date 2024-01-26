@@ -405,7 +405,7 @@ class AsyncJobStage(str, Enum):
 
 class QueryJobRequest(BaseModel):
     job_id: str = Field(description="Job ID to query")
-    require_step_preivew: bool = Field(False, description="Set to true will return preview image of generation steps at current time")
+    require_step_preview: bool = Field(False, description="Set to true will return preview image of generation steps at current time")
 
 
 class AsyncJobResponse(BaseModel):
