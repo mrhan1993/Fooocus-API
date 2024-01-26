@@ -59,7 +59,7 @@ def get_task_type(req: Text2ImgRequest) -> TaskType:
     elif isinstance(req, ImgPromptRequest) or isinstance(req, ImgPromptRequestJson):
         return TaskType.img_prompt
     elif isinstance(req, ImgInpaintOrOutpaintRequest) or isinstance(req, ImgInpaintOrOutpaintRequestJson):
-        return TaskType.img_inpaint_outpaiFnt
+        return TaskType.img_inpaint_outpaint
     else:
         return TaskType.text_2_img
 
