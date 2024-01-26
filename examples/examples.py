@@ -12,8 +12,8 @@ class Config():
     text2img = '/v1/generation/text-to-image'
     img_upscale = '/v2/generation/image-upscale-vary'
     img_upscale1 = '/v1/generation/image-upscale-vary'
-    inpaint_outpaint = '/v2/generation/image-inpait-outpaint'
-    inpaint_outpaint1 = '/v1/generation/image-inpait-outpaint'
+    inpaint_outpaint = '/v2/generation/image-inpaint-outpaint'
+    inpaint_outpaint1 = '/v1/generation/image-inpaint-outpaint'
     img_prompt = '/v2/generation/image-prompt'
     img_prompt1 = '/v1/generation/image-prompt'
 
@@ -131,5 +131,5 @@ img_prompt = [
 ]
 # print(upscale_vary(image=image_base64))
 # print(inpaint_outpaint(input_image=s_base64, input_mask=m_base64))
-# print(image_prompt(img_prompt=img_prompt, params=img_prompt_params))
+print(image_prompt(img_prompt=img_prompt, params=img_prompt_params))
 print(image_prompt_with_inpaint(img_prompt=img_prompt, input_image=s_base64, input_mask=m_base64, params=img_prompt_params))

@@ -8,7 +8,7 @@ from typing import List, Tuple
 
 from fooocusapi.file_utils import delete_output_file, get_file_serve_url
 from fooocusapi.img_utils import narray_to_base64img
-from fooocusapi.parameters import ImageGenerationResult, GenerationFinishReason
+from fooocusapi.parameters import ImageGenerationParams, ImageGenerationResult, GenerationFinishReason
 
 class TaskType(str, Enum):
     text_2_img = 'Text to Image'
@@ -20,8 +20,11 @@ class TaskType(str, Enum):
 
 class QueueTask(object):
     job_id: str
+    type: TaskType
+    req_param: ImageGenerationParams
     is_finished: bool = False
     finish_progress: int = 0
+    in_queue_millis: int
     start_millis: int = 0
     finish_millis: int = 0
     finish_with_error: bool = False
@@ -31,7 +34,7 @@ class QueueTask(object):
     error_message: str | None = None
     webhook_url: str | None = None  # attribute for individual webhook_url
 
-    def __init__(self, job_id: str, type: TaskType, req_param: dict, in_queue_millis: int,
+    def __init__(self, job_id: str, type: TaskType, req_param: ImageGenerationParams, in_queue_millis: int,
                  webhook_url: str | None = None):
         self.job_id = job_id
         self.type = type
@@ -70,7 +73,7 @@ class TaskQueue(object):
         self.webhook_url = webhook_url
         self.persistent = False if persistent is None else persistent
 
-    def add_task(self, type: TaskType, req_param: dict, webhook_url: str | None = None) -> QueueTask | None:
+    def add_task(self, type: TaskType, req_param: ImageGenerationParams, webhook_url: str | None = None) -> QueueTask | None:
         """
         Create and add task to queue
         :returns: The created task's job_id, or None if reach the queue size limit
@@ -104,6 +107,13 @@ class TaskQueue(object):
             return False
 
         return self.queue[0].job_id == job_id
+    
+    def is_task_finished(self, job_id: str) -> bool:
+        task = self.get_task(job_id, True)
+        if task is None:
+            return False
+        
+        return task.is_finished
 
     def start_task(self, job_id: str):
         task = self.get_task(job_id)
