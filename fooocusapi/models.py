@@ -405,7 +405,7 @@ class AsyncJobStage(str, Enum):
 
 class QueryJobRequest(BaseModel):
     job_id: str = Field(description="Job ID to query")
-    require_step_preivew: bool = Field(False, description="Set to true will return preview image of generation steps at current time")
+    require_step_preview: bool = Field(False, description="Set to true will return preview image of generation steps at current time")
 
 
 class AsyncJobResponse(BaseModel):
@@ -421,7 +421,7 @@ class AsyncJobResponse(BaseModel):
 class JobQueueInfo(BaseModel):
     running_size: int = Field(description="The current running and waiting job count")
     finished_size: int = Field(description="Finished job cound (after auto clean)")
-    last_job_id: str = Field(description="Last submit generation job id")
+    last_job_id: str | None = Field(description="Last submit generation job id")
 
 
 # TODO May need more detail fields, will add later when someone need

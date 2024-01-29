@@ -193,8 +193,8 @@ print(json.dumps(result, indent=4, ensure_ascii=False))
 **基础信息：**
 
 ```yaml
-EndPoint_V1: /v1/generation/image-inpait-outpaint
-EndPoint_V2: /v2/generation/image-inpait-outpaint
+EndPoint_V1: /v1/generation/image-inpaint-outpaint
+EndPoint_V2: /v2/generation/image-inpaint-outpaint
 Method: Post
 DataType: form|json
 ```
@@ -232,7 +232,7 @@ def inpaint_outpaint(params: dict, input_image: bytes, input_mask: bytes = None)
     """
     局部重绘 v1 接口示例
     """
-    response = requests.post(url=f"{host}/v1/generation/image-inpait-outpaint",
+    response = requests.post(url=f"{host}/v1/generation/image-inpaint-outpaint",
                         data=params,
                         files={"input_image": input_image,
                                "input_mask": input_mask})
@@ -287,7 +287,7 @@ def inpaint_outpaint(params: dict) -> dict:
     """
     局部重绘 v1 接口示例
     """
-    response = requests.post(url=f"{host}/v2/generation/image-inpait-outpaint",
+    response = requests.post(url=f"{host}/v2/generation/image-inpaint-outpaint",
                         data=json.dumps(params),
                         headers={"Content-Type": "application/json"})
     return response.json()
@@ -604,6 +604,7 @@ def describe_image(image: bytes,
     describe-image
     """
     response = requests.post(url="http://127.0.0.1:8888/v1/tools/describe-image",
+                        params=params,
                         files={
                             "image": image
                         },

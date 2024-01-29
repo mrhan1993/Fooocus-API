@@ -100,7 +100,8 @@ class ImageGenerationParams(object):
                  inpaint_input_image: Dict[str, np.ndarray] | None,
                  inpaint_additional_prompt: str | None,
                  image_prompts: List[Tuple[np.ndarray, float, float, str]],
-                 advanced_params: List[any] | None):
+                 advanced_params: List[any] | None,
+                 require_base64: bool):
         self.prompt = prompt
         self.negative_prompt = negative_prompt
         self.style_selections = style_selections
@@ -125,6 +126,7 @@ class ImageGenerationParams(object):
         self.inpaint_input_image = inpaint_input_image
         self.inpaint_additional_prompt = inpaint_additional_prompt
         self.image_prompts = image_prompts
+        self.require_base64 = require_base64
         
         if advanced_params is None:
             disable_preview = False

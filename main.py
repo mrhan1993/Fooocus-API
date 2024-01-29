@@ -322,7 +322,7 @@ def prepare_environments(args) -> bool:
     # Init task queue
     import fooocusapi.worker as worker
     from fooocusapi.task_queue import TaskQueue
-    worker.task_queue = TaskQueue(queue_size=args.queue_size, hisotry_size=args.queue_history, webhook_url=args.webhook_url, persistent=args.persistent)
+    worker.worker_queue = TaskQueue(queue_size=args.queue_size, hisotry_size=args.queue_history, webhook_url=args.webhook_url, persistent=args.persistent)
     print(f"[Fooocus-API] Task queue size: {args.queue_size}, queue history size: {args.queue_history}, webhook url: {args.webhook_url}")
 
     return True
@@ -344,7 +344,7 @@ def pre_setup(skip_sync_repo: bool = False,
         disable_image_log = False
         skip_pip = False
         preload_pipeline = False
-        queue_size = 3
+        queue_size = 100
         queue_history = 0
         preset = None
         webhook_url = None
@@ -412,8 +412,13 @@ if __name__ == "__main__":
         sys.argv = [sys.argv[0]]
 
         # Load pipeline in new thread
-        t = Thread(target=preplaod_pipeline, daemon=True)
-        t.start()
+        preload_pipeline_thread = Thread(target=preplaod_pipeline, daemon=True)
+        preload_pipeline_thread.start()
+
+        # Start task schedule thread
+        from fooocusapi.worker import task_schedule_loop
+        task_schedule_thread = Thread(target=task_schedule_loop, daemon=True)
+        task_schedule_thread.start()
 
         # Start api server
         from fooocusapi.api import start_app
