@@ -1,0 +1,24 @@
+version: '3.8'
+
+services:
+  web-test:
+    image: socus-api:latest
+    environment:
+      TZ: Asia/Shanghai
+      PIP_INDEX_URL: https://pypi.tuna.tsinghua.edu.cn/simple
+      NVIDIA_DRIVER_CAPABILITIES: compute,utility
+      NVIDIA_VISIBLE_DEVICES: 3
+    ports:
+     - "7865:7865"
+    volumes:
+      - ~/.cache/pip:/root/.cache/pip
+      - .:/app
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              capabilities: [gpu]
+volumes:
+  pip-cache:
+    external: true
