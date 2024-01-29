@@ -4,7 +4,7 @@
   - [图像放大 | image-upscale-vary](#图像放大--image-upscale-vary)
   - [局部重绘 | image-inpaint-outpaint](#局部重绘--image-inpaint-outpaint)
   - [图生图 | image-prompt](#图生图--image-prompt)
-  - [text-to-image-with-imageprompt](#text-to-image-with-imageprompt)
+  - [text-to-image-with-image prompt](#text-to-image-with-image-prompt)
   - [图像反推 | describe](#图像反推--describe)
   - [列出模型 | all-models](#列出模型--all-models)
   - [刷新模型 | refresh-models](#刷新模型--refresh-models)
@@ -44,25 +44,25 @@ DataType: json
 ```
 **请求参数：**
 
-| Name | Type | Description |
-| ---- | ---- | ----------- |
-| prompt | string | 描述词, 默认为空字符串 |
-| negative_prompt | string | 描述词, 反向描述词 |
-| style_selections | List[str] | 风格列表, 需要是受支持的风格, 可以通过 [样式接口](#样式--styles) 获取所有支持的样式 |
-| performance_selection | Enum | 性能选择, `Speed`, `Quality`, `Extreme Speed` 中的一个, 默认 `Speed`|
-| aspect_ratios_selection | str | 分辨率, 默认 '1152*896' |
-| image_number | int | 生成图片数量, 默认 1 , 最大32, 注: 非并行接口 |
-| image_seed | int | 图片种子, 默认 -1, 即随机生成 |
-| sharpness | float | 锐度, 默认 2.0 , 0-30 |
-| guidance_scale | float | 引导比例, 默认 4.0 , 1-30 |
-| base_model_name | str | 基础模型, 默认 `juggernautXL_version6Rundiffusion.safetensors` |
-| refiner_model_name | str | 优化模型, 默认 `None` |
-| refiner_switch | float | 优化模型切换时机, 默认 0.5 |
-| loras | List[Lora] | lora 模型列表, 包含配置, lora 结构: [Lora](#lora) |
-| advanced_params | AdvacedParams | 高级参数, AdvancedParams 结构 [AdvancedParams](#高级参数--advanceparams) |
-| require_base64 | bool | 是否返回base64编码, 默认 False |
-| async_process | bool | 是否异步处理, 默认 False |
-| webhook_url | str | 异步处理完成后, 触发的 webhook 地址, 参考[webhook](#webhook) |
+| Name                    | Type           | Description                                                    |
+|-------------------------|----------------|----------------------------------------------------------------|
+| prompt                  | string         | 描述词, 默认为空字符串                                                   |
+| negative_prompt         | string         | 描述词, 反向描述词                                                     |
+| style_selections        | List[str]      | 风格列表, 需要是受支持的风格, 可以通过 [样式接口](#样式--styles) 获取所有支持的样式            |
+| performance_selection   | Enum           | 性能选择, `Speed`, `Quality`, `Extreme Speed` 中的一个, 默认 `Speed`     |
+| aspect_ratios_selection | str            | 分辨率, 默认 '1152*896'                                             |
+| image_number            | int            | 生成图片数量, 默认 1 , 最大32, 注: 非并行接口                                  |
+| image_seed              | int            | 图片种子, 默认 -1, 即随机生成                                             |
+| sharpness               | float          | 锐度, 默认 2.0 , 0-30                                              |
+| guidance_scale          | float          | 引导比例, 默认 4.0 , 1-30                                            |
+| base_model_name         | str            | 基础模型, 默认 `juggernautXL_version6Rundiffusion.safetensors`       |
+| refiner_model_name      | str            | 优化模型, 默认 `None`                                                |
+| refiner_switch          | float          | 优化模型切换时机, 默认 0.5                                               |
+| loras                   | List[Lora]     | lora 模型列表, 包含配置, lora 结构: [Lora](#lora)                        |
+| advanced_params         | AdvancedParams | 高级参数, AdvancedParams 结构 [AdvancedParams](#高级参数--advanceparams) |
+| require_base64          | bool           | 是否返回base64编码, 默认 False                                         |
+| async_process           | bool           | 是否异步处理, 默认 False                                               |
+| webhook_url             | str            | 异步处理完成后, 触发的 webhook 地址, 参考[webhook](#webhook)                 |
 
 **响应参数：**
 
@@ -111,14 +111,14 @@ DataType: form|json
 
 **请求参数**
 
-| Name | Type | Description |
-| ---- | ---- | ----------- |
-| input_image | string($binary) | 二进制 str 图像 |
-| uov_method | Enum | 'Vary (Subtle)','Vary (Strong)','Upscale (1.5x)','Upscale (2x)','Upscale (Fast 2x)','Upscale (Custom)' |
-| upscale_value | float | 默认为 None , 1.0-5.0, 放大倍数, 仅在 'Upscale (Custom)' 中有效 |
-| style_selections | List[str] | 以逗号分割的 Fooocus 风格列表 |
-| loras | str(List[Lora]) | lora 模型列表, 包含配置, lora 结构: [Lora](#lora), 比如: [{"model_name": "sd_xl_offset_example-lora_1.0.safetensors", "weight": 0.5}] |
-| advanced_params | str(AdvacedParams) | 高级参数, AdvancedParams 结构 [AdvancedParams](#高级参数--advanceparams), 以字符串形式发送, 可以为空 |
+| Name             | Type                | Description                                                                                                               |
+|------------------|---------------------|---------------------------------------------------------------------------------------------------------------------------|
+| input_image      | string($binary)     | 二进制 str 图像                                                                                                                |
+| uov_method       | Enum                | 'Vary (Subtle)','Vary (Strong)','Upscale (1.5x)','Upscale (2x)','Upscale (Fast 2x)','Upscale (Custom)'                    |
+| upscale_value    | float               | 默认为 None , 1.0-5.0, 放大倍数, 仅在 'Upscale (Custom)' 中有效                                                                       |
+| style_selections | List[str]           | 以逗号分割的 Fooocus 风格列表                                                                                                       |
+| loras            | str(List[Lora])     | lora 模型列表, 包含配置, lora 结构: [Lora](#lora), 比如: [{"model_name": "sd_xl_offset_example-lora_1.0.safetensors", "weight": 0.5}] |
+| advanced_params  | str(AdvancedParams) | 高级参数, AdvancedParams 结构 [AdvancedParams](#高级参数--advanceparams), 以字符串形式发送, 可以为空                                            |
 
 **响应参数：**
 
@@ -153,11 +153,11 @@ print(json.dumps(result, indent=4, ensure_ascii=False))
 
 **请求参数**
 
-| Name | Type | Description |
-| ---- | ---- | ----------- |
-| uov_method | UpscaleOrVaryMethod | 是个枚举类型, 包括 'Vary (Subtle)','Vary (Strong)','Upscale (1.5x)','Upscale (2x)','Upscale (Fast 2x)','Upscale (Custom)' |
-| upscale_value | float | 默认为 None , 1.0-5.0, 放大倍数, 仅在 'Upscale (Custom)' 中有效 |
-| input_image | str | 输入图像, base64 格式, 或者一个URL |
+| Name          | Type                | Description                                                                                                       |
+|---------------|---------------------|-------------------------------------------------------------------------------------------------------------------|
+| uov_method    | UpscaleOrVaryMethod | 是个枚举类型, 包括 'Vary (Subtle)','Vary (Strong)','Upscale (1.5x)','Upscale (2x)','Upscale (Fast 2x)','Upscale (Custom)' |
+| upscale_value | float               | 默认为 None , 1.0-5.0, 放大倍数, 仅在 'Upscale (Custom)' 中有效                                                               |
+| input_image   | str                 | 输入图像, base64 格式, 或者一个URL                                                                                          |
 
 **响应参数：**
 
@@ -203,19 +203,19 @@ DataType: form|json
 
 **请求参数**
 
-| Name | Type | Description |
-| ---- | ---- | ----------- |
-| input_image | string($binary) | 二进制 str 图像 |
-| input_mask | string($binary) | 二进制 str 图像 |
-| inpaint_additional_prompt | string | 附加描述 |
-| outpaint_selections | str | 图像扩展方向, 逗号分割的 'Left', 'Right', 'Top', 'Bottom' |
-| outpaint_distance_left | int | 图像扩展距离, 默认 0 |
-| outpaint_distance_right | int | 图像扩展距离, 默认 0 |
-| outpaint_distance_top | int | 图像扩展距离, 默认 0 |
-| outpaint_distance_bottom | int | 图像扩展距离, 默认 0 |
-| style_selections | List[str] | 以逗号分割的 Fooocus 风格列表 |
-| loras | str(List[Lora]) | lora 模型列表, 包含配置, lora 结构: [Lora](#lora), 比如: [{"model_name": "sd_xl_offset_example-lora_1.0.safetensors", "weight": 0.5}] |
-| advanced_params | str(AdvacedParams) | 高级参数, AdvancedParams 结构 [AdvancedParams](#高级参数--advanceparams), 以字符串形式发送 |
+| Name                      | Type                | Description                                                                                                               |
+|---------------------------|---------------------|---------------------------------------------------------------------------------------------------------------------------|
+| input_image               | string($binary)     | 二进制 str 图像                                                                                                                |
+| input_mask                | string($binary)     | 二进制 str 图像                                                                                                                |
+| inpaint_additional_prompt | string              | 附加描述                                                                                                                      |
+| outpaint_selections       | str                 | 图像扩展方向, 逗号分割的 'Left', 'Right', 'Top', 'Bottom'                                                                            |
+| outpaint_distance_left    | int                 | 图像扩展距离, 默认 0                                                                                                              |
+| outpaint_distance_right   | int                 | 图像扩展距离, 默认 0                                                                                                              |
+| outpaint_distance_top     | int                 | 图像扩展距离, 默认 0                                                                                                              |
+| outpaint_distance_bottom  | int                 | 图像扩展距离, 默认 0                                                                                                              |
+| style_selections          | List[str]           | 以逗号分割的 Fooocus 风格列表                                                                                                       |
+| loras                     | str(List[Lora])     | lora 模型列表, 包含配置, lora 结构: [Lora](#lora), 比如: [{"model_name": "sd_xl_offset_example-lora_1.0.safetensors", "weight": 0.5}] |
+| advanced_params           | str(AdvancedParams) | 高级参数, AdvancedParams 结构 [AdvancedParams](#高级参数--advanceparams), 以字符串形式发送                                                  |
 
 **响应参数：**
 
@@ -261,16 +261,16 @@ print(json.dumps(result, indent=4, ensure_ascii=False))
 
 **请求参数**
 
-| Name | Type | Description                                                     |
-| ---- | ---- |-----------------------------------------------------------------|
-| input_image | str | 输入图像, base64 格式, 或者一个URL                                                 |
-| input_mask | str | 输入遮罩, base64 格式, 或者一个URL                                                 |
-| inpaint_additional_prompt | str | 附加描述词                                                           |
-| outpaint_selections | List[OutpaintExpansion] | OutpaintExpansion 是一个枚举类型, 值包括 "Left", "Right", "Top", "Bottom" |
-| outpaint_distance_left | int | 图像扩展距离, 默认 0                                                    |
-| outpaint_distance_right | int | 图像扩展距离, 默认 0                                                    |
-| outpaint_distance_top | int | 图像扩展距离, 默认 0                                                    |
-| outpaint_distance_bottom | int | 图像扩展距离, 默认 0                                                    |
+| Name                      | Type                    | Description                                                     |
+|---------------------------|-------------------------|-----------------------------------------------------------------|
+| input_image               | str                     | 输入图像, base64 格式, 或者一个URL                                        |
+| input_mask                | str                     | 输入遮罩, base64 格式, 或者一个URL                                        |
+| inpaint_additional_prompt | str                     | 附加描述词                                                           |
+| outpaint_selections       | List[OutpaintExpansion] | OutpaintExpansion 是一个枚举类型, 值包括 "Left", "Right", "Top", "Bottom" |
+| outpaint_distance_left    | int                     | 图像扩展距离, 默认 0                                                    |
+| outpaint_distance_right   | int                     | 图像扩展距离, 默认 0                                                    |
+| outpaint_distance_top     | int                     | 图像扩展距离, 默认 0                                                    |
+| outpaint_distance_bottom  | int                     | 图像扩展距离, 默认 0                                                    |
 
 **响应参数：**
 
@@ -334,35 +334,35 @@ DataType: form|json
 
 > 注意: 虽然接口更改为继承自[局部重绘](#局部重绘--image-inpaint-outpaint), 但下方表格展示的仍然继承自[文生图](#文生图--text-to-image), 但参数是完整的
 
-| Name | Type | Description |
-| ---- | ---- | ----------- |
-| input_image | Bytes | 二进制图像, 用于局部重绘 |
-| input_mask | Bytes | 二进制图像遮罩, 用于局部重绘 |
-| inpaint_additional_prompt | str | inpaint 附加提示词 |
-| outpaint_selections | str | 图像扩展选项, 逗号分割的 "Left", "Right", "Top", "Bottom" |
-| outpaint_distance_left | int | 图像扩展距离, 默认 0 |
-| outpaint_distance_right | int | 图像扩展距离, 默认 0 |
-| outpaint_distance_top | int | 图像扩展距离, 默认 0 |
-| outpaint_distance_bottom | int | 图像扩展距离, 默认 0 |
-| cn_img1 | string($binary) | 二进制 str 图像 |
-| cn_stop1 | float | 默认 0.6 |
-| cn_weight1 | float | 默认 0.6 |
-| cn_type1 | Emum | "ImagePrompt", "FaceSwap", "PyraCanny", "CPDS" 中的一个 |
-| cn_img2 | string($binary) | 二进制 str 图像 |
-| cn_stop2 | float | 默认 0.6 |
-| cn_weight2 | float | 默认 0.6 |
-| cn_type2 | Emum | "ImagePrompt", "FaceSwap", "PyraCanny", "CPDS" 中的一个 |
-| cn_img3 | string($binary) | 二进制 str 图像 |
-| cn_stop3 | float | 默认 0.6 |
-| cn_weight3 | float | 默认 0.6 |
-| cn_type3 | Emum | "ImagePrompt", "FaceSwap", "PyraCanny", "CPDS" 中的一个 |
-| cn_img4 | string($binary) | 二进制 str 图像 |
-| cn_stop4 | float | 默认 0.6 |
-| cn_weight4 | float | 默认 0.6 |
-| cn_type4 | Emum | "ImagePrompt", "FaceSwap", "PyraCanny", "CPDS" 中的一个 |
-| style_selections | List[str] | 以逗号分割的 Fooocus 风格列表 |
-| loras | str(List[Lora]) | lora 模型列表, 包含配置, lora 结构: [Lora](#lora), 比如: [{"model_name": "sd_xl_offset_example-lora_1.0.safetensors", "weight": 0.5}] |
-| advanced_params | str(AdvacedParams) | 高级参数, AdvancedParams 结构 [AdvancedParams](#高级参数--advanceparams), 以字符串形式发送 |
+| Name                      | Type                | Description                                                                                                               |
+|---------------------------|---------------------|---------------------------------------------------------------------------------------------------------------------------|
+| input_image               | Bytes               | 二进制图像, 用于局部重绘                                                                                                             |
+| input_mask                | Bytes               | 二进制图像遮罩, 用于局部重绘                                                                                                           |
+| inpaint_additional_prompt | str                 | inpaint 附加提示词                                                                                                             |
+| outpaint_selections       | str                 | 图像扩展选项, 逗号分割的 "Left", "Right", "Top", "Bottom"                                                                            |
+| outpaint_distance_left    | int                 | 图像扩展距离, 默认 0                                                                                                              |
+| outpaint_distance_right   | int                 | 图像扩展距离, 默认 0                                                                                                              |
+| outpaint_distance_top     | int                 | 图像扩展距离, 默认 0                                                                                                              |
+| outpaint_distance_bottom  | int                 | 图像扩展距离, 默认 0                                                                                                              |
+| cn_img1                   | string($binary)     | 二进制 str 图像                                                                                                                |
+| cn_stop1                  | float               | 默认 0.6                                                                                                                    |
+| cn_weight1                | float               | 默认 0.6                                                                                                                    |
+| cn_type1                  | Enum                | "ImagePrompt", "FaceSwap", "PyraCanny", "CPDS" 中的一个                                                                       |
+| cn_img2                   | string($binary)     | 二进制 str 图像                                                                                                                |
+| cn_stop2                  | float               | 默认 0.6                                                                                                                    |
+| cn_weight2                | float               | 默认 0.6                                                                                                                    |
+| cn_type2                  | Enum                | "ImagePrompt", "FaceSwap", "PyraCanny", "CPDS" 中的一个                                                                       |
+| cn_img3                   | string($binary)     | 二进制 str 图像                                                                                                                |
+| cn_stop3                  | float               | 默认 0.6                                                                                                                    |
+| cn_weight3                | float               | 默认 0.6                                                                                                                    |
+| cn_type3                  | Enum                | "ImagePrompt", "FaceSwap", "PyraCanny", "CPDS" 中的一个                                                                       |
+| cn_img4                   | string($binary)     | 二进制 str 图像                                                                                                                |
+| cn_stop4                  | float               | 默认 0.6                                                                                                                    |
+| cn_weight4                | float               | 默认 0.6                                                                                                                    |
+| cn_type4                  | Enum                | "ImagePrompt", "FaceSwap", "PyraCanny", "CPDS" 中的一个                                                                       |
+| style_selections          | List[str]           | 以逗号分割的 Fooocus 风格列表                                                                                                       |
+| loras                     | str(List[Lora])     | lora 模型列表, 包含配置, lora 结构: [Lora](#lora), 比如: [{"model_name": "sd_xl_offset_example-lora_1.0.safetensors", "weight": 0.5}] |
+| advanced_params           | str(AdvancedParams) | 高级参数, AdvancedParams 结构 [AdvancedParams](#高级参数--advanceparams), 以字符串形式发送                                                  |
 
 **响应参数：**
 
@@ -378,7 +378,7 @@ source = open("./examples/imgs/s.jpg", "rb").read()
 mask = open("./examples/imgs/m.png", "rb").read()
 
 def image_prompt(params: dict,
-                 input_iamge: bytes=None,
+                 input_image: bytes=None,
                  input_mask: bytes=None,
                  cn_img1: bytes=None,
                  cn_img2: bytes=None,
@@ -390,7 +390,7 @@ def image_prompt(params: dict,
     response = requests.post(url=f"{host}/v1/generation/image-prompt",
                              data=params,
                              files={
-                                 "input_image": input_iamge,
+                                 "input_image": input_image,
                                  "input_mask": input_mask,
                                  "cn_img1": cn_img1,
                                  "cn_img2": cn_img2,
@@ -440,26 +440,26 @@ print(json.dumps(result, indent=4, ensure_ascii=False))
 
 **请求参数**
 
-| Name | Type | Description |
-| ---- | ---- | ----------- |
-| input_image | str | base64 图像, 或者一个URL, 用于局部重绘 |
-| input_mask | str | base64 图像遮罩, 或者一个URL, 用于局部重绘 |
-| inpaint_additional_prompt | str | inpaint 附加提示词 |
-| outpaint_selections | List[OutpaintExpansion] | 图像扩展选项, 逗号分割的 "Left", "Right", "Top", "Bottom" |
-| outpaint_distance_left | int | 图像扩展距离, 默认 0 |
-| outpaint_distance_right | int | 图像扩展距离, 默认 0 |
-| outpaint_distance_top | int | 图像扩展距离, 默认 0 |
-| outpaint_distance_bottom | int | 图像扩展距离, 默认 0 |
-| image_prompts | List[ImagePrompt] | 图像列表, 包含配置, ImagePrompt 结构如下： |
+| Name                      | Type                    | Description                                    |
+|---------------------------|-------------------------|------------------------------------------------|
+| input_image               | str                     | base64 图像, 或者一个URL, 用于局部重绘                     |
+| input_mask                | str                     | base64 图像遮罩, 或者一个URL, 用于局部重绘                   |
+| inpaint_additional_prompt | str                     | inpaint 附加提示词                                  |
+| outpaint_selections       | List[OutpaintExpansion] | 图像扩展选项, 逗号分割的 "Left", "Right", "Top", "Bottom" |
+| outpaint_distance_left    | int                     | 图像扩展距离, 默认 0                                   |
+| outpaint_distance_right   | int                     | 图像扩展距离, 默认 0                                   |
+| outpaint_distance_top     | int                     | 图像扩展距离, 默认 0                                   |
+| outpaint_distance_bottom  | int                     | 图像扩展距离, 默认 0                                   |
+| image_prompts             | List[ImagePrompt]       | 图像列表, 包含配置, ImagePrompt 结构如下：                  |
 
 **ImagePrompt**
 
-| Name | Type | Description |
-| ---- | ---- | ----------- |
-| cn_img | str | 输入图像, base64 编码, 或者一个URL |
-| cn_stop | float | 停止位置, 范围 0-1, 默认 0.5 |
-| cn_weight | float | 权重, 范围 0-2, 默认 1.0 |
-| cn_type | ControlNetType | 控制网络类型, 是一个枚举类型, 包括: "ImagePrompt", "FaceSwap", "PyraCanny", "CPDS" |
+| Name      | Type           | Description                                                         |
+|-----------|----------------|---------------------------------------------------------------------|
+| cn_img    | str            | 输入图像, base64 编码, 或者一个URL                                            |
+| cn_stop   | float          | 停止位置, 范围 0-1, 默认 0.5                                                |
+| cn_weight | float          | 权重, 范围 0-2, 默认 1.0                                                  |
+| cn_type   | ControlNetType | 控制网络类型, 是一个枚举类型, 包括: "ImagePrompt", "FaceSwap", "PyraCanny", "CPDS" |
 
 **响应参数：**
 
@@ -525,7 +525,7 @@ result = image_prompt(params)
 print(json.dumps(result, indent=4, ensure_ascii=False))
 ```
 
-## text to image with imageprompt
+## text to image with image prompt
 
 该接口暂无 v1 版本
 
@@ -539,14 +539,14 @@ DataType: json
 
 **请求参数**
 
-| Name | Type | Description |
-| ---- | ---- | ----------- |
-| image_prompts | List[ImagePrompt] | 图像列表 |
+| Name          | Type              | Description |
+|---------------|-------------------|-------------|
+| image_prompts | List[ImagePrompt] | 图像列表        |
 
 **请求示例**:
 
 ```python
-# text to image with imageprompt 示例
+# text to image with image prompt 示例
 host = "http://127.0.0.1:8888"
 image = open("./examples/imgs/bear.jpg", "rb").read()
 source = open("./examples/imgs/s.jpg", "rb").read()
@@ -773,7 +773,7 @@ def taskResult(task_id: str) -> dict:
     # 获取任务状态
     task_status = requests.get(url="http://127.0.0.1:8888/v1/generation/query-job",
                                params={"job_id": task_id,
-                                       "require_step_preivew": False},
+                                       "require_step_preview": False},
                                timeout=30)
 
     return task_status.json()
@@ -905,46 +905,46 @@ uvicorn.run(app, host="0.0.0.0", port=8000)
 
 ## 高级参数 | AdvanceParams
 
-| Name | Type | Description |
-| ---- | ---- | ----------- |
-| disable_preview | bool | 是否禁用预览, 默认 False |
-| adm_scaler_positive | float | 正 ADM Guidance Scaler, 默认 1.5, 范围 0.1-3.0 |
-| adm_scaler_negative | float | 负 ADM Guidance Scaler, 默认 0.8, 范围 0.1-3.0 |
-| adm_scaler_end | float | ADM Guidance Scaler 结束值, 默认 0.5, 范围 0.0-1.0 |
-| refiner_swap_method | str | 优化模型交换方法, 默认 `joint` |
-| adaptive_cfg | float | CFG Mimicking from TSNR, 默认 7.0, 范围 1.0-30.0 |
-| sampler_name | str | 采样器, 默认 `default_sampler` |
-| scheduler_name | str | 调度器, 默认 `default_scheduler` |
-| overwrite_step | int | Forced Overwrite of Sampling Step, 默认 -1, 范围 -1-200 |
-| overwrite_switch | int | Forced Overwrite of Refiner Switch Step, 默认 -1, 范围 -1-200 |
-| overwrite_width | int | Forced Overwrite of Generating Width, 默认 -1, 范围 -1-2048 |
-| overwrite_height | int | Forced Overwrite of Generating Height, 默认 -1, 范围 -1-2048 |
-| overwrite_vary_strength | float | Forced Overwrite of Denoising Strength of "Vary", 默认 -1, 范围 -1-1.0 |
-| overwrite_upscale_strength | float | Forced Overwrite of Denoising Strength of "Upscale", 默认 -1, 范围 -1-1.0 |
-| mixing_image_prompt_and_vary_upscale | bool | Mixing Image Prompt and Vary/Upscale, 默认 False |
-| mixing_image_prompt_and_inpaint | bool | Mixing Image Prompt and Inpaint, 默认 False |
-| debugging_cn_preprocessor | bool | Debug Preprocessors, 默认 False |
-| skipping_cn_preprocessor | bool | Skip Preprocessors, 默认 False |
-| controlnet_softness | float | Softness of ControlNet, 默认 0.25, 范围 0.0-1.0 |
-| canny_low_threshold | int | Canny Low Threshold, 默认 64, 范围 1-255 |
-| canny_high_threshold | int | Canny High Threshold, 默认 128, 范围 1-255 |
-| freeu_enabled | bool | FreeU enabled, 默认 False |
-| freeu_b1 | float | FreeU B1, 默认 1.01 |
-| freeu_b2 | float | FreeU B2, 默认 1.02 |
-| freeu_s1 | float | FreeU B3, 默认 0.99 |
-| freeu_s2 | float | FreeU B4, 默认 0.95 |
-| debugging_inpaint_preprocessor | bool | Debug Inpaint Preprocessing, 默认 False |
-| inpaint_disable_initial_latent | bool | Disable initial latent in inpaint, 默认 False |
-| inpaint_engine | str | Inpaint Engine, 默认 `v1` |
-| inpaint_strength | float | Inpaint Denoising Strength, 默认 1.0, 范围 0.0-1.0 |
-| inpaint_respective_field | float | Inpaint Respective Field, 默认 1.0, 范围 0.0-1.0 |
+| Name                                 | Type  | Description                                                           |
+|--------------------------------------|-------|-----------------------------------------------------------------------|
+| disable_preview                      | bool  | 是否禁用预览, 默认 False                                                      |
+| adm_scaler_positive                  | float | 正 ADM Guidance Scaler, 默认 1.5, 范围 0.1-3.0                             |
+| adm_scaler_negative                  | float | 负 ADM Guidance Scaler, 默认 0.8, 范围 0.1-3.0                             |
+| adm_scaler_end                       | float | ADM Guidance Scaler 结束值, 默认 0.5, 范围 0.0-1.0                           |
+| refiner_swap_method                  | str   | 优化模型交换方法, 默认 `joint`                                                  |
+| adaptive_cfg                         | float | CFG Mimicking from TSNR, 默认 7.0, 范围 1.0-30.0                          |
+| sampler_name                         | str   | 采样器, 默认 `default_sampler`                                             |
+| scheduler_name                       | str   | 调度器, 默认 `default_scheduler`                                           |
+| overwrite_step                       | int   | Forced Overwrite of Sampling Step, 默认 -1, 范围 -1-200                   |
+| overwrite_switch                     | int   | Forced Overwrite of Refiner Switch Step, 默认 -1, 范围 -1-200             |
+| overwrite_width                      | int   | Forced Overwrite of Generating Width, 默认 -1, 范围 -1-2048               |
+| overwrite_height                     | int   | Forced Overwrite of Generating Height, 默认 -1, 范围 -1-2048              |
+| overwrite_vary_strength              | float | Forced Overwrite of Denoising Strength of "Vary", 默认 -1, 范围 -1-1.0    |
+| overwrite_upscale_strength           | float | Forced Overwrite of Denoising Strength of "Upscale", 默认 -1, 范围 -1-1.0 |
+| mixing_image_prompt_and_vary_upscale | bool  | Mixing Image Prompt and Vary/Upscale, 默认 False                        |
+| mixing_image_prompt_and_inpaint      | bool  | Mixing Image Prompt and Inpaint, 默认 False                             |
+| debugging_cn_preprocessor            | bool  | Debug Preprocessors, 默认 False                                         |
+| skipping_cn_preprocessor             | bool  | Skip Preprocessors, 默认 False                                          |
+| controlnet_softness                  | float | Softness of ControlNet, 默认 0.25, 范围 0.0-1.0                           |
+| canny_low_threshold                  | int   | Canny Low Threshold, 默认 64, 范围 1-255                                  |
+| canny_high_threshold                 | int   | Canny High Threshold, 默认 128, 范围 1-255                                |
+| freeu_enabled                        | bool  | FreeU enabled, 默认 False                                               |
+| freeu_b1                             | float | FreeU B1, 默认 1.01                                                     |
+| freeu_b2                             | float | FreeU B2, 默认 1.02                                                     |
+| freeu_s1                             | float | FreeU B3, 默认 0.99                                                     |
+| freeu_s2                             | float | FreeU B4, 默认 0.95                                                     |
+| debugging_inpaint_preprocessor       | bool  | Debug Inpaint Preprocessing, 默认 False                                 |
+| inpaint_disable_initial_latent       | bool  | Disable initial latent in inpaint, 默认 False                           |
+| inpaint_engine                       | str   | Inpaint Engine, 默认 `v1`                                               |
+| inpaint_strength                     | float | Inpaint Denoising Strength, 默认 1.0, 范围 0.0-1.0                        |
+| inpaint_respective_field             | float | Inpaint Respective Field, 默认 1.0, 范围 0.0-1.0                          |
 
 ## lora
 
-| Name | Type | Description |
-| ---- | ---- | ----------- |
-| model_name | str | 模型名称 |
-| weight | float | 权重, 默认 0.5 |
+| Name       | Type  | Description |
+|------------|-------|-------------|
+| model_name | str   | 模型名称        |
+| weight     | float | 权重, 默认 0.5  |
 
 ## 响应参数 | response
 
@@ -952,23 +952,23 @@ uvicorn.run(app, host="0.0.0.0", port=8000)
 
 **async_process: True**
 
-| Name | Type | Description |
-| ---- | ---- | ----------- |
-| job_id | int | 任务ID |
-| job_type | str | 任务类型 |
-| job_stage | str | 任务阶段 |
-| job_progress | float | 任务进度 |
-| job_status | str | 任务状态 |
-| job_step_preview | str | 任务预览 |
-| job_result | str | 任务结果 |
+| Name             | Type  | Description |
+|------------------|-------|-------------|
+| job_id           | int   | 任务ID        |
+| job_type         | str   | 任务类型        |
+| job_stage        | str   | 任务阶段        |
+| job_progress     | float | 任务进度        |
+| job_status       | str   | 任务状态        |
+| job_step_preview | str   | 任务预览        |
+| job_result       | str   | 任务结果        |
 
 **async_process: False**
 
-| Name | Type | Description |
-| ---- | ---- | ----------- |
-| base64 | str | 图片base64编码, 根据 `require_base64` 参数决定是否为 null |
-| url | str | 图片url |
-| seed | int | 图片种子 |
-| finish_reason | str | 任务结束原因 |
+| Name          | Type | Description                                  |
+|---------------|------|----------------------------------------------|
+| base64        | str  | 图片base64编码, 根据 `require_base64` 参数决定是否为 null |
+| url           | str  | 图片url                                        |
+| seed          | int  | 图片种子                                         |
+| finish_reason | str  | 任务结束原因                                       |
 
 失败响应：
