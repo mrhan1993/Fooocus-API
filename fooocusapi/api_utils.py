@@ -1,6 +1,10 @@
 from typing import List
 
 from fastapi import Response
+from fastapi.security import APIKeyHeader
+from fastapi import HTTPException, Security
+
+from fooocusapi.args import args
 from fooocusapi.file_utils import get_file_serve_url, output_file_to_base64img, output_file_to_bytesimg
 from fooocusapi.img_utils import read_input_image
 from fooocusapi.models import AsyncJobResponse, AsyncJobStage, GeneratedImageResult, GenerationFinishReason, ImgInpaintOrOutpaintRequest, ImgPromptRequest, ImgUpscaleOrVaryRequest, Text2ImgRequest
@@ -12,6 +16,13 @@ from modules import flags
 from modules import config
 from modules.sdxl_styles import legal_style_names
 
+api_key_header = APIKeyHeader(name="X-API-KEY", auto_error=False)
+
+def api_key_auth(apikey: str = Security(api_key_header)):
+    if args.apikey is None:
+        return  # Skip API key check if no API key is set
+    if apikey != args.apikey:
+        raise HTTPException(status_code=403, detail="Forbidden")
 
 def req_to_params(req: Text2ImgRequest) -> ImageGenerationParams:
     if req.base_model_name is not None:
