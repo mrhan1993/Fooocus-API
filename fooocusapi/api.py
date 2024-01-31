@@ -1,14 +1,14 @@
 import uvicorn
 
 from typing import List, Optional
-from fastapi import Depends, FastAPI, Header, Query, Response, UploadFile
+from fastapi import Depends, FastAPI, Header, Query, Response, UploadFile, APIRouter, Depends
 from fastapi.params import File
 from fastapi.staticfiles import StaticFiles
 from fastapi.middleware.cors import CORSMiddleware
 
 from fooocusapi.args import args
 from fooocusapi.models import *
-from fooocusapi.api_utils import req_to_params, generate_async_output, generate_streaming_output, generate_image_result_output
+from fooocusapi.api_utils import req_to_params, generate_async_output, generate_streaming_output, generate_image_result_output, api_key_auth
 import fooocusapi.file_utils as file_utils
 from fooocusapi.parameters import GenerationFinishReason, ImageGenerationResult
 from fooocusapi.task_queue import TaskType
@@ -26,6 +26,10 @@ app.add_middleware(
     allow_credentials=True,
     allow_methods=["*"],  # Allow all HTTP methods
     allow_headers=["*"],  # Allow all request headers
+)
+
+secure_router = APIRouter(
+    dependencies=[Depends(api_key_auth)]
 )
 
 img_generate_responses = {
@@ -120,7 +124,7 @@ def ping():
     return Response(content='pong', media_type="text/html")
 
 
-@app.post("/v1/generation/text-to-image", response_model=List[GeneratedImageResult] | AsyncJobResponse, responses=img_generate_responses)
+@secure_router.post("/v1/generation/text-to-image", response_model=List[GeneratedImageResult] | AsyncJobResponse, responses=img_generate_responses)
 def text2img_generation(req: Text2ImgRequest, accept: str = Header(None),
                         accept_query: str | None = Query(None, alias='accept', description="Parameter to overvide 'Accept' header, 'image/png' for output bytes")):
     if accept_query is not None and len(accept_query) > 0:
@@ -129,7 +133,7 @@ def text2img_generation(req: Text2ImgRequest, accept: str = Header(None),
     return call_worker(req, accept)
 
 
-@app.post("/v2/generation/text-to-image-with-ip", response_model=List[GeneratedImageResult] | AsyncJobResponse, responses=img_generate_responses)
+@secure_router.post("/v2/generation/text-to-image-with-ip", response_model=List[GeneratedImageResult] | AsyncJobResponse, responses=img_generate_responses)
 def text_to_img_with_ip(req: Text2ImgRequestWithPrompt,
                         accept: str = Header(None),
                         accept_query: str | None = Query(None, alias='accept', description="Parameter to overvide 'Accept' header, 'image/png' for output bytes")):
@@ -154,7 +158,7 @@ def text_to_img_with_ip(req: Text2ImgRequestWithPrompt,
     return call_worker(req, accept)
 
 
-@app.post("/v1/generation/image-upscale-vary", response_model=List[GeneratedImageResult] | AsyncJobResponse, responses=img_generate_responses)
+@secure_router.post("/v1/generation/image-upscale-vary", response_model=List[GeneratedImageResult] | AsyncJobResponse, responses=img_generate_responses)
 def img_upscale_or_vary(input_image: UploadFile, req: ImgUpscaleOrVaryRequest = Depends(ImgUpscaleOrVaryRequest.as_form),
                         accept: str = Header(None),
                         accept_query: str | None = Query(None, alias='accept', description="Parameter to overvide 'Accept' header, 'image/png' for output bytes")):
@@ -164,7 +168,7 @@ def img_upscale_or_vary(input_image: UploadFile, req: ImgUpscaleOrVaryRequest = 
     return call_worker(req, accept)
 
 
-@app.post("/v2/generation/image-upscale-vary", response_model=List[GeneratedImageResult] | AsyncJobResponse, responses=img_generate_responses)
+@secure_router.post("/v2/generation/image-upscale-vary", response_model=List[GeneratedImageResult] | AsyncJobResponse, responses=img_generate_responses)
 def img_upscale_or_vary_v2(req: ImgUpscaleOrVaryRequestJson,
                            accept: str = Header(None),
                            accept_query: str | None = Query(None, alias='accept', description="Parameter to overvide 'Accept' header, 'image/png' for output bytes")):
@@ -189,7 +193,7 @@ def img_upscale_or_vary_v2(req: ImgUpscaleOrVaryRequestJson,
     return call_worker(req, accept)
 
 
-@app.post("/v1/generation/image-inpaint-outpaint", response_model=List[GeneratedImageResult] | AsyncJobResponse, responses=img_generate_responses)
+@secure_router.post("/v1/generation/image-inpaint-outpaint", response_model=List[GeneratedImageResult] | AsyncJobResponse, responses=img_generate_responses)
 def img_inpaint_or_outpaint(input_image: UploadFile, req: ImgInpaintOrOutpaintRequest = Depends(ImgInpaintOrOutpaintRequest.as_form),
                             accept: str = Header(None),
                             accept_query: str | None = Query(None, alias='accept', description="Parameter to overvide 'Accept' header, 'image/png' for output bytes")):
@@ -199,7 +203,7 @@ def img_inpaint_or_outpaint(input_image: UploadFile, req: ImgInpaintOrOutpaintRe
     return call_worker(req, accept)
 
 
-@app.post("/v2/generation/image-inpaint-outpaint", response_model=List[GeneratedImageResult] | AsyncJobResponse, responses=img_generate_responses)
+@secure_router.post("/v2/generation/image-inpaint-outpaint", response_model=List[GeneratedImageResult] | AsyncJobResponse, responses=img_generate_responses)
 def img_inpaint_or_outpaint_v2(req: ImgInpaintOrOutpaintRequestJson,
                                accept: str = Header(None),
                                accept_query: str | None = Query(None, alias='accept', description="Parameter to overvide 'Accept' header, 'image/png' for output bytes")):
@@ -225,7 +229,7 @@ def img_inpaint_or_outpaint_v2(req: ImgInpaintOrOutpaintRequestJson,
     return call_worker(req, accept)
 
 
-@app.post("/v1/generation/image-prompt", response_model=List[GeneratedImageResult] | AsyncJobResponse, responses=img_generate_responses)
+@secure_router.post("/v1/generation/image-prompt", response_model=List[GeneratedImageResult] | AsyncJobResponse, responses=img_generate_responses)
 def img_prompt(cn_img1: Optional[UploadFile] = File(None),
                req: ImgPromptRequest = Depends(ImgPromptRequest.as_form),
                accept: str = Header(None),
@@ -236,7 +240,7 @@ def img_prompt(cn_img1: Optional[UploadFile] = File(None),
     return call_worker(req, accept)
 
 
-@app.post("/v2/generation/image-prompt", response_model=List[GeneratedImageResult] | AsyncJobResponse, responses=img_generate_responses)
+@secure_router.post("/v2/generation/image-prompt", response_model=List[GeneratedImageResult] | AsyncJobResponse, responses=img_generate_responses)
 def img_prompt(req: ImgPromptRequestJson,
                accept: str = Header(None),
                accept_query: str | None = Query(None, alias='accept', description="Parameter to overvide 'Accept' header, 'image/png' for output bytes")):
@@ -266,7 +270,7 @@ def img_prompt(req: ImgPromptRequestJson,
     return call_worker(req, accept)
 
 
-@app.get("/v1/generation/query-job", response_model=AsyncJobResponse, description="Query async generation job")
+@secure_router.get("/v1/generation/query-job", response_model=AsyncJobResponse, description="Query async generation job")
 def query_job(req: QueryJobRequest = Depends()):
     queue_task = worker_queue.get_task(req.job_id, True)
     if queue_task is None:
@@ -280,12 +284,12 @@ def query_job(req: QueryJobRequest = Depends()):
     return generate_async_output(queue_task, req.require_step_preview)
 
 
-@app.get("/v1/generation/job-queue", response_model=JobQueueInfo, description="Query job queue info")
+@secure_router.get("/v1/generation/job-queue", response_model=JobQueueInfo, description="Query job queue info")
 def job_queue():
     return JobQueueInfo(running_size=len(worker_queue.queue), finished_size=len(worker_queue.history), last_job_id=worker_queue.last_job_id)
 
 
-@app.get("/v1/generation/job-history", response_model=JobHistoryResponse | dict, description="Query historical job data")
+@secure_router.get("/v1/generation/job-history", response_model=JobHistoryResponse | dict, description="Query historical job data")
 def get_history(job_id: str = None, page: int = 0, page_size: int = 20):
     # Fetch and return the historical tasks
     queue = [JobHistoryInfo(job_id=item.job_id, is_finished=item.is_finished) for item in worker_queue.queue]
@@ -301,13 +305,13 @@ def get_history(job_id: str = None, page: int = 0, page_size: int = 20):
         }
 
 
-@app.post("/v1/generation/stop", response_model=StopResponse, description="Job stoping")
+@secure_router.post("/v1/generation/stop", response_model=StopResponse, description="Job stoping")
 def stop():
     stop_worker()
     return StopResponse(msg="success")
 
 
-@app.post("/v1/tools/describe-image", response_model=DescribeImageResponse)
+@secure_router.post("/v1/tools/describe-image", response_model=DescribeImageResponse)
 def describe_image(image: UploadFile, type: DescribeImageType = Query(DescribeImageType.photo, description="Image type, 'Photo' or 'Anime'")):
     if type == DescribeImageType.photo:
         from extras.interrogate import default_interrogator as default_interrogator_photo
@@ -320,20 +324,20 @@ def describe_image(image: UploadFile, type: DescribeImageType = Query(DescribeIm
     return DescribeImageResponse(describe=result)
 
 
-@app.get("/v1/engines/all-models", response_model=AllModelNamesResponse, description="Get all filenames of base model and lora")
+@secure_router.get("/v1/engines/all-models", response_model=AllModelNamesResponse, description="Get all filenames of base model and lora")
 def all_models():
     import modules.config as config
     return AllModelNamesResponse(model_filenames=config.model_filenames, lora_filenames=config.lora_filenames)
 
 
-@app.post("/v1/engines/refresh-models", response_model=AllModelNamesResponse, description="Refresh local files and get all filenames of base model and lora")
+@secure_router.post("/v1/engines/refresh-models", response_model=AllModelNamesResponse, description="Refresh local files and get all filenames of base model and lora")
 def refresh_models():
     import modules.config as config
     config.update_all_model_names()
     return AllModelNamesResponse(model_filenames=config.model_filenames, lora_filenames=config.lora_filenames)
 
 
-@app.get("/v1/engines/styles", response_model=List[str], description="Get all legal Fooocus styles")
+@secure_router.get("/v1/engines/styles", response_model=List[str], description="Get all legal Fooocus styles")
 def all_styles():
     from modules.sdxl_styles import legal_style_names
     return legal_style_names
@@ -341,6 +345,7 @@ def all_styles():
 
 app.mount("/files", StaticFiles(directory=file_utils.output_dir), name="files")
 
+app.include_router(secure_router)
 
 def start_app(args):
     file_utils.static_serve_base_url = args.base_url + "/files/"

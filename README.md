@@ -130,11 +130,11 @@ here is a list need to download for startup (for different [startup params](#cmd
 
 ### already exist Fooocus
 
-If you already have Fooocus installed, and it is work well, The recommended way is to reuse models, you just simple copy `config.txt` file from your local Fooocus folder to Fooocus-API's root folder. See [Customization](https://github.com/lllyasviel/Fooocus#customization) for details.
+If you already have Fooocus installed, and it is work well, The recommended way is to reuse models, you just simple copy `config.txt` file from your local Fooocus folder to Fooocus-API root folder. See [Customization](https://github.com/lllyasviel/Fooocus#customization) for details.
 
 Use this method you will have both Fooocus and Fooocus-API running at the same time. And they operate independently and do not interfere with each other.
 
-> It is not recommended to copy an existing Fooocus installation directly to the repositories directory. If you insist on doing this, please make sure that the Fooocus directory is a Git repository, otherwise the program will not start properly
+> It is not recommended to copy an existing Fooocus installation directly to the repository's directory. If you insist on doing this, please make sure that the Fooocus directory is a Git repository, otherwise the program will not start properly
 
 ## Start with docker
 
@@ -163,7 +163,7 @@ docker run -d --gpus=all \
     -p 8888:8888 konieshadow/fooocus-api
 ```
 
-It will persistent the dependent repositories and pip cache.
+It will be persistent the dependent repositories and pip cache.
 
 You can add `-e PIP_INDEX_URL={pypi-mirror-url}` to docker run command to change pip index url.
 
@@ -181,6 +181,7 @@ You can add `-e PIP_INDEX_URL={pypi-mirror-url}` to docker run command to change
 - `--queue-history QUEUE_HISTORY` Finished jobs reserve size, tasks exceeding the limit will be deleted, including output image files, default: 0, means no limit
 - `--webhook-url WEBHOOK_URL` Webhook url for notify generation result, default: None
 - `--persistent` Store history to db
+- `--apikey APIKEY` Set apikey to enable secure api, default: None
 
 Since v0.3.25, added CMD flags support of Fooocus. You can pass any argument which Fooocus supported.
 
@@ -195,9 +196,13 @@ For Fooocus CMD flags, see [here](https://github.com/lllyasviel/Fooocus?tab=read
 
 # Change log
 
+**[24/01/31] v0.3.30** : Add secure API future, use `--apikey APIKEY` to set apikey at startup
+
+**[24/01/26] v0.3.30** : Optimize the underlying logic of task execution, default queue size to 100
+
 **[24/01/10] v0.3.29** : support for store history to db
 
-**[24/01/09] v0.3.29** : Image Prompt Mixing requirements implemented, With this implementation, you can send image prompts, and perform inpainting or upscaling with a single request.
+**[24/01/09] v0.3.29** : Image Prompt Mixing requirements implemented, With this implementation, you can send image prompts, and perform inpainting or upscale with a single request.
 
 **[24/01/04] v0.3.29** : Merged Fooocus v2.1.860
 
@@ -205,19 +210,11 @@ For Fooocus CMD flags, see [here](https://github.com/lllyasviel/Fooocus?tab=read
 
 **[23/12/29] v0.3.27** : Add describe interface，now you can get prompt from image
 
-**[23/12/29] v0.3.27** : Add query job hitory api. Add webhook_url support for each generation request.
+**[23/12/29] v0.3.27** : Add query job history api. Add webhook_url support for each generation request.
 
 **[23/12/28] v0.3.26** : **Break Change**: Add web-hook cmd flag for notify generation result. Change async job id to uuid to avoid conflict between each startup.
 
 **[23/12/22] v0.3.25** : Add CMD flags support of Fooocus. **Break Change**: Removed cli argument `disable-private-log`. You can use Fooocus's `--disable-image-log` for the same purpose.
-
-**[23/12/19] v0.3.24** : Merge for Fooocus v2.1.852. This version merged Fooocus v2.1.839, which include a seed breaking change. Details for [2.1.839](https://github.com/lllyasviel/Fooocus/blob/main/update_log.md#21839).
-
-**[23/12/14] v0.3.23** : Merge for Fooocus v2.1.837.
-
-**[23/11/30] v0.3.22** : Add upscale custom support. You can pass param `upscale_value` for upsacle api to override upscale value.
-
-**[23/11/28] v0.3.21** : Add custom size support for outpaint. Thanks to [freek99](https://github.com/freek99).  Delete output files when exceeding task queue history limit.  Remove restrictions on input resolution. Now you can use any combination of `width*height` for `aspect_ratios_selection`. Change type of `seed` field from generation result to String to avoid numerical overflow.
 
 older change history you can find in [release page](https://github.com/konieshadow/Fooocus-API/releases)
 
