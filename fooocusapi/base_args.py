@@ -15,3 +15,4 @@ def add_base_args(parser: ArgumentParser, before_prepared: bool):
     parser.add_argument("--queue-history", type=int, default=0, help="Finished jobs reserve size, tasks exceeding the limit will be deleted, including output image files, default: 0, means no limit")
     parser.add_argument('--webhook-url', type=str, default=None, help='The URL to send a POST request when a job is finished')
     parser.add_argument('--persistent', default=False, action="store_true", help="Store history to db")
+    parser.add_argument("--apikey", type=str, default=None, help="API key for authenticating requests")

@@ -181,6 +181,7 @@ docker run -d --gpus=all \
 - `--queue-history QUEUE_HISTORY` 保留的作业历史，默认 0 即无限制，超过会被删除，包括生成的图像
 - `--webhook-url WEBHOOK_URL` 通知生成结果的 webhook 地址，默认为 None
 - `--persistent` 持久化历史记录到SQLite数据库，默认关闭
+- `--apikey APIKEY` 设置 apikey 以启用安全api，默认值：无
 
 从 v0.3.25 开始, Fooocus 的命令行选项也被支持，你可以在启动时加上 Fooocus 支持的选项
 
@@ -195,9 +196,13 @@ python main.py --all-in-fp16 --always-gpu
 
 # 更新日志
 
+**[24/01/31] v0.3.30** : 增加接口认证功能, 可以通过启动参数 `--apikey APIKEY` 来设置 apikey
+
+**[24/01/26] v0.3.30** : 优化任务执行底层逻辑。调整默认队列大小为100
+
 **[24/01/10] v0.3.29** : 支持将历史生成数据持久化到数据库，并且支持从数据库中读取历史数据
 
-**[24/01/09] v0.3.29** : Image Prompt Mixing requirements implemented, With this implementation, you can send image prompts, and perform inpainting or upscaling with a single request.
+**[24/01/09] v0.3.29** : Image Prompt Mixing requirements implemented, With this implementation, you can send image prompts, and perform inpainting or upscale with a single request.
 
 **[24/01/04] v0.3.29** : 合并了 Fooocus v2.1.860
 
@@ -210,14 +215,6 @@ python main.py --all-in-fp16 --always-gpu
 **[23/12/28] v0.3.26** : **重大变更**: 添加 webhook 选项以支持生成完毕后的事件通知。将 async 的任务 ID 由数字改为 UUID 来避免应用重启后造成的混乱
 
 **[23/12/22] v0.3.25** : 增加对 Fooocus 命令行选项的支持 **重大变更**: 移除`disable-private-log` 选项，你可以使用 Fooocus 原生的 `--disable-image-log` 来达到同样的效果
-
-**[23/12/19] v0.3.24** : 该版本合并了 Fooocus v2.1.839, 包含一个对于 seed 的重大变更，详情参考：[2.1.839](https://github.com/lllyasviel/Fooocus/blob/main/update_log.md#21839).
-
-**[23/12/14] v0.3.23** : 合并 Fooocus v2.1.837.
-
-**[23/11/30] v0.3.22** : 支持自定义 upscale， 通过传递 `upscale_value` 给 upsacle api 来重写 upscale 值
-
-**[23/11/28] v0.3.21** : 增加 outpaint 自定义大小，感谢 [freek99](https://github.com/freek99) 提供的代码。当超出队列历史限制时，删除生成的图像。删除对输入分辨率的限制。现在你可以通过 `width*height` 给 `aspect_ratios_selection` 来指定任意分辨率。将 `seed` 字段的类型从 `generation result` 更改为字符串，以避免数字溢出。
 
 更早的日志可以在 [release page](https://github.com/konieshadow/Fooocus-API/releases) 找到
 
