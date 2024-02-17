@@ -119,12 +119,12 @@ source venv/bin/activate
     + [juggernautXL_version6Rundiffusion.safetensors](https://huggingface.co/lllyasviel/fav_models/resolve/main/fav/juggernautXL_version6Rundiffusion.safetensors)
 
 - vae_approx: 放到 `repositories\Fooocus\models\vae_approx`
-    + [xlvaeapp.pth](https://huggingface.co/lllyasviel/misc/resolve/main/xlvaeapp.pth')
+    + [xlvaeapp.pth](https://huggingface.co/lllyasviel/misc/resolve/main/xlvaeapp.pth)
     + [vaeapp_sd15.pth](https://huggingface.co/lllyasviel/misc/resolve/main/vaeapp_sd15.pt)
     + [xl-to-v1_interposer-v3.1.safetensors](https://huggingface.co/lllyasviel/misc/resolve/main/xl-to-v1_interposer-v3.1.safetensors)
 
 - lora: 放到 `repositories\Fooocus\models\loras`
-    + [sd_xl_offset_example-lora_1.0.safetensors](https://huggingface.co/stabilityai/stable-diffusion-xl-base-1.0/raw/main/sd_xl_offset_example-lora_1.0.safetensors)
+    + [sd_xl_offset_example-lora_1.0.safetensors](https://huggingface.co/stabilityai/stable-diffusion-xl-base-1.0/resolve/main/sd_xl_offset_example-lora_1.0.safetensors?download=true)
 
 > 国内不好下的到 [这儿](https://www.123pan.com/s/dF5A-SIQsh.html)下载， 提取码: `D4Mk`
 
