@@ -7,7 +7,7 @@ import numpy as np
 
 from PIL import Image
 from typing import List
-from cog import BasePredictor, Input, Path
+from cog import BasePredictor, BaseModel, Input, Path
 from fooocusapi.file_utils import output_dir
 from fooocusapi.parameters import (GenerationFinishReason,
                                    ImageGenerationParams,
@@ -23,6 +23,9 @@ from fooocusapi.parameters import (GenerationFinishReason,
                                    default_prompt_negative)
 from fooocusapi.task_queue import TaskType
 
+class Output(BaseModel):
+    seeds: List[str]
+    paths: List[Path]
 
 class Predictor(BasePredictor):
     def setup(self) -> None:
@@ -98,7 +101,7 @@ class Predictor(BasePredictor):
         cn_weight4: float = Input(default=None, ge=0, le=2, 
                                 description="Weight for image prompt, None for default value"),
         cn_type4: str = Input(default='ImagePrompt', description="ControlNet type for image prompt", choices=['ImagePrompt', 'FaceSwap', 'PyraCanny', 'CPDS']),
-    ) -> List[Path]:
+    ) -> Output:
         """Run a single prediction on the model"""
         import modules.flags as flags
         from modules.sdxl_styles import legal_style_names
@@ -193,8 +196,10 @@ class Predictor(BasePredictor):
         results = blocking_get_task_result(async_task.job_id)
 
         output_paths: List[Path] = []
+        output_seeds: List[str] = []
         for r in results:
             if r.finish_reason == GenerationFinishReason.success and r.im is not None:
+                output_seeds.append(r.seed)
                 output_paths.append(Path(os.path.join(output_dir, r.im)))
 
         print(f"[Predictor Predict] Finished with {len(output_paths)} images")
@@ -204,4 +209,4 @@ class Predictor(BasePredictor):
                 f"Process failed."
             )
 
-        return output_paths
+        return Output(seeds=output_seeds, paths=output_paths)

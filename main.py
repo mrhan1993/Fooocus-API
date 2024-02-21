@@ -351,7 +351,7 @@ def pre_setup(skip_sync_repo: bool = False,
         persistent = False
         always_gpu = False
         all_in_fp16 = False
-        gpu_device_id = None,
+        gpu_device_id = None
         apikey = None
 
     print("[Pre Setup] Prepare environments")
