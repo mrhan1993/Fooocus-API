@@ -21,6 +21,7 @@ from fooocusapi.parameters import (GenerationFinishReason,
                                    default_scheduler)
 
 from fooocusapi.task_queue import TaskType
+from parameters import ImageGenerationResult
 
 
 class Lora(BaseModel):
@@ -409,13 +410,13 @@ class QueryJobRequest(BaseModel):
 
 
 class AsyncJobResponse(BaseModel):
-    job_id: str = Field(description="Job ID")
+    job_id: str = Field(default='', description="Job ID")
     job_type: TaskType = Field(description="Job type")
     job_stage: AsyncJobStage = Field(description="Job running stage")
     job_progress: int = Field(description="Job running progress, 100 is for finished.")
     job_status: str | None = Field(None, description="Job running status in text")
     job_step_preview: str | None = Field(None, description="Preview image of generation steps at current time, as base64 image")
-    job_result: List[GeneratedImageResult] | None = Field(None, description="Job generation result")
+    job_result: List[GeneratedImageResult | ImageGenerationResult] | None = Field(None, description="Job generation result")
 
 
 class JobQueueInfo(BaseModel):

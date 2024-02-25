@@ -19,6 +19,8 @@
 - [License](#license)
 - [感谢 :purple\_heart:](#感谢-purple_heart)
 
+> <font color="#dd0000" size="5">重大变更: </font><br />
+> <font color="#dd0000">该版本将Fooocus完整代码作为项目的一部分，移除了pygit以及相关检测代码。</font><br />
 
 # 简介
 

@@ -4,12 +4,20 @@ import re
 import shutil
 import subprocess
 import sys
+
 from importlib.util import find_spec
 from threading import Thread
 
+import importlib.metadata
+import packaging.version
 from fooocus_api_version import version
-from fooocusapi.repositories_versions import fooocus_commit_hash
-sys.path.append(os.path.dirname(os.path.realpath(__file__)))
+
+
+script_path = os.path.dirname(os.path.realpath(__file__))
+module_path = os.path.join(script_path, 'repositories/Fooocus')
+
+sys.path.append(script_path)
+sys.path.append(module_path)
 
 
 print('[System ARGV] ' + str(sys.argv))
@@ -17,75 +25,26 @@ print('[System ARGV] ' + str(sys.argv))
 os.environ["PYTORCH_ENABLE_MPS_FALLBACK"] = "1"
 os.environ["PYTORCH_MPS_HIGH_WATERMARK_RATIO"] = "0.0"
 
-python = sys.executable
-default_command_live = True
-index_url = os.environ.get('INDEX_URL', "")
-re_requirement = re.compile(r"\s*([-_a-zA-Z0-9]+)\s*(?:==\s*([-+_.a-zA-Z0-9]+))?\s*")
 
-fooocus_name = 'Fooocus'
-
-fooocus_gitee_repo = 'https://gitee.com/mirrors/fooocus'
-fooocus_github_repo = 'https://github.com/lllyasviel/Fooocus'
-
-modules_path = os.path.dirname(os.path.realpath(__file__))
-script_path = modules_path
-dir_repos = "repositories"
+PYTHON_EXEC = sys.executable
+INDEX_URL = os.environ.get('INDEX_URL', "")
+RE_REQUIREMENTS = re.compile(r"\s*([-_a-zA-Z0-9]+)\s*(?:==\s*([-+_.a-zA-Z0-9]+))?\s*")
 
 
 # This function was copied from [Fooocus](https://github.com/lllyasviel/Fooocus) repository.
-def onerror(func, path, exc_info):
-    import stat
-    if not os.access(path, os.W_OK):
-        os.chmod(path, stat.S_IWUSR)
-        func(path)
-    else:
-        raise 'Failed to invoke "shutil.rmtree", git management failed.'
-
-
-# This function was copied from [Fooocus](https://github.com/lllyasviel/Fooocus) repository.
-def git_clone(url, dir, name, hash=None):
-    import pygit2
-
-    try:
-        try:
-            repo = pygit2.Repository(dir)
-            remote_url = repo.remotes['origin'].url
-            if remote_url not in [fooocus_gitee_repo, fooocus_github_repo]:
-                print(f'{name} exists but remote URL will be updated.')
-                del repo
-                raise url
-            else:
-                print(f'{name} exists and URL is correct.')
-            url = remote_url
-        except:
-            if os.path.isdir(dir) or os.path.exists(dir):
-                print("Fooocus exists, but not a git repo. You can find how to solve this problem here: https://github.com/konieshadow/Fooocus-API#use-exist-fooocus")
-                sys.exit(1)
-            os.makedirs(dir, exist_ok=True)
-            repo = pygit2.clone_repository(url, dir)
-            print(f'{name} cloned from {url}.')
-
-        remote = repo.remotes['origin']
-        remote.fetch()
-
-        commit = repo.get(hash)
-
-        repo.checkout_tree(commit, strategy=pygit2.GIT_CHECKOUT_FORCE)
-        repo.set_head(commit.id)
-
-        print(f'{name} checkout finished for {hash}.')
-    except Exception as e:
-        print(f'Git clone failed for {name}: {str(e)}')
-        raise e
-
-
-# This function was copied from [Fooocus](https://github.com/lllyasviel/Fooocus) repository.
-def repo_dir(name):
-    return os.path.join(script_path, dir_repos, name)
-
-
-# This function was copied from [Fooocus](https://github.com/lllyasviel/Fooocus) repository.
-def run(command, desc=None, errdesc=None, custom_env=None, live: bool = default_command_live) -> str:
+def run_command(command: str,
+                desc: str = None,
+                error_desc: str = None,
+                custom_env: str = None,
+                live: bool = True) -> str:
+    """
+    :param command: Command to run.
+    :param desc: Description of the command.
+    :param error_desc: Description of the error.
+    :param custom_env: Custom environment variables.
+    :param live: Whether to print the command.
+    :return: Output of the command.
+    """
     if desc is not None:
         print(desc)
 
@@ -94,7 +53,7 @@ def run(command, desc=None, errdesc=None, custom_env=None, live: bool = default_
         "shell": True,
         "env": os.environ if custom_env is None else custom_env,
         "encoding": 'utf8',
-        "errors": 'ignore',
+        "errors": 'ignore'
     }
 
     if not live:
@@ -104,7 +63,7 @@ def run(command, desc=None, errdesc=None, custom_env=None, live: bool = default_
 
     if result.returncode != 0:
         error_bits = [
-            f"{errdesc or 'Error running command'}.",
+            f"{error_desc or 'Error running command'}.",
             f"Command: {command}",
             f"Error code: {result.returncode}",
         ]
@@ -118,11 +77,20 @@ def run(command, desc=None, errdesc=None, custom_env=None, live: bool = default_
 
 
 # This function was copied from [Fooocus](https://github.com/lllyasviel/Fooocus) repository.
-def run_pip(command, desc=None, live=default_command_live):
+def run_pip(command, desc=None, live=True) -> str | None:
+    """
+    Runs a pip command.
+    :param command: The command to run.
+    :param desc: The description of the command.
+    :param live: Whether to print the command output.
+    :return: None
+    """
     try:
-        index_url_line = f' --index-url {index_url}' if index_url != '' else ''
-        return run(f'"{python}" -m pip {command} --prefer-binary{index_url_line}', desc=f"Installing {desc}",
-                   errdesc=f"Couldn't install {desc}", live=live)
+        index_url_line = f' --index-url {INDEX_URL}' if INDEX_URL != '' else ''
+        return run_command(f'"{PYTHON_EXEC}" -m pip {command} --prefer-binary{index_url_line}',
+                           desc=f"Installing {desc}",
+                           error_desc=f"Couldn't install {desc}",
+                           live=live)
     except Exception as e:
         print(e)
         print(f'CMD Failed {desc}: {command}')
@@ -130,21 +98,20 @@ def run_pip(command, desc=None, live=default_command_live):
 
 
 # This function was copied from [Fooocus](https://github.com/lllyasviel/Fooocus) repository.
-def requirements_met(requirements_file):
+def requirements_check(requirements_file: str) -> bool:
     """
     Does a simple parse of a requirements.txt file to determine if all requirements in it
     are already installed. Returns True if so, False if not installed or parsing fails.
+    :param requirements_file: The requirements file to parse.
+    :return: True if all requirements are installed, False otherwise.
     """
-
-    import importlib.metadata
-    import packaging.version
 
     with open(requirements_file, "r", encoding="utf8") as file:
         for line in file:
             if line.strip() == "":
                 continue
 
-            m = re.match(re_requirement, line)
+            m = re.match(RE_REQUIREMENTS, line)
             if m is None:
                 return False
 
@@ -165,35 +132,12 @@ def requirements_met(requirements_file):
     return True
 
 
-def download_repositories():
-    import pygit2
-    import requests
-
-    pygit2.option(pygit2.GIT_OPT_SET_OWNER_VALIDATION, 0)
-
-    http_proxy = os.environ.get('HTTP_PROXY')
-    https_proxy = os.environ.get('HTTPS_PROXY')
-
-    if http_proxy is not None:
-        print(f"Using http proxy for git clone: {http_proxy}")
-        os.environ['http_proxy'] = http_proxy
-
-    if https_proxy is not None:
-        print(f"Using https proxy for git clone: {https_proxy}")
-        os.environ['https_proxy'] = https_proxy
-
-    try:
-        requests.get("https://policies.google.com/privacy", timeout=5)
-        fooocus_repo_url = fooocus_github_repo
-    except:
-        fooocus_repo_url = fooocus_gitee_repo
-    fooocus_repo = os.environ.get(
-        'FOOOCUS_REPO', fooocus_repo_url)
-    git_clone(fooocus_repo, repo_dir(fooocus_name),
-              "Fooocus", fooocus_commit_hash)
-
-
-def is_installed(package):
+def is_installed(package: str) -> bool:
+    """
+    Checks if a package is installed.
+    :param package: The package to check.
+    :return: True if installed, False otherwise.
+    """
     try:
         spec = find_spec(package)
     except ModuleNotFoundError:
@@ -203,11 +147,17 @@ def is_installed(package):
 
 
 def download_models():
+    """
+    Downloads the models.
+    """
+    uri = 'https://huggingface.co/lllyasviel/misc/resolve/main/'
     vae_approx_filenames = [
-        ('xlvaeapp.pth', 'https://huggingface.co/lllyasviel/misc/resolve/main/xlvaeapp.pth'),
-        ('vaeapp_sd15.pth', 'https://huggingface.co/lllyasviel/misc/resolve/main/vaeapp_sd15.pt'),
-        ('xl-to-v1_interposer-v3.1.safetensors',
-         'https://huggingface.co/lllyasviel/misc/resolve/main/xl-to-v1_interposer-v3.1.safetensors')
+        ('xlvaeapp.pth', f'{uri}xlvaeapp.pth'),
+        ('vaeapp_sd15.pth', f'{uri}vaeapp_sd15.pt'),
+        ('xl-to-v1_interposer-v3.1.safetensors', f'{uri}xl-to-v1_interposer-v3.1.safetensors')
+    ]
+    fooocus_expansion_files = [
+        ('pytorch_model.bin', f'{uri}fooocus_expansion.bin')
     ]
 
     from modules.model_loader import load_file_from_url
@@ -227,58 +177,39 @@ def download_models():
         load_file_from_url(url=url, model_dir=lorafile_path, file_name=file_name)
     for file_name, url in vae_approx_filenames:
         load_file_from_url(url=url, model_dir=vae_approx_path, file_name=file_name)
-
-    load_file_from_url(
-        url='https://huggingface.co/lllyasviel/misc/resolve/main/fooocus_expansion.bin',
-        model_dir=fooocus_expansion_path,
-        file_name='pytorch_model.bin'
-    )
+    for file_name, url in fooocus_expansion_files:
+        load_file_from_url(url=url, model_dir=fooocus_expansion_path, file_name=file_name)
 
 
 def install_dependents(args):
+    """
+    Install dependencies.
+    :param args: The arguments.
+    """
     if not args.skip_pip:
-        torch_index_url = os.environ.get('TORCH_INDEX_URL', "https://download.pytorch.org/whl/cu121")
+        torch_index_url = os.environ.get('TORCH_INDEX_URL',
+                                         "https://download.pytorch.org/whl/cu121")
 
         # Check if you need pip install
         requirements_file = 'requirements.txt'
-        if not requirements_met(requirements_file):
+        if not requirements_check(requirements_file):
             run_pip(f"install -r \"{requirements_file}\"", "requirements")
 
         if not is_installed("torch") or not is_installed("torchvision"):
             print(f"torch_index_url: {torch_index_url}")
-            run_pip(f"install torch==2.1.0 torchvision==0.16.0 --extra-index-url {torch_index_url}", "torch")
+            run_pip(f"install torch==2.1.0 torchvision==0.16.0 --extra-index-url {torch_index_url}",
+                    "torch")
 
         if args.persistent and not is_installed("sqlalchemy"):
-            run_pip(f"install sqlalchemy==2.0.25", "sqlalchemy")
-
-    skip_sync_repo = False
-    if args.sync_repo is not None:
-        if args.sync_repo == 'only':
-            print("Only download and sync depent repositories")
-            download_repositories()
-            models_path = os.path.join(
-                script_path, dir_repos, fooocus_name, "models")
-            print(
-                f"Sync repositories successful. Now you can put model files in subdirectories of '{models_path}'")
-            return False
-        elif args.sync_repo == 'skip':
-            skip_sync_repo = True
-        else:
-            print(
-                f"Invalid value for argument '--sync-repo', acceptable value are 'skip' and 'only'")
-            exit(1)
-
-    if not skip_sync_repo:
-        download_repositories()
-
-    # Add dependent repositories to import path
-    sys.path.append(script_path)
-    fooocus_path = os.path.join(script_path, dir_repos, fooocus_name)
-    sys.path.append(fooocus_path)
-    os.environ["PYTORCH_ENABLE_MPS_FALLBACK"] = "1"
+            run_pip("install sqlalchemy==2.0.25", "sqlalchemy")
 
 
 def prepare_environments(args) -> bool:
+    """
+    Prepare the environments.
+    :param args: The arguments.
+    :return: True if successful, False otherwise.
+    """
     if args.gpu_device_id is not None:
         os.environ['CUDA_VISIBLE_DEVICES'] = str(args.gpu_device_id)
         print("Set device to:", args.gpu_device_id)
@@ -293,7 +224,7 @@ def prepare_environments(args) -> bool:
 
     if args.preset is not None:
         # Remove and copy preset folder
-        origin_preset_folder = os.path.abspath(os.path.join(script_path, dir_repos, fooocus_name, 'presets'))
+        origin_preset_folder = os.path.abspath(os.path.join(module_path, 'presets'))
         preset_folder = os.path.abspath(os.path.join(script_path, 'presets'))
         if os.path.exists(preset_folder):
             shutil.rmtree(preset_folder)
@@ -314,31 +245,37 @@ def prepare_environments(args) -> bool:
 
     download_models()
 
-    if args.preload_pipeline:
-        preplaod_pipeline()
-
     # Init task queue
     import fooocusapi.worker as worker
     from fooocusapi.task_queue import TaskQueue
-    worker.worker_queue = TaskQueue(queue_size=args.queue_size, hisotry_size=args.queue_history, webhook_url=args.webhook_url, persistent=args.persistent)
-    print(f"[Fooocus-API] Task queue size: {args.queue_size}, queue history size: {args.queue_history}, webhook url: {args.webhook_url}")
+    worker.worker_queue = TaskQueue(queue_size=args.queue_size,
+                                    hisotry_size=args.queue_history,
+                                    webhook_url=args.webhook_url,
+                                    persistent=args.persistent)
+    print(f"[Fooocus-API] Task queue size: {args.queue_size}")
+    print(f"[Fooocus-API] Task queue history size: {args.queue_history}")
+    print(f"[Fooocus-API] Task queue webhook url: {args.webhook_url}")
 
     return True
 
 
-def pre_setup(skip_sync_repo: bool = False,
-              disable_image_log: bool = False,
-              skip_pip=False,
-              load_all_models: bool = False,
-              preload_pipeline: bool = False,
-              always_gpu: bool = False,
-              all_in_fp16: bool = False,
-              preset: str | None = None):
+def pre_setup(disable_image_log: bool = False, skip_pip=False,
+              load_all_models: bool = False, preload_pipeline: bool = False,
+              always_gpu: bool = False, all_in_fp16: bool = False, preset: str | None = None):
+    """
+    Prepare environments for replicate.
+    :param disable_image_log: Disable image log.
+    :param skip_pip: Skip pip install.
+    :param load_all_models: Load all models.
+    :param preload_pipeline: Preload pipeline.
+    :param always_gpu: Always use GPU.
+    :param all_in_fp16: All in fp16.
+    :param preset: The preset.
+    """
     class Args(object):
         host = '127.0.0.1'
         port = 8888
         base_url = None
-        sync_repo = None
         disable_image_log = False
         skip_pip = False
         preload_pipeline = False
@@ -355,8 +292,6 @@ def pre_setup(skip_sync_repo: bool = False,
     print("[Pre Setup] Prepare environments")
 
     args = Args()
-    if skip_sync_repo:
-        args.sync_repo = 'skip'
     args.disable_image_log = disable_image_log
     args.skip_pip = skip_pip
     args.preload_pipeline = preload_pipeline
@@ -373,8 +308,7 @@ def pre_setup(skip_sync_repo: bool = False,
         sys.argv.append('--disable-image-log')
 
     install_dependents(args)
-
-    import fooocusapi.args as _
+    preplaod_pipeline()
     prepare_environments(args)
 
     if load_all_models:
@@ -389,6 +323,7 @@ def pre_setup(skip_sync_repo: bool = False,
 
 
 def preplaod_pipeline():
+    "Preload pipeline"
     print("Preload pipeline")
     import modules.default_pipeline as _
 

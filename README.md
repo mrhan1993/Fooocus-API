@@ -19,6 +19,8 @@
 - [License](#license)
 - [Thanks :purple\_heart:](#thanks-purple_heart)
 
+> <font color="#dd0000" size="5">Breaking change: </font><br />
+> <font color="#dd0000">This version takes the complete code of Fooocus as part of the project and removes pygit and related detection code.</font><br />
 
 # Introduction
 
