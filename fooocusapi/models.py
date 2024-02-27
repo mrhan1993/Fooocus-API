@@ -21,7 +21,7 @@ from fooocusapi.parameters import (GenerationFinishReason,
                                    default_scheduler)
 
 from fooocusapi.task_queue import TaskType
-from parameters import ImageGenerationResult
+from fooocusapi.parameters import ImageGenerationResult
 
 
 class Lora(BaseModel):
@@ -42,7 +42,7 @@ class PerfomanceSelection(str, Enum):
     speed = 'Speed'
     quality = 'Quality'
     extreme_speed = 'Extreme Speed'
-    
+
 
 class UpscaleOrVaryMethod(str, Enum):
     subtle_variation = 'Vary (Subtle)'
@@ -269,7 +269,7 @@ class ImgInpaintOrOutpaintRequest(Text2ImgRequest):
 
         if isinstance(input_mask, File):
             input_mask = None
-        
+
         outpaint_selections_arr = oupaint_selections_parser(outpaint_selections)
         style_selection_arr = style_selection_parser(style_selections)
         loras_model = lora_parser(loras)
@@ -445,6 +445,6 @@ class AllModelNamesResponse(BaseModel):
         protected_namespaces=('protect_me_', 'also_protect_')
     )
 
-    
+
 class StopResponse(BaseModel):
     msg: str
