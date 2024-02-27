@@ -102,6 +102,7 @@ class ImageGenerationParams(object):
                  outpaint_distance_bottom: int,
                  inpaint_input_image: Dict[str, np.ndarray] | None,
                  inpaint_additional_prompt: str | None,
+                 inpaint_method: str | None,
                  image_prompts: List[Tuple[np.ndarray, float, float, str]],
                  advanced_params: List[any] | None):
         self.prompt = prompt
@@ -127,6 +128,7 @@ class ImageGenerationParams(object):
         self.outpaint_distance_bottom = outpaint_distance_bottom
         self.inpaint_input_image = inpaint_input_image
         self.inpaint_additional_prompt = inpaint_additional_prompt
+        self.inpaint_method = inpaint_method
         self.image_prompts = image_prompts
         
         if advanced_params is None:
@@ -163,6 +165,17 @@ class ImageGenerationParams(object):
             invert_mask_checkbox = False
             inpaint_erode_or_dilate = 0
 
+            #set some advanced_params that impact inpaint_medhod
+            if inpaint_method == 'Improve Detail (face, hand, eyes, etc.)':
+                inpaint_disable_initial_latent = False
+                inpaint_strength = 0.5
+                inpaint_respective_field = 0.0
+                inpaint_engine = 'None'
+            elif inpaint_method == 'Modify Object (add objects, change background, etc.)':
+                inpaint_disable_initial_latent = True
+                inpaint_strength = 1.0
+                inpaint_respective_field = 0.0
+            # the default parameters map to the 'Balanced' method, so nothing to change
 
             # Auto set mixing_image_prompt_and_inpaint to True
             if len(self.image_prompts) > 0 and inpaint_input_image is not None:
