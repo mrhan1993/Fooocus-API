@@ -9,6 +9,7 @@ from typing import List, Tuple
 from enum import Enum
 
 from fooocusapi.parameters import (GenerationFinishReason,
+                                   ImageGenerationResult,
                                    default_styles,
                                    default_base_model_name,
                                    default_refiner_model_name,
@@ -21,7 +22,7 @@ from fooocusapi.parameters import (GenerationFinishReason,
                                    default_scheduler)
 
 from fooocusapi.task_queue import TaskType
-from fooocusapi.parameters import ImageGenerationResult
+# from fooocusapi.parameters import ImageGenerationResult
 
 
 class Lora(BaseModel):

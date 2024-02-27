@@ -1,7 +1,7 @@
 from enum import Enum
-from typing import Dict, List, Tuple
+from typing import Dict, List, Tuple, Optional
 import numpy as np
-
+from pydantic import BaseModel
 
 default_inpaint_engine_version = 'v2.6'
 
@@ -68,11 +68,17 @@ class GenerationFinishReason(str, Enum):
     error = 'ERROR'
 
 
-class ImageGenerationResult(object):
-    def __init__(self, im: str | None, seed: str, finish_reason: GenerationFinishReason):
-        self.im = im
-        self.seed = seed
-        self.finish_reason = finish_reason
+class ImageGenerationResult(BaseModel):
+    # def __init__(self, im: str | None, seed: str, finish_reason: GenerationFinishReason):
+    #     self.im = im
+    #     self.seed = seed
+    #     self.finish_reason = finish_reason
+    im: Optional[str]
+    seed: str
+    finish_reason: GenerationFinishReason
+
+    class Config:
+        arbitrary_types_allowed = True
 
 
 class ImageGenerationParams(object):
@@ -127,7 +133,7 @@ class ImageGenerationParams(object):
         self.inpaint_additional_prompt = inpaint_additional_prompt
         self.image_prompts = image_prompts
         self.require_base64 = require_base64
-        
+
         if advanced_params is None:
             disable_preview = False
             adm_scaler_positive = 1.5
