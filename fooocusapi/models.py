@@ -1,12 +1,12 @@
+from typing import List, Tuple
+from enum import Enum
+
 from fastapi import Form, UploadFile
 from fastapi.params import File
 from fastapi.exceptions import RequestValidationError
 
 from pydantic import BaseModel, ConfigDict, Field, TypeAdapter, ValidationError
 from pydantic_core import InitErrorDetails
-
-from typing import List, Tuple
-from enum import Enum
 
 from fooocusapi.parameters import (GenerationFinishReason,
                                    default_styles,

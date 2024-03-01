@@ -6,8 +6,8 @@ import numpy as np
 from enum import Enum
 from typing import List, Tuple
 
-from fooocusapi.file_utils import delete_output_file, get_file_serve_url
-from fooocusapi.img_utils import narray_to_base64img
+from fooocusapi.utils.file_utils import delete_output_file, get_file_serve_url
+from fooocusapi.utils.img_utils import narray_to_base64img
 from fooocusapi.parameters import ImageGenerationParams, ImageGenerationResult, GenerationFinishReason
 
 class TaskType(str, Enum):

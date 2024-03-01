@@ -7,7 +7,7 @@ import re
 import logging
 
 from typing import List
-from fooocusapi.file_utils import save_output_file
+from fooocusapi.utils.file_utils import save_output_file
 from fooocusapi.parameters import GenerationFinishReason, ImageGenerationResult
 from fooocusapi.task_queue import QueueTask, TaskQueue, TaskOutputs
 

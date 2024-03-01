@@ -2,20 +2,28 @@ from enum import Enum
 from typing import Dict, List, Tuple
 import numpy as np
 
+from modules import config
 
-default_inpaint_engine_version = 'v2.6'
+
+def get_aspect_ratio_value(label: str) -> str:
+    return label.split(' ')[0].replace('×', '*')
 
 
-default_styles = ['Fooocus V2', 'Fooocus Enhance', 'Fooocus Sharp']
-default_base_model_name = 'juggernautXL_version8Rundiffusion.safetensors'
-default_refiner_model_name = 'None'
-default_refiner_switch = 0.5
-default_loras = [['sd_xl_offset_example-lora_1.0.safetensors', 0.1]]
-default_cfg_scale = 4.0
-default_prompt_negative = ''
-default_aspect_ratio = '1152*896'
-default_sampler = 'dpmpp_2m_sde_gpu'
-default_scheduler = 'karras'
+default_inpaint_engine_version = config.default_inpaint_engine_version
+default_styles = config.default_styles
+default_base_model_name = config.default_base_model_name
+default_refiner_model_name = config.default_refiner_model_name
+default_refiner_switch = config.default_refiner_switch
+default_loras = config.default_loras
+default_cfg_scale = config.default_cfg_scale
+default_prompt_negative = config.default_prompt_negative
+default_sampler = config.default_sampler
+default_scheduler = config.default_scheduler
+
+
+default_aspect_ratio = get_aspect_ratio_value(config.default_aspect_ratio)
+available_aspect_ratios = [get_aspect_ratio_value(a) for a in config.available_aspect_ratios]
+
 
 
 available_aspect_ratios = [
@@ -57,8 +65,6 @@ outpaint_expansions = [
 ]
 
 
-def get_aspect_ratio_value(label: str) -> str:
-    return label.split(' ')[0].replace('×', '*')
 
 
 class GenerationFinishReason(str, Enum):
