@@ -1,26 +1,26 @@
 """Application startup file"""
 # pylint: disable=import-outside-toplevel
+# pylint: disable=wrong-import-position
 import argparse
 import os
 import sys
 
+from threading import Thread
+from fooocus_api_version import version
+
+
+# add fooocus api and fooocus to system path
 script_path = os.path.dirname(os.path.realpath(__file__))
 module_path = os.path.join(script_path, 'repositories/Fooocus')
 
 sys.path.append(script_path)
 sys.path.append(module_path)
 
-from threading import Thread
 
 from fooocusapi.worker import task_schedule_loop
-
 from fooocusapi.utils.prepare import (prepare_environments,
                                       install_dependents,
                                       preplaod_pipeline)
-from fooocus_api_version import version
-
-
-
 
 
 print('[System ARGV] ' + str(sys.argv))
@@ -43,7 +43,7 @@ def pre_setup(disable_image_log: bool = False, skip_pip=False,
         all_in_fp16: All in fp16.
         preset: The preset.
     """
-    class Args(object):
+    class Args():
         host = '127.0.0.1'
         port = 8888
         base_url = None
@@ -97,7 +97,7 @@ def pre_setup(disable_image_log: bool = False, skip_pip=False,
 if __name__ == "__main__":
     from fooocusapi.base_args import add_base_args
     from fooocusapi.api import start_app
-    
+
     print(f"Python {sys.version}")
     print(f"Fooocus-API version: {version}")
     parser = argparse.ArgumentParser()

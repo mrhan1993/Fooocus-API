@@ -4,25 +4,57 @@ from fastapi import Response
 from fastapi.security import APIKeyHeader
 from fastapi import HTTPException, Security
 
-from fooocusapi.args import args
-from fooocusapi.utils.file_utils import get_file_serve_url, output_file_to_base64img, output_file_to_bytesimg
-from fooocusapi.utils.img_utils import read_input_image
-from fooocusapi.models import AsyncJobResponse, AsyncJobStage, GeneratedImageResult, GenerationFinishReason, ImgInpaintOrOutpaintRequest, ImgPromptRequest, ImgUpscaleOrVaryRequest, Text2ImgRequest
-from fooocusapi.models_v2 import *
-from fooocusapi.parameters import ImageGenerationParams, ImageGenerationResult, default_inpaint_engine_version, default_sampler, default_scheduler, default_base_model_name, default_refiner_model_name
-from fooocusapi.task_queue import QueueTask
-
 from modules import flags
 from modules import config
 from modules.sdxl_styles import legal_style_names
 
+from fooocusapi.args import args
+from fooocusapi.utils.img_utils import read_input_image
+from fooocusapi.task_queue import QueueTask
+
+from fooocusapi.utils.file_utils import (get_file_serve_url,
+                                         output_file_to_base64img,
+                                         output_file_to_bytesimg)
+
+from fooocusapi.models import (AsyncJobResponse,
+                               AsyncJobStage,
+                               GeneratedImageResult,
+                               GenerationFinishReason,
+                               ImgInpaintOrOutpaintRequest,
+                               ImgPromptRequest,
+                               ImgUpscaleOrVaryRequest,
+                               Text2ImgRequest)
+
+from fooocusapi.models_v2 import (ImgInpaintOrOutpaintRequestJson,
+                                  ImgPromptRequestJson,
+                                  Text2ImgRequestWithPrompt,
+                                  ImgUpscaleOrVaryRequestJson)
+
+from fooocusapi.parameters import (ImageGenerationParams,
+                                   ImageGenerationResult,
+                                   default_inpaint_engine_version,
+                                   default_sampler,
+                                   default_scheduler,
+                                   default_base_model_name,
+                                   default_refiner_model_name)
+
+
 api_key_header = APIKeyHeader(name="X-API-KEY", auto_error=False)
 
+
 def api_key_auth(apikey: str = Security(api_key_header)):
+    """
+    Check if the API key is valid, API key is not required if no API key is set
+    Args:
+        apikey: API key
+    returns:
+        None if API key is not set, otherwise raise HTTPException
+    """
     if args.apikey is None:
         return  # Skip API key check if no API key is set
     if apikey != args.apikey:
         raise HTTPException(status_code=403, detail="Forbidden")
+
 
 def req_to_params(req: Text2ImgRequest) -> ImageGenerationParams:
     if req.base_model_name is not None:
@@ -109,7 +141,7 @@ def req_to_params(req: Text2ImgRequest) -> ImageGenerationParams:
                     img_prompt.cn_weight = flags.default_parameters[img_prompt.cn_type.value][1]
                 image_prompts.append(
                     (cn_img, img_prompt.cn_stop, img_prompt.cn_weight, img_prompt.cn_type.value))
-                
+
     advanced_params = None
     if req.advanced_params is not None:
         adp = req.advanced_params
@@ -129,16 +161,20 @@ def req_to_params(req: Text2ImgRequest) -> ImageGenerationParams:
         if adp.inpaint_engine not in flags.inpaint_engine_versions:
             print(f"[Warning] Wrong inpaint_engine input: {adp.inpaint_engine}, using default")
             adp.inpaint_engine = default_inpaint_engine_version
-        
+
         advanced_params = [
-            adp.disable_preview, adp.adm_scaler_positive, adp.adm_scaler_negative, adp.adm_scaler_end, adp.adaptive_cfg, adp.sampler_name, \
-            adp.scheduler_name, False, adp.overwrite_step, adp.overwrite_switch, adp.overwrite_width, adp.overwrite_height, \
-            adp.overwrite_vary_strength, adp.overwrite_upscale_strength, \
-            adp.mixing_image_prompt_and_vary_upscale, adp.mixing_image_prompt_and_inpaint, \
-            adp.debugging_cn_preprocessor, adp.skipping_cn_preprocessor, adp.controlnet_softness, adp.canny_low_threshold, adp.canny_high_threshold, \
-            adp.refiner_swap_method, \
-            adp.freeu_enabled, adp.freeu_b1, adp.freeu_b2, adp.freeu_s1, adp.freeu_s2, \
-            adp.debugging_inpaint_preprocessor, adp.inpaint_disable_initial_latent, adp.inpaint_engine, adp.inpaint_strength, adp.inpaint_respective_field, \
+            adp.disable_preview, adp.adm_scaler_positive, adp.adm_scaler_negative,
+            adp.adm_scaler_end, adp.adaptive_cfg, adp.sampler_name,
+            adp.scheduler_name, False, adp.overwrite_step,
+            adp.overwrite_switch, adp.overwrite_width, adp.overwrite_height,
+            adp.overwrite_vary_strength, adp.overwrite_upscale_strength,
+            adp.mixing_image_prompt_and_vary_upscale, adp.mixing_image_prompt_and_inpaint,
+            adp.debugging_cn_preprocessor, adp.skipping_cn_preprocessor, adp.controlnet_softness,
+            adp.canny_low_threshold, adp.canny_high_threshold,
+            adp.refiner_swap_method,
+            adp.freeu_enabled, adp.freeu_b1, adp.freeu_b2, adp.freeu_s1, adp.freeu_s2,
+            adp.debugging_inpaint_preprocessor, adp.inpaint_disable_initial_latent,
+            adp.inpaint_engine, adp.inpaint_strength, adp.inpaint_respective_field,
             False, adp.invert_mask_checkbox, adp.inpaint_erode_or_dilate
         ]
 
@@ -215,7 +251,3 @@ def generate_image_result_output(results: List[ImageGenerationResult], require_b
             seed=item.seed,
             finish_reason=item.finish_reason) for item in results]
     return results
-
-
-class QueueReachLimitException(Exception):
-    pass

@@ -7,17 +7,49 @@ from fastapi.params import File
 from fastapi.staticfiles import StaticFiles
 from fastapi.middleware.cors import CORSMiddleware
 
-from fooocusapi.args import args
-from fooocusapi.models import *
-from fooocusapi.api_utils import req_to_params, generate_async_output, generate_streaming_output, generate_image_result_output, api_key_auth
-import fooocusapi.utils.file_utils as file_utils
+from modules.util import HWC3
+
+from fooocusapi.models import (
+    Text2ImgRequest,
+    ImgUpscaleOrVaryRequest,
+    ImgPromptRequest,
+    ImgInpaintOrOutpaintRequest,
+    AsyncJobResponse,
+    GeneratedImageResult,
+    AsyncJobStage,
+    ImagePrompt,
+    JobQueueInfo,
+    JobHistoryInfo,
+    JobHistoryResponse,
+    StopResponse,
+    DescribeImageType,
+    DescribeImageResponse,
+    QueryJobRequest,
+    AllModelNamesResponse
+)
+from fooocusapi.models_v2 import (
+    ImgUpscaleOrVaryRequestJson,
+    ImgPromptRequestJson,
+    ImgInpaintOrOutpaintRequestJson,
+    Text2ImgRequestWithPrompt)
+
+from fooocusapi.api_utils import (
+    req_to_params,
+    generate_async_output,
+    generate_streaming_output,
+    generate_image_result_output,
+    api_key_auth
+)
+
+from fooocusapi.utils import file_utils
 from fooocusapi.parameters import GenerationFinishReason, ImageGenerationResult
 from fooocusapi.task_queue import TaskType
 from fooocusapi.worker import worker_queue, process_top, blocking_get_task_result
-from fooocusapi.models_v2 import *
 from fooocusapi.utils.img_utils import base64_to_stream, read_input_image
 
-from modules.util import HWC3
+from fooocusapi.args import args
+
+
 
 app = FastAPI()
 
@@ -242,7 +274,7 @@ def img_prompt(cn_img1: Optional[UploadFile] = File(None),
 
 
 @secure_router.post("/v2/generation/image-prompt", response_model=List[GeneratedImageResult] | AsyncJobResponse, responses=img_generate_responses)
-def img_prompt(req: ImgPromptRequestJson,
+def img_prompt_v2(req: ImgPromptRequestJson,
                accept: str = Header(None),
                accept_query: str | None = Query(None, alias='accept', description="Parameter to overvide 'Accept' header, 'image/png' for output bytes")):
     if accept_query is not None and len(accept_query) > 0:
