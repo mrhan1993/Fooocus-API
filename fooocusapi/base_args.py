@@ -4,7 +4,7 @@ from argparse import ArgumentParser
 def add_base_args(parser: ArgumentParser, before_prepared: bool):
     if before_prepared:
         parser.add_argument("--port", type=int, default=8888, help="Set the listen port, default: 8888")
-        
+
     parser.add_argument("--host", type=str, default='127.0.0.1', help="Set the listen host, default: 127.0.0.1")
     parser.add_argument("--base-url", type=str, default=None, help="Set base url for outside visit, default is http://host:port")
     parser.add_argument("--log-level", type=str, default='info', help="Log info for Uvicorn, default: info")

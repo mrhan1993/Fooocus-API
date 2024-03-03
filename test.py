@@ -100,7 +100,8 @@ async def add_task():
 @app.get(path='/v1/task_list')
 async def task_list():
     """获取任务列表"""
-    tasks = [{"task_id": task.task_id, "status": task.status, "progress": task.progress} for task in task_queue.history]
+    tasks = [{"task_id": task.task_id, "status": task.status,
+              "progress": task.progress} for task in task_queue.history]
     return {"status": "ok", "tasks": tasks}
 
 

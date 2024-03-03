@@ -1,19 +1,19 @@
+from typing import List
 import copy
 import random
 import time
+import logging
+import re
 import numpy as np
 import torch
-import re
-import logging
 
-from typing import List
 from fooocusapi.utils.file_utils import save_output_file
 from fooocusapi.parameters import GenerationFinishReason, ImageGenerationResult
 from fooocusapi.task_queue import QueueTask, TaskQueue, TaskOutputs
 
 worker_queue: TaskQueue = None
 
-def process_top():
+def process_stop():
     import ldm_patched.modules.model_management
     ldm_patched.modules.model_management.interrupt_current_processing()
 

@@ -96,7 +96,6 @@ def pre_setup(disable_image_log: bool = False, skip_pip=False,
 
 if __name__ == "__main__":
     from fooocusapi.base_args import add_base_args
-    from fooocusapi.api import start_app
 
     print(f"Python {sys.version}")
     print(f"Fooocus-API version: {version}")
@@ -119,4 +118,5 @@ if __name__ == "__main__":
         task_schedule_thread.start()
 
         # Start api server
+        from fooocusapi.api import start_app
         start_app(args)

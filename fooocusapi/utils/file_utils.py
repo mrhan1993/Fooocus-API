@@ -35,9 +35,9 @@ def save_output_file(img: np.ndarray, image_meta: dict = None,
     current_time = datetime.datetime.now()
     date_string = current_time.strftime("%Y-%m-%d")
 
-    image_name = str(uuid.uuid4) if image_name == '' else image_name
+    image_name = str(uuid.uuid4()) if image_name == '' else image_name
 
-    filename = os.path.join(date_string, image_name + extension)
+    filename = os.path.join(date_string, image_name + '.' + extension)
     file_path = os.path.join(output_dir, filename)
 
     if image_meta is None:

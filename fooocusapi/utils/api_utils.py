@@ -1,3 +1,4 @@
+"""API utils"""
 from typing import List
 
 from fastapi import Response
@@ -8,15 +9,18 @@ from modules import flags
 from modules import config
 from modules.sdxl_styles import legal_style_names
 
+from fooocusapi.worker import process_stop, worker_queue
+from fooocusapi.worker import blocking_get_task_result
+
 from fooocusapi.args import args
 from fooocusapi.utils.img_utils import read_input_image
-from fooocusapi.task_queue import QueueTask
+from fooocusapi.task_queue import QueueTask, TaskType
 
 from fooocusapi.utils.file_utils import (get_file_serve_url,
                                          output_file_to_base64img,
                                          output_file_to_bytesimg)
 
-from fooocusapi.models import (AsyncJobResponse,
+from fooocusapi.models.models import (AsyncJobResponse,
                                AsyncJobStage,
                                GeneratedImageResult,
                                GenerationFinishReason,
@@ -25,7 +29,7 @@ from fooocusapi.models import (AsyncJobResponse,
                                ImgUpscaleOrVaryRequest,
                                Text2ImgRequest)
 
-from fooocusapi.models_v2 import (ImgInpaintOrOutpaintRequestJson,
+from fooocusapi.models.models_v2 import (ImgInpaintOrOutpaintRequestJson,
                                   ImgPromptRequestJson,
                                   Text2ImgRequestWithPrompt,
                                   ImgUpscaleOrVaryRequestJson)
@@ -39,8 +43,28 @@ from fooocusapi.parameters import (ImageGenerationParams,
                                    default_refiner_model_name)
 
 
-api_key_header = APIKeyHeader(name="X-API-KEY", auto_error=False)
+img_generate_responses = {
+    "200": {
+        "description": "PNG bytes if request's 'Accept' header is 'image/png', otherwise JSON",
+        "content": {
+            "application/json": {
+                "example": [
+                    {
+                        "base64": "...very long string...",
+                        "seed": "1050625087",
+                        "finish_reason": "SUCCESS",
+                    }
+                ]
+            },
+            "application/json async": {
+                "example": {"job_id": 1, "job_type": "Text to Image"}
+            },
+            "image/png": {"example": "PNG bytes, what did you expect?"},
+        },
+    }
+}
 
+api_key_header = APIKeyHeader(name="X-API-KEY", auto_error=False)
 
 def api_key_auth(apikey: str = Security(api_key_header)):
     """
@@ -57,6 +81,13 @@ def api_key_auth(apikey: str = Security(api_key_header)):
 
 
 def req_to_params(req: Text2ImgRequest) -> ImageGenerationParams:
+    """
+    Convert Request to ImageGenerationParams
+    Args:
+        req: Request, Text2ImgRequest and classes inherited from Text2ImgRequest
+    returns:
+        ImageGenerationParams
+    """
     if req.base_model_name is not None:
         if req.base_model_name not in config.model_filenames:
             print(f"[Warning] Wrong base_model_name input: {req.base_model_name}, using default")
@@ -217,7 +248,7 @@ def generate_async_output(task: QueueTask, require_step_preview: bool = False) -
     if task.is_finished:
         if task.finish_with_error:
             job_stage = AsyncJobStage.error
-        elif task.task_result != None:
+        elif task.task_result is not None:
             job_stage = AsyncJobStage.success
             job_result = generate_image_result_output(task.task_result, task.req_param.require_base64)
     return AsyncJobResponse(job_id=task.job_id,
@@ -239,9 +270,9 @@ def generate_streaming_output(results: List[ImageGenerationResult]) -> Response:
         return Response(status_code=400, content=result.finish_reason.value)
     elif result.finish_reason == GenerationFinishReason.error:
         return Response(status_code=500, content=result.finish_reason.value)
-    
-    bytes = output_file_to_bytesimg(results[0].im)
-    return Response(bytes, media_type='image/png')
+
+    img_bytes = output_file_to_bytesimg(results[0].im)
+    return Response(img_bytes, media_type='image/png')
 
 
 def generate_image_result_output(results: List[ImageGenerationResult], require_base64: bool) -> List[GeneratedImageResult]:
@@ -251,3 +282,70 @@ def generate_image_result_output(results: List[ImageGenerationResult], require_b
             seed=item.seed,
             finish_reason=item.finish_reason) for item in results]
     return results
+
+
+
+def get_task_type(req: Text2ImgRequest) -> TaskType:
+    """Get task type from request"""
+    if isinstance(req, (ImgUpscaleOrVaryRequest, ImgUpscaleOrVaryRequestJson)):
+        return TaskType.img_uov
+    if isinstance(req, (ImgPromptRequest, ImgPromptRequestJson)):
+        return TaskType.img_prompt
+    if isinstance(req, (ImgInpaintOrOutpaintRequest, ImgInpaintOrOutpaintRequestJson)):
+        return TaskType.img_inpaint_outpaint
+    return TaskType.text_2_img
+
+
+def call_worker(
+    req: Text2ImgRequest,
+    accept: str
+) -> Response | AsyncJobResponse | List[GeneratedImageResult]:
+    """Call worker to generate image"""
+    if accept == "image/png":
+        streaming_output = True
+        # image_number auto set to 1 in streaming mode
+        req.image_number = 1
+    else:
+        streaming_output = False
+
+    task_type = get_task_type(req)
+    params = req_to_params(req)
+    async_task = worker_queue.add_task(task_type, params, req.webhook_url)
+
+    if async_task is None:
+        # add to worker queue failed
+        failure_results = [
+            ImageGenerationResult(
+                im=None, seed="", finish_reason=GenerationFinishReason.queue_is_full
+            )
+        ]
+
+        if streaming_output:
+            return generate_streaming_output(failure_results)
+        if req.async_process:
+            return AsyncJobResponse(
+                job_id="",
+                job_type=get_task_type(req),
+                job_stage=AsyncJobStage.error,
+                job_progress=0,
+                job_status=None,
+                job_step_preview=None,
+                job_result=failure_results,
+            )
+        return generate_image_result_output(failure_results, False)
+
+    if req.async_process:
+        # return async response directly
+        return generate_async_output(async_task)
+
+    # blocking get generation result
+    results = blocking_get_task_result(async_task.job_id)
+
+    if streaming_output:
+        return generate_streaming_output(results)
+    return generate_image_result_output(results, req.require_base64)
+
+
+def stop_worker():
+    """stop worker"""
+    process_stop()
