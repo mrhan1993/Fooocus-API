@@ -44,7 +44,8 @@ from fooocusapi.api_utils import (
 from fooocusapi.utils import file_utils
 from fooocusapi.parameters import GenerationFinishReason, ImageGenerationResult
 from fooocusapi.task_queue import TaskType
-from fooocusapi.worker import worker_queue, process_top, blocking_get_task_result
+from fooocusapi.worker import process_top, blocking_get_task_result
+from fooocusapi import worker
 from fooocusapi.utils.img_utils import base64_to_stream, read_input_image
 
 from fooocusapi.args import args
@@ -111,7 +112,7 @@ def call_worker(req: Text2ImgRequest, accept: str) -> Response | AsyncJobRespons
 
     task_type = get_task_type(req)
     params = req_to_params(req)
-    async_task = worker_queue.add_task(task_type, params, req.webhook_url)
+    async_task = worker.worker_queue.add_task(task_type, params, req.webhook_url)
 
     if async_task is None:
         # add to worker queue failed
@@ -305,7 +306,7 @@ def img_prompt_v2(req: ImgPromptRequestJson,
 
 @secure_router.get("/v1/generation/query-job", response_model=AsyncJobResponse, description="Query async generation job")
 def query_job(req: QueryJobRequest = Depends()):
-    queue_task = worker_queue.get_task(req.job_id, True)
+    queue_task = worker.worker_queue.get_task(req.job_id, True)
     if queue_task is None:
         result = AsyncJobResponse(job_id="",
                                  job_type=TaskType.not_found,
@@ -319,15 +320,15 @@ def query_job(req: QueryJobRequest = Depends()):
 
 @secure_router.get("/v1/generation/job-queue", response_model=JobQueueInfo, description="Query job queue info")
 def job_queue():
-    return JobQueueInfo(running_size=len(worker_queue.queue), finished_size=len(worker_queue.history), last_job_id=worker_queue.last_job_id)
+    return JobQueueInfo(running_size=len(worker.worker_queue.queue), finished_size=len(worker.worker_queue.history), last_job_id=worker.worker_queue.last_job_id)
 
 
 @secure_router.get("/v1/generation/job-history", response_model=JobHistoryResponse | dict, description="Query historical job data")
 def get_history(job_id: str = None, page: int = 0, page_size: int = 20):
     # Fetch and return the historical tasks
-    queue = [JobHistoryInfo(job_id=item.job_id, is_finished=item.is_finished) for item in worker_queue.queue]
+    queue = [JobHistoryInfo(job_id=item.job_id, is_finished=item.is_finished) for item in worker.worker_queue.queue]
     if not args.persistent:
-        history = [JobHistoryInfo(job_id=item.job_id, is_finished=item.is_finished) for item in worker_queue.history]
+        history = [JobHistoryInfo(job_id=item.job_id, is_finished=item.is_finished) for item in worker.worker_queue.history]
         return JobHistoryResponse(history=history, queue=queue)
     else:
         from fooocusapi.sql_client import query_history
