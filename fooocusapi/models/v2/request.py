@@ -1,11 +1,13 @@
 """V2 API models"""
 from typing import List
 from pydantic import BaseModel, Field
-from fooocusapi.models.models import (Text2ImgRequest,
-                               ControlNetType,
-                               OutpaintExpansion,
-                               ImagePrompt,
-                               UpscaleOrVaryMethod)
+from fooocusapi.models.models import (
+    Text2ImgRequest,
+    ControlNetType,
+    OutpaintExpansion,
+    ImagePrompt,
+    UpscaleOrVaryMethod
+)
 
 class ImagePromptJson(BaseModel):
     """Image prompt"""
@@ -17,6 +19,15 @@ class ImagePromptJson(BaseModel):
                                     description="Weight for image prompt, 0 for default value")
     cn_type: ControlNetType = Field(default=ControlNetType.cn_ip,
                                     description="ControlNet type for image prompt")
+
+
+class ImgUpscaleOrVaryRequestJson(Text2ImgRequest):
+    """Image inpaint or outpaint request"""
+    uov_method: UpscaleOrVaryMethod = "Upscale (2x)"
+    upscale_value: float | None = Field(1.0, ge=1.0, le=5.0,
+                                        description="Upscale custom value, 1.0 for default value")
+    input_image: str = Field(description="Init image for upsacale or outpaint as base64")
+    image_prompts: List[ImagePromptJson | ImagePrompt] = []
 
 
 class ImgInpaintOrOutpaintRequestJson(Text2ImgRequest):
@@ -48,12 +59,3 @@ class ImgPromptRequestJson(ImgInpaintOrOutpaintRequestJson):
 class Text2ImgRequestWithPrompt(Text2ImgRequest):
     """Text2Img request with image prompt"""
     image_prompts: List[ImagePromptJson] = []
-
-
-class ImgUpscaleOrVaryRequestJson(Text2ImgRequest):
-    """Image inpaint or outpaint request"""
-    uov_method: UpscaleOrVaryMethod = "Upscale (2x)"
-    upscale_value: float | None = Field(1.0, ge=1.0, le=5.0,
-                                        description="Upscale custom value, 1.0 for default value")
-    input_image: str = Field(description="Init image for upsacale or outpaint as base64")
-    image_prompts: List[ImagePromptJson | ImagePrompt] = []

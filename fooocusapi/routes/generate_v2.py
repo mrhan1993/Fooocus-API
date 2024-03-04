@@ -6,7 +6,7 @@ from fooocusapi.models.models import (
     GeneratedImageResult,
     ImagePrompt
 )
-from fooocusapi.models.models_v2 import (
+from fooocusapi.models.v2.request import (
     ImgInpaintOrOutpaintRequestJson,
     ImgPromptRequestJson,
     ImgUpscaleOrVaryRequestJson,

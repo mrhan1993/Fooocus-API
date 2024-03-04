@@ -29,7 +29,7 @@ from fooocusapi.models.models import (AsyncJobResponse,
                                ImgUpscaleOrVaryRequest,
                                Text2ImgRequest)
 
-from fooocusapi.models.models_v2 import (ImgInpaintOrOutpaintRequestJson,
+from fooocusapi.models.v2.request import (ImgInpaintOrOutpaintRequestJson,
                                   ImgPromptRequestJson,
                                   Text2ImgRequestWithPrompt,
                                   ImgUpscaleOrVaryRequestJson)
