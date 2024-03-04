@@ -17,7 +17,6 @@ sys.path.append(script_path)
 sys.path.append(module_path)
 
 
-from fooocusapi.worker import task_schedule_loop
 from fooocusapi.utils.prepare import (prepare_environments,
                                       install_dependents,
                                       preplaod_pipeline)
@@ -114,6 +113,7 @@ if __name__ == "__main__":
         preload_pipeline_thread.start()
 
         # Start task schedule thread
+        from fooocusapi.worker import task_schedule_loop
         task_schedule_thread = Thread(target=task_schedule_loop, daemon=True)
         task_schedule_thread.start()
 

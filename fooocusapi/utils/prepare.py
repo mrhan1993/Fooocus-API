@@ -10,16 +10,7 @@ import importlib.metadata
 import packaging.version
 
 from modules.model_loader import load_file_from_url
-from modules.config import (path_checkpoints as modelfile_path,
-                            path_loras as lorafile_path,
-                            path_vae_approx as vae_approx_path,
-                            path_fooocus_expansion as fooocus_expansion_path,
-                            checkpoint_downloads,
-                            path_embeddings as embeddings_path,
-                            embeddings_downloads, lora_downloads)
 
-from fooocusapi import worker
-from fooocusapi.task_queue import TaskQueue
 from fooocusapi.utils.tools import (is_installed,
                                     run_pip,
                                     check_torch_cuda)
@@ -94,6 +85,13 @@ def download_models():
     """
     Downloads the models.
     """
+    from modules.config import (path_checkpoints as modelfile_path,
+                            path_loras as lorafile_path,
+                            path_vae_approx as vae_approx_path,
+                            path_fooocus_expansion as fooocus_expansion_path,
+                            checkpoint_downloads,
+                            path_embeddings as embeddings_path,
+                            embeddings_downloads, lora_downloads)
     uri = 'https://huggingface.co/lllyasviel/misc/resolve/main/'
     vae_approx_filenames = [
         ('xlvaeapp.pth', f'{uri}xlvaeapp.pth'),
@@ -150,6 +148,9 @@ def prepare_environments(args, module_path, script_path) -> bool:
     download_models()
 
     # Init task queue
+    from fooocusapi import worker
+    from fooocusapi.task_queue import TaskQueue
+
     worker.worker_queue = TaskQueue(queue_size=args.queue_size,
                                     hisotry_size=args.queue_history,
                                     webhook_url=args.webhook_url,
