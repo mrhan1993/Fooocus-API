@@ -1,8 +1,8 @@
 """V2 API models"""
 from typing import List
 from pydantic import BaseModel, Field
-from fooocusapi.models.models import (
-    Text2ImgRequest,
+from fooocusapi.models.common.base import (
+    CommonRequest as Text2ImgRequest,
     ControlNetType,
     OutpaintExpansion,
     ImagePrompt,
