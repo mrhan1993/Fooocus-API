@@ -7,7 +7,7 @@ from pydantic import (
     Field
 )
 from fooocusapi.task_queue import TaskType
-from fooocusapi.utils.api_utils import GenerationFinishReason
+from fooocusapi.parameters import GenerationFinishReason
 
 
 class GeneratedImageResult(BaseModel):

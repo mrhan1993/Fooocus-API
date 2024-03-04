@@ -9,15 +9,17 @@ from fastapi import (
     Query,
     File
 )
-from fooocusapi.models.models import (
+from fooocusapi.models.v1.requests import (
     ImgInpaintOrOutpaintRequest,
     ImgUpscaleOrVaryRequest,
-    DescribeImageResponse,
-    GeneratedImageResult,
-    DescribeImageType,
-    AsyncJobResponse,
     ImgPromptRequest,
     Text2ImgRequest
+)
+from fooocusapi.models.common.requests import DescribeImageType
+from fooocusapi.models.common.response import (
+    DescribeImageResponse,
+    GeneratedImageResult,
+    AsyncJobResponse
 )
 
 from fooocusapi.utils.api_utils import (

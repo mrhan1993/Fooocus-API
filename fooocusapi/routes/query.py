@@ -2,14 +2,14 @@
 from typing import List
 from fastapi import APIRouter, Depends, Response
 from fooocusapi.args import args
-from fooocusapi.models.models import (
+from fooocusapi.models.common.requests import QueryJobRequest
+from fooocusapi.models.common.response import (
     AllModelNamesResponse,
     AsyncJobResponse,
     AsyncJobStage,
     JobHistoryInfo,
     JobHistoryResponse,
     JobQueueInfo,
-    QueryJobRequest
 )
 from fooocusapi.task_queue import TaskType
 from fooocusapi.utils.api_utils import api_key_auth, generate_async_output

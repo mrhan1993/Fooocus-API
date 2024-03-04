@@ -1,10 +1,11 @@
 """Generate API"""
 from typing import List
 from fastapi import APIRouter, Depends, Header, Query
-from fooocusapi.models.models import (
+from fooocusapi.models.common.base import ImagePrompt
+
+from fooocusapi.models.common.response import (
     AsyncJobResponse,
-    GeneratedImageResult,
-    ImagePrompt
+    GeneratedImageResult
 )
 from fooocusapi.models.v2.request import (
     ImgInpaintOrOutpaintRequestJson,

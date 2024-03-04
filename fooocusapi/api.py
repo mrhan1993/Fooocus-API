@@ -5,7 +5,7 @@ import uvicorn
 from fastapi import Depends, FastAPI, APIRouter
 from fastapi.staticfiles import StaticFiles
 from fastapi.middleware.cors import CORSMiddleware
-from fooocusapi.models.models import StopResponse
+from fooocusapi.models.common.response import StopResponse
 
 from fooocusapi.utils.api_utils import (
     api_key_auth,

@@ -111,7 +111,7 @@ class AdvancedParams(BaseModel):
     overwrite_switch: int = Field(default=-1,
                                   description="Forced Overwrite of Refiner Switch Step",
                                   ge=-1, le=200)
-    overwrite_width: int = Field(default_factory=-1,
+    overwrite_width: int = Field(default=-1,
                                  description="Forced Overwrite of Generating Width",
                                  ge=-1, le=2048)
     overwrite_height: int = Field(default=-1,

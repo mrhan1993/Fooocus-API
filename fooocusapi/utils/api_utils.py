@@ -19,15 +19,18 @@ from fooocusapi.task_queue import QueueTask, TaskType
 from fooocusapi.utils.file_utils import (get_file_serve_url,
                                          output_file_to_base64img,
                                          output_file_to_bytesimg)
-
-from fooocusapi.models.models import (AsyncJobResponse,
-                               AsyncJobStage,
-                               GeneratedImageResult,
-                               GenerationFinishReason,
-                               ImgInpaintOrOutpaintRequest,
-                               ImgPromptRequest,
-                               ImgUpscaleOrVaryRequest,
-                               Text2ImgRequest)
+from fooocusapi.parameters import GenerationFinishReason
+from fooocusapi.models.common.base import CommonRequest as Text2ImgRequest
+from fooocusapi.models.common.response import (
+    AsyncJobResponse,
+    AsyncJobStage,
+    GeneratedImageResult
+)
+from fooocusapi.models.v1.requests import (
+    ImgInpaintOrOutpaintRequest,
+    ImgPromptRequest,
+    ImgUpscaleOrVaryRequest,
+)
 
 from fooocusapi.models.v2.request import (ImgInpaintOrOutpaintRequestJson,
                                   ImgPromptRequestJson,
