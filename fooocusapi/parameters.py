@@ -1,4 +1,3 @@
-from enum import Enum
 from typing import Dict, List, Tuple
 import numpy as np
 
@@ -23,7 +22,6 @@ default_scheduler = config.default_scheduler
 
 default_aspect_ratio = get_aspect_ratio_value(config.default_aspect_ratio)
 available_aspect_ratios = [get_aspect_ratio_value(a) for a in config.available_aspect_ratios]
-
 
 
 available_aspect_ratios = [
@@ -66,21 +64,8 @@ outpaint_expansions = [
 ]
 
 
-class GenerationFinishReason(str, Enum):
-    success = 'SUCCESS'
-    queue_is_full = 'QUEUE_IS_FULL'
-    user_cancel = 'USER_CANCEL'
-    error = 'ERROR'
-
-
-class ImageGenerationResult(object):
-    def __init__(self, im: str | None, seed: str, finish_reason: GenerationFinishReason):
-        self.im = im
-        self.seed = seed
-        self.finish_reason = finish_reason
-
-
-class ImageGenerationParams(object):
+class ImageGenerationParams:
+    """Parameters for image generation"""
     def __init__(self, prompt: str,
                  negative_prompt: str,
                  style_selections: List[str],

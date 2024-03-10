@@ -26,7 +26,7 @@ from fooocusapi.parameters import (
 )
 
 
-class PerfomanceSelection(str, Enum):
+class PerformanceSelection(str, Enum):
     """Performance selection"""
     speed = 'Speed'
     quality = 'Quality'
@@ -41,6 +41,7 @@ class Lora(BaseModel):
     model_config = ConfigDict(
         protected_namespaces=('protect_me_', 'also_protect_')
     )
+
 
 LoraList = TypeAdapter(List[Lora])
 default_loras_model = []
@@ -60,6 +61,7 @@ class UpscaleOrVaryMethod(str, Enum):
     upscale_2 = 'Upscale (2x)'
     upscale_fast = 'Upscale (Fast 2x)'
     upscale_custom = 'Upscale (Custom)'
+
 
 class OutpaintExpansion(str, Enum):
     """Outpaint expansion"""
@@ -161,7 +163,7 @@ class CommonRequest(BaseModel):
     prompt: str = ''
     negative_prompt: str = default_prompt_negative
     style_selections: List[str] = default_styles
-    performance_selection: PerfomanceSelection = PerfomanceSelection.speed
+    performance_selection: PerformanceSelection = PerformanceSelection.speed
     aspect_ratios_selection: str = default_aspect_ratio
     image_number: int = Field(default=1, description="Image number", ge=1, le=32)
     image_seed: int = Field(default=-1, description="Seed to generate image, -1 for random")
@@ -215,7 +217,7 @@ def lora_parser(loras: str) -> List[Lora]:
     """
     loras_model: List[Lora] = []
     if loras is None or len(loras) == 0:
-        return []
+        return loras_model
     try:
         loras_model = LoraList.validate_json(loras)
         return loras_model
@@ -224,7 +226,7 @@ def lora_parser(loras: str) -> List[Lora]:
         raise RequestValidationError from errs
 
 
-def advanced_params_parser(advanced_params: str | None) -> AdvancedParams:
+def advanced_params_parser(advanced_params: str | None) -> AdvancedParams | None:
     """
     Parse advanced params, Convert to AdvancedParams
     Args:
@@ -244,7 +246,7 @@ def advanced_params_parser(advanced_params: str | None) -> AdvancedParams:
     return advanced_params_obj
 
 
-def oupaint_selections_parser(outpaint_selections: str) -> List[OutpaintExpansion]:
+def outpaint_selections_parser(outpaint_selections: str) -> List[OutpaintExpansion]:
     """
     Parse outpaint selections, Convert to list
     Args:

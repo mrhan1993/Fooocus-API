@@ -1,25 +1,31 @@
 """Fastapi routes for API"""
 
-import uvicorn
-
+from contextlib import asynccontextmanager
+import asyncio
 from fastapi import Depends, FastAPI, APIRouter
 from fastapi.staticfiles import StaticFiles
 from fastapi.middleware.cors import CORSMiddleware
+import uvicorn
+
 from fooocusapi.models.common.response import StopResponse
 
-from fooocusapi.utils.api_utils import (
-    api_key_auth,
-    stop_worker,
-)
+from fooocusapi.utils.api_utils import api_key_auth
 
+from fooocusapi.tasks.task_queue import task_queue
 from fooocusapi.utils import file_utils
 
 from fooocusapi.routes.generate_v1 import secure_router as generate_v1
-from fooocusapi.routes.generate_v2 import secure_router as generate_v2
+# from fooocusapi.routes.generate_v2 import secure_router as generate_v2
 from fooocusapi.routes.query import secure_router as query
 
 
-app = FastAPI()
+@asynccontextmanager
+async def lifespan(app: FastAPI): # pylint: disable=unused-argument, redefined-outer-name
+    """lifespan"""
+    asyncio.create_task(task_queue.process_tasks())
+    yield
+
+app = FastAPI(lifespan=lifespan)
 
 app.add_middleware(
     CORSMiddleware,
@@ -31,20 +37,21 @@ app.add_middleware(
 
 secure_router = APIRouter(dependencies=[Depends(api_key_auth)])
 
-@secure_router.post("/v1/generation/stop",
-                    response_model=StopResponse,
-                    description="Job stoping")
-def stop():
+@secure_router.post("/v1/generation/stop", description="Job stoping")
+async def stop():
     """Job stoping"""
-    stop_worker()
-    return StopResponse(msg="success")
+    try:
+        result = await task_queue.current.stop()
+    except Exception as e:
+        result = StopResponse(msg=f"Error: {e}")
+    return result
 
 
 app.mount("/files", StaticFiles(directory=file_utils.output_dir), name="files")
 
 app.include_router(secure_router)
 app.include_router(generate_v1)
-app.include_router(generate_v2)
+# app.include_router(generate_v2)
 app.include_router(query)
 
 

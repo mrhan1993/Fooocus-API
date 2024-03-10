@@ -1,22 +1,12 @@
 """Query API"""
 from typing import List
 from fastapi import APIRouter, Depends, Response
-from fooocusapi.args import args
-from fooocusapi.models.common.requests import QueryJobRequest
-from fooocusapi.models.common.response import (
-    AllModelNamesResponse,
-    AsyncJobResponse,
-    AsyncJobStage,
-    JobHistoryInfo,
-    JobHistoryResponse,
-    JobQueueInfo,
-)
-from fooocusapi.task_queue import TaskType
-from fooocusapi.utils.api_utils import api_key_auth, generate_async_output
-from fooocusapi.worker import worker_queue
-
+from fooocusapi.models.common.response import AllModelNamesResponse
+from fooocusapi.utils.api_utils import api_key_auth
+from fooocusapi.tasks.task_queue import task_queue
 
 secure_router = APIRouter(dependencies=[Depends(api_key_auth)])
+
 
 @secure_router.get("/")
 def home():
@@ -27,81 +17,84 @@ def home():
     )
 
 
-@secure_router.get("/ping", description="Returns a simple 'pong' response")
-def ping():
-    """Ping page"""
-    return Response(
-        content="pong",
-        media_type="text/html"
-    )
+@secure_router.get(path="/ping", description="Returns a simple 'pong' response")
+async def ping():
+    """
+    Ping page, just to check if the fastapi is up.
+    Instant return correct, does not mean the service is available.
+    Returns:
+         A simple string Pong
+    """
+    return 'Pong'
 
 
 @secure_router.get(
-    "/v1/generation/query-job",
-    response_model=AsyncJobResponse,
-    description="Query async generation job",
+    path="/v1/generation/task/{task_id}",
+    description="Query task info by task id",
+    tags=['query job']
 )
-def query_job(req: QueryJobRequest = Depends()):
-    """Query job status use job id"""
-    queue_task = worker_queue.get_task(req.job_id, True)
-    if queue_task is None:
-        result = AsyncJobResponse(
-            job_id="",
-            job_type=TaskType.not_found,
-            job_stage=AsyncJobStage.error,
-            job_progress=0,
-            job_status="Job not found",
-        )
-        content = result.model_dump_json()
-        return Response(content=content, media_type="application/json", status_code=404)
-    return generate_async_output(queue_task, req.require_step_preview)
+async def query_job(task_id: str):
+    """
+    Query job status use job id, return None if not found.
+    Args:
+        task_id: string task id
+    Returns:
+        Task info, a dict
+    """
+    if task_queue.current is not None and task_id == task_queue.current.task_id:
+        return task_queue.current.to_dict()
+    for task in task_queue.history:
+        if task.task_id == task_id:
+            return task.to_dict()
+    for task in task_queue.queue._queue:
+        if task.task_id == task_id:
+            return task.to_dict()
+    return None
 
 
 @secure_router.get(
-    "/v1/generation/job-queue",
-    response_model=JobQueueInfo,
+    path="/v1/generation/job-queue",
     description="Query job queue info",
+    tags=['query job']
 )
-def job_queue():
-    """Get job queue info"""
-    return JobQueueInfo(
-        running_size=len(worker_queue.queue),
-        finished_size=len(worker_queue.history),
-        last_job_id=worker_queue.last_job_id,
-    )
-
-
-@secure_router.get(
-    "/v1/generation/job-history",
-    response_model=JobHistoryResponse | dict,
-    description="Query historical job data",
-)
-def get_history(job_id: str = None, page: int = 0, page_size: int = 20):
-    """Fetch and return the historical tasks"""
-    queue = [
-        JobHistoryInfo(job_id=item.job_id, is_finished=item.is_finished)
-        for item in worker_queue.queue
-    ]
-    if not args.persistent:
-        history = [
-            JobHistoryInfo(job_id=item.job_id, is_finished=item.is_finished)
-            for item in worker_queue.history
-        ]
-        return JobHistoryResponse(history=history, queue=queue)
+async def job_queue():
+    """
+    Get all tasks, including running, history and waiting tasks.
+    Returns:
+        A dict, include running, history and waiting tasks.
+    Example:
+        {
+            'pending': list[TaskInfo],
+            'running': TaskInfo,
+            'history': list[TaskInfo]
+        }
+    """
+    if len(task_queue.queue._queue) == 0:
+        pending = []
     else:
-        from fooocusapi.sql_client import query_history
-
-        history = query_history(task_id=job_id, page=page, page_size=page_size)
-        return {"history": history, "queue": queue}
+        pending = [task.to_dict() for task in task_queue.queue._queue]
+    running = task_queue.current.to_dict() if task_queue.current is not None else None
+    if len(task_queue.history) == 0:
+        history = []
+    else:
+        history = [task.to_dict() for task in task_queue.history]
+    tasks = {
+        'pending': pending,
+        'running': running,
+        'history': history
+    }
+    return tasks
 
 
 @secure_router.get(
-    "/v1/engines/all-models",
+    path="/v1/engines/all-models",
     response_model=AllModelNamesResponse,
-    description="Get all filenames of base model and lora",
+    description="Refresh local files and Get all filenames of base model and lora",
 )
-def all_models():
-    """Refresh local files and get all filenames of base model and lora"""
+async def all_models():
+    """
+    Refresh local files and get all filenames of base model and lora
+    """
     from modules import config
 
     config.update_all_model_names()
@@ -112,12 +105,16 @@ def all_models():
 
 
 @secure_router.get(
-    "/v1/engines/styles",
+    path="/v1/engines/styles",
     response_model=List[str],
     description="Get all legal Fooocus styles",
 )
-def all_styles():
-    """Get all legal Fooocus styles"""
+async def all_styles():
+    """
+    Get all legal Fooocus styles
+    Returns:
+        A list of strings, each string is a legal Fooocus style.
+    """
     from modules.sdxl_styles import legal_style_names
 
     return legal_style_names

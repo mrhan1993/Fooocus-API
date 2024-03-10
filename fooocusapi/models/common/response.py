@@ -1,22 +1,13 @@
 """Fooocus API models for response"""
 from typing import List
-from enum import Enum
 from pydantic import (
+    field_validator,
     BaseModel,
     ConfigDict,
     Field
 )
-from fooocusapi.task_queue import TaskType
-from fooocusapi.parameters import GenerationFinishReason
-
-
-class GeneratedImageResult(BaseModel):
-    """Generated image result"""
-    base64: str | None = Field(
-        description="Null or base64 image, only return when request require base64")
-    url: str | None = Field(description="Image file static serve url, or null")
-    seed: str = Field(description="The seed associated with this image")
-    finish_reason: GenerationFinishReason
+from fooocusapi.models.common.task import (
+    GeneratedImageResult, TaskType)
 
 
 class DescribeImageResponse(BaseModel):
@@ -24,46 +15,63 @@ class DescribeImageResponse(BaseModel):
     describe: str
 
 
-class AsyncJobStage(str, Enum):
-    """Async job stage"""
-    waiting = 'WAITING'
-    running = 'RUNNING'
-    success = 'SUCCESS'
-    error = 'ERROR'
+class TaskResponse(BaseModel):
+    """Task response"""
+    task_id: str = Field(description="Task ID")
+    task_type: TaskType | None = Field(
+        default=None, description="Task type")
+    req_param: dict = Field(description="Task request params")
+    in_queue_millis: int = Field(
+        default=0, description="Task enqueue time in millisecond")
+    start_millis: int = Field(
+        default=0, description="Task start time in millisecond")
+    finish_millis: int = Field(
+        default=0, description="Task finish time in millisecond")
+    status: str | None = Field(
+        default=None, description="The state of the task in the queue, such as 'pending', 'running', 'completed'")
+    task_status: str | None = Field(
+        default=None, description="The running state of the task itself, such as 'success', 'failed', 'canceled'")
+    progress: int = Field(
+        default=0, description="Task progress, 100 is for finished.")
+    task_step_preview: str | None = Field(
+        default=None, description="Preview base64 image of generation steps at current time")
+    webhook_url: str | None = Field(
+        default=None, description="Webhook url")
+    task_result: List[GeneratedImageResult] = Field(
+        default=[], description="Task generation result")
 
+    # @field_validator("task_step_preview")
+    # def validate_task_step_preview(cls, v, value):
+    #     """When generation finished, remove task_step_preview"""
+    #     task_status = value.get("task_status")
+    #     if task_status == "success":
+    #         v = None
+    #     return v
 
-class AsyncJobResponse(BaseModel):
-    """"Async job response"""
-    job_id: str = Field(default='', description="Job ID")
-    job_type: TaskType = Field(description="Job type")
-    job_stage: AsyncJobStage = Field(description="Job running stage")
-    job_progress: int = Field(description="Job running progress, 100 is for finished.")
-    job_status: str | None = Field(None, description="Job running status in text")
-    job_step_preview: str | None = Field(
-        default=None,
-        description="Preview base64 image of generation steps at current time")
-    job_result: List[GeneratedImageResult] | None = Field(None, description="Job generation result")
+    # @field_validator("task_result")
+    # def validate_task_result(cls, v, value):
+    #     """
+    #     Unless specified require_base64=True, remove task_result base64 data
+    #     """
+    #     req_param = value.get("req_param")
+    #     require_base64 = req_param.get("require_base64", False)
+
+    #     if require_base64:
+    #         return v
+
+    #     result = []
+    #     if len(v) > 0:
+    #         for res in v:
+    #             v.base64 = None
+    #             result.append(res)
+    #     return result
 
 
 class JobQueueInfo(BaseModel):
     """Job queue info"""
-    running_size: int = Field(description="The current running and waiting job count")
-    finished_size: int = Field(description="Finished job cound (after auto clean)")
-    last_job_id: str | None = Field(description="Last submit generation job id")
-
-
-# TODO May need more detail fields, will add later when someone need
-class JobHistoryInfo(BaseModel):
-    """Job history info"""
-    job_id: str
-    is_finished: bool = False
-
-
-# Response model for the historical tasks
-class JobHistoryResponse(BaseModel):
-    """Job history info"""
-    queue: List[JobHistoryInfo] = []
-    history: List[JobHistoryInfo] = []
+    running: List[TaskResponse] = Field(description="The current running task")
+    pendding: List[TaskResponse] = Field(description="The current pending in the queue")
+    finished: List[TaskResponse] = Field(description="Finished job")
 
 
 class AllModelNamesResponse(BaseModel):

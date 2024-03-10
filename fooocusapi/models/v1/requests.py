@@ -9,7 +9,7 @@ from fastapi import (
 from fooocusapi.models.common.base import (
     CommonRequest as Text2ImgRequest,
     ImagePrompt,
-    PerfomanceSelection,
+    PerformanceSelection,
     ControlNetType,
     OutpaintExpansion,
     UpscaleOrVaryMethod,
@@ -19,7 +19,7 @@ from fooocusapi.models.common.base import (
     style_selection_parser,
     lora_parser,
     advanced_params_parser,
-    oupaint_selections_parser,
+    outpaint_selections_parser,
     image_prompt_parser
 )
 
@@ -51,9 +51,9 @@ class ImgUpscaleOrVaryRequest(Text2ImgRequest):
                 prompt: str = Form(''),
                 negative_prompt: str = Form(default_prompt_negative),
                 style_selections: List[str] = Form(default_styles,
-                                                   description="Fooocus style selections, seperated by comma"),
-                performance_selection: PerfomanceSelection = Form(PerfomanceSelection.speed,
-                                                                  description="Performance Selection, one of 'Speed','Quality','Extreme Speed'"),
+                                                   description="Fooocus style selections, separated by comma"),
+                performance_selection: PerformanceSelection = Form(PerformanceSelection.speed,
+                                                                   description="Performance Selection, one of 'Speed','Quality','Extreme Speed'"),
                 aspect_ratios_selection: str = Form(default_aspect_ratio,
                                                     description="Aspect Ratios Selection, default 1152*896"),
                 image_number: int = Form(default=1, description="Image number", ge=1, le=32),
@@ -73,8 +73,7 @@ class ImgUpscaleOrVaryRequest(Text2ImgRequest):
                 require_base64: bool = Form(default=False,
                                             description="Return base64 data of generated image"),
                 async_process: bool = Form(default=False,
-                                           description="Set to true will run async and return job info for retrieve generataion result later"),
-                ):
+                                           description="Set to true will run async and return job info for retrieve generation result later")):
         style_selection_arr = style_selection_parser(style_selections)
         loras_model = lora_parser(loras)
         advanced_params_obj = advanced_params_parser(advanced_params)
@@ -87,7 +86,7 @@ class ImgUpscaleOrVaryRequest(Text2ImgRequest):
                    image_number=image_number, image_seed=image_seed,
                    sharpness=sharpness, guidance_scale=guidance_scale,
                    base_model_name=base_model_name, refiner_model_name=refiner_model_name,
-                   refiner_switch=refiner_switch,loras=loras_model,
+                   refiner_switch=refiner_switch, loras=loras_model,
                    advanced_params=advanced_params_obj,
                    require_base64=require_base64, async_process=async_process)
 
@@ -109,7 +108,7 @@ class ImgInpaintOrOutpaintRequest(Text2ImgRequest):
                 inpaint_additional_prompt: str | None = Form(None,
                                                              description="Describe what you want to inpaint"),
                 outpaint_selections: List[str] = Form([],
-                                                      description="Outpaint expansion selections, literal 'Left', 'Right', 'Top', 'Bottom' seperated by comma"),
+                                                      description="Outpaint expansion selections, literal 'Left', 'Right', 'Top', 'Bottom' separated by comma"),
                 outpaint_distance_left: int = Form(default=0,
                                                    description="Set outpaint left distance, -1 for default"),
                 outpaint_distance_right: int = Form(default=0,
@@ -121,9 +120,9 @@ class ImgInpaintOrOutpaintRequest(Text2ImgRequest):
                 prompt: str = Form(''),
                 negative_prompt: str = Form(default_prompt_negative),
                 style_selections: List[str] = Form(default_styles,
-                                                   description="Fooocus style selections, seperated by comma"),
-                performance_selection: PerfomanceSelection = Form(PerfomanceSelection.speed,
-                                                                  description="Performance Selection, one of 'Speed','Quality','Extreme Speed'"),
+                                                   description="Fooocus style selections, separated by comma"),
+                performance_selection: PerformanceSelection = Form(PerformanceSelection.speed,
+                                                                   description="Performance Selection, one of 'Speed','Quality','Extreme Speed'"),
                 aspect_ratios_selection: str = Form(default_aspect_ratio,
                                                     description="Aspect Ratios Selection, default 1152*896"),
                 image_number: int = Form(default=1, description="Image number", ge=1, le=32),
@@ -137,18 +136,17 @@ class ImgInpaintOrOutpaintRequest(Text2ImgRequest):
                                              description="Refiner Switch At", ge=0.1, le=1.0),
                 loras: str | None = Form(default=default_loras_json,
                                          description='Lora config in JSON. Format as [{"model_name": "sd_xl_offset_example-lora_1.0.safetensors", "weight": 0.5}]'),
-                advanced_params: str| None = Form(default=None,
-                                                  description="Advanced parameters in JSON"),
+                advanced_params: str | None = Form(default=None,
+                                                   description="Advanced parameters in JSON"),
                 require_base64: bool = Form(default=False,
                                             description="Return base64 data of generated image"),
                 async_process: bool = Form(default=False,
-                                           description="Set to true will run async and return job info for retrieve generataion result later"),
+                                           description="Set to true will run async and return job info for retrieve generation result later"),
                 ):
-
         if isinstance(input_mask, File):
             input_mask = None
 
-        outpaint_selections_arr = oupaint_selections_parser(outpaint_selections)
+        outpaint_selections_arr = outpaint_selections_parser(outpaint_selections)
         style_selection_arr = style_selection_parser(style_selections)
         loras_model = lora_parser(loras)
         advanced_params_obj = advanced_params_parser(advanced_params)
@@ -184,7 +182,7 @@ class ImgPromptRequest(ImgInpaintOrOutpaintRequest):
                 inpaint_additional_prompt: str | None = Form(default=None,
                                                              description="Describe what you want to inpaint"),
                 outpaint_selections: List[str] = Form(default=[],
-                                                      description="Outpaint expansion selections, literal 'Left', 'Right', 'Top', 'Bottom' seperated by comma"),
+                                                      description="Outpaint expansion selections, literal 'Left', 'Right', 'Top', 'Bottom' separated by comma"),
                 outpaint_distance_left: int = Form(default=0, description="Set outpaint left distance, 0 for default"),
                 outpaint_distance_right: int = Form(default=0, description="Set outpaint right distance, 0 for default"),
                 outpaint_distance_top: int = Form(default=0, description="Set outpaint top distance, 0 for default"),
@@ -223,8 +221,8 @@ class ImgPromptRequest(ImgInpaintOrOutpaintRequest):
                 prompt: str = Form(''),
                 negative_prompt: str = Form(default_prompt_negative),
                 style_selections: List[str] = Form(default_styles,
-                                                   description="Fooocus style selections, seperated by comma"),
-                performance_selection: PerfomanceSelection = Form(default=PerfomanceSelection.speed),
+                                                   description="Fooocus style selections, separated by comma"),
+                performance_selection: PerformanceSelection = Form(default=PerformanceSelection.speed),
                 aspect_ratios_selection: str = Form(default_aspect_ratio),
                 image_number: int = Form(default=1, description="Image number", ge=1, le=32),
                 image_seed: int = Form(default=-1, description="Seed to generate image, -1 for random"),
@@ -236,12 +234,12 @@ class ImgPromptRequest(ImgInpaintOrOutpaintRequest):
                                              description="Refiner Switch At", ge=0.1, le=1.0),
                 loras: str | None = Form(default=default_loras_json,
                                          description='Lora config in JSON. Format as [{"model_name": "sd_xl_offset_example-lora_1.0.safetensors", "weight": 0.5}]'),
-                advanced_params: str| None = Form(default=None,
-                                                  description="Advanced parameters in JSON"),
+                advanced_params: str | None = Form(default=None,
+                                                   description="Advanced parameters in JSON"),
                 require_base64: bool = Form(default=False,
                                             description="Return base64 data of generated image"),
                 async_process: bool = Form(default=False,
-                                           description="Set to true will run async and return job info for retrieve generataion result later"),
+                                           description="Set to true will run async and return job info for retrieve generation result later"),
                 ):
         if isinstance(input_image, File):
             input_image = None
@@ -256,7 +254,7 @@ class ImgPromptRequest(ImgInpaintOrOutpaintRequest):
         if isinstance(cn_img4, File):
             cn_img4 = None
 
-        outpaint_selections_arr = oupaint_selections_parser(outpaint_selections)
+        outpaint_selections_arr = outpaint_selections_parser(outpaint_selections)
 
         image_prompt_config = [(cn_img1, cn_stop1, cn_weight1, cn_type1),
                                (cn_img2, cn_stop2, cn_weight2, cn_type2),

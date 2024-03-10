@@ -17,9 +17,11 @@ sys.path.append(script_path)
 sys.path.append(module_path)
 
 
-from fooocusapi.utils.prepare import (prepare_environments,
-                                      install_dependents,
-                                      preplaod_pipeline)
+from fooocusapi.utils.prepare import (
+    prepare_environments,
+    install_dependents,
+    preplaod_pipeline
+)
 
 
 print('[System ARGV] ' + str(sys.argv))
@@ -111,11 +113,6 @@ if __name__ == "__main__":
         # Load pipeline in new thread
         preload_pipeline_thread = Thread(target=preplaod_pipeline, daemon=True)
         preload_pipeline_thread.start()
-
-        # Start task schedule thread
-        from fooocusapi.worker import task_schedule_loop
-        task_schedule_thread = Thread(target=task_schedule_loop, daemon=True)
-        task_schedule_thread.start()
 
         # Start api server
         from fooocusapi.api import start_app

@@ -146,19 +146,6 @@ def prepare_environments(args, module_path, script_path) -> bool:
         shutil.copytree(origin_preset_folder, preset_folder)
 
     download_models()
-
-    # Init task queue
-    from fooocusapi import worker
-    from fooocusapi.task_queue import TaskQueue
-
-    worker.worker_queue = TaskQueue(queue_size=args.queue_size,
-                                    hisotry_size=args.queue_history,
-                                    webhook_url=args.webhook_url,
-                                    persistent=args.persistent)
-    print(f"[Fooocus-API] Task queue size: {args.queue_size}")
-    print(f"[Fooocus-API] Task queue history size: {args.queue_history}")
-    print(f"[Fooocus-API] Task queue webhook url: {args.webhook_url}")
-
     return True
 
 

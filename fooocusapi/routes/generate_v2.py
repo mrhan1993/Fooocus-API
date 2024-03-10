@@ -3,10 +3,8 @@ from typing import List
 from fastapi import APIRouter, Depends, Header, Query
 from fooocusapi.models.common.base import ImagePrompt
 
-from fooocusapi.models.common.response import (
-    AsyncJobResponse,
-    GeneratedImageResult
-)
+from fooocusapi.models.common.response import TaskResponse
+
 from fooocusapi.models.v2.request import (
     ImgInpaintOrOutpaintRequestJson,
     ImgPromptRequestJson,

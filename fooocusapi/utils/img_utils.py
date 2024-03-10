@@ -27,7 +27,7 @@ def narray_to_base64img(narray: np.ndarray) -> str:
     output_buffer = BytesIO()
     img.save(output_buffer, format='PNG')
     byte_data = output_buffer.getvalue()
-    base64_str = base64.b64encode(byte_data)
+    base64_str = base64.b64encode(byte_data).decode(encoding='utf-8')
     return base64_str
 
 
@@ -84,6 +84,7 @@ def base64_to_stream(image: str) -> UploadFile | None:
     byte_stream.write(image_bytes)
     byte_stream.seek(0)
     return UploadFile(file=byte_stream)
+
 
 def get_check_image(url: str) -> UploadFile | None:
     """
@@ -143,3 +144,17 @@ def bytes_to_base64img(byte_data: bytes) -> str | None:
 
     base64_str = base64.b64encode(byte_data).decode('utf-8')
     return base64_str
+
+
+def base64_to_bytesimg(base64_str: str) -> bytes | None:
+    """
+    Convert base64 image string to bytes image.
+    Args:
+        base64_str: base64 image string
+    Returns:
+        bytes image or None
+    """
+    if base64_str == '':
+        return None
+    bytes_image = base64.b64decode(base64_str)
+    return bytes_image
