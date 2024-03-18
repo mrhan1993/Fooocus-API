@@ -100,14 +100,14 @@ def process_generate(async_task: QueueTask):
         print(f'[Fooocus] {text}')
         outputs.append(['preview', (number, text, None)])
 
-    def yield_result(_, imgs, tasks):
+    def yield_result(_, imgs, tasks, extension='png'):
         if not isinstance(imgs, list):
             imgs = [imgs]
 
         results = []
         for i, im in enumerate(imgs):
             seed = -1 if len(tasks) == 0 else tasks[i]['task_seed']
-            img_filename = save_output_file(im)
+            img_filename = save_output_file(img=im, extension=extension)
             results.append(ImageGenerationResult(im=img_filename, seed=str(seed), finish_reason=GenerationFinishReason.success))
         async_task.set_result(results, False)
         worker_queue.finish_task(async_task.job_id)
@@ -150,6 +150,7 @@ def process_generate(async_task: QueueTask):
         inpaint_input_image = params.inpaint_input_image
         inpaint_additional_prompt = params.inpaint_additional_prompt
         inpaint_mask_image_upload = None
+        save_extension = params.save_extension
 
         if inpaint_additional_prompt is None:
             inpaint_additional_prompt = ''
@@ -547,7 +548,7 @@ def process_generate(async_task: QueueTask):
             if direct_return:
                 d = [('Upscale (Fast)', '2x')]
                 log(uov_input_image, d)
-                yield_result(async_task, uov_input_image, tasks)
+                yield_result(async_task, uov_input_image, tasks, save_extension)
                 return
 
             tiled = True
@@ -693,7 +694,7 @@ def process_generate(async_task: QueueTask):
                 cn_img = HWC3(cn_img)
                 task[0] = core.numpy_to_pytorch(cn_img)
                 if advanced_parameters.debugging_cn_preprocessor:
-                    yield_result(async_task, cn_img, tasks)
+                    yield_result(async_task, cn_img, tasks, save_extension)
                     return
             for task in cn_tasks[flags.cn_cpds]:
                 cn_img, cn_stop, cn_weight = task
@@ -705,7 +706,7 @@ def process_generate(async_task: QueueTask):
                 cn_img = HWC3(cn_img)
                 task[0] = core.numpy_to_pytorch(cn_img)
                 if advanced_parameters.debugging_cn_preprocessor:
-                    yield_result(async_task, cn_img, tasks)
+                    yield_result(async_task, cn_img, tasks, save_extension)
                     return
             for task in cn_tasks[flags.cn_ip]:
                 cn_img, cn_stop, cn_weight = task
@@ -716,7 +717,7 @@ def process_generate(async_task: QueueTask):
 
                 task[0] = ip_adapter.preprocess(cn_img, ip_adapter_path=ip_adapter_path)
                 if advanced_parameters.debugging_cn_preprocessor:
-                    yield_result(async_task, cn_img, tasks)
+                    yield_result(async_task, cn_img, tasks, save_extension)
                     return
             for task in cn_tasks[flags.cn_ip_face]:
                 cn_img, cn_stop, cn_weight = task
@@ -730,7 +731,7 @@ def process_generate(async_task: QueueTask):
 
                 task[0] = ip_adapter.preprocess(cn_img, ip_adapter_path=ip_adapter_face_path)
                 if advanced_parameters.debugging_cn_preprocessor:
-                    yield_result(async_task, cn_img, tasks)
+                    yield_result(async_task, cn_img, tasks, save_extension)
                     return
 
             all_ip_tasks = cn_tasks[flags.cn_ip] + cn_tasks[flags.cn_ip_face]
@@ -877,7 +878,7 @@ def process_generate(async_task: QueueTask):
         if async_task.finish_with_error:
             worker_queue.finish_task(async_task.job_id)
             return async_task.task_result
-        yield_result(None, results, tasks)
+        yield_result(None, results, tasks, save_extension)
         return
     except Exception as e:
         print('Worker error:', e)
