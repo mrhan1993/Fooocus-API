@@ -12,6 +12,7 @@ from fooocusapi.parameters import GenerationFinishReason, ImageGenerationResult
 from fooocusapi.task_queue import QueueTask, TaskQueue, TaskOutputs
 
 worker_queue: TaskQueue = None
+last_model_name = None
 
 def process_top():
     import ldm_patched.modules.model_management
@@ -118,6 +119,17 @@ def process_generate(async_task: QueueTask):
 
     try:
         print(f"[Task Queue] Task queue start task, job_id={async_task.job_id}")
+        # clear memory
+        global last_model_name
+
+        if last_model_name is None:
+            last_model_name = async_task.req_param.base_model_name
+        if last_model_name != async_task.req_param.base_model_name:
+            model_management.cleanup_models() # key1
+            model_management.unload_all_models()
+            model_management.soft_empty_cache() # key2
+            last_model_name = async_task.req_param.base_model_name
+
         worker_queue.start_task(async_task.job_id)
 
         execution_start_time = time.perf_counter()
