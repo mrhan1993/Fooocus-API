@@ -1,4 +1,5 @@
 import copy
+import os
 import random
 import time
 import numpy as np
@@ -10,6 +11,8 @@ from typing import List
 from fooocusapi.file_utils import save_output_file
 from fooocusapi.parameters import GenerationFinishReason, ImageGenerationResult
 from fooocusapi.task_queue import QueueTask, TaskQueue, TaskOutputs
+from modules.patch import PatchSettings, patch_settings
+from modules.sdxl_styles import apply_arrays
 
 worker_queue: TaskQueue = None
 last_model_name = None
@@ -69,7 +72,7 @@ def process_generate(async_task: QueueTask):
     import modules.core as core
     import modules.inpaint_worker as inpaint_worker
     import modules.config as config
-    import modules.advanced_parameters as advanced_parameters
+    import fooocusapi.adv_para as advanced_parameters
     import modules.constants as constants
     import extras.preprocessors as preprocessors
     import extras.ip_adapter as ip_adapter
@@ -81,6 +84,8 @@ def process_generate(async_task: QueueTask):
     from extras.expansion import safe_str
     from modules.sdxl_styles import apply_style, fooocus_expansion, apply_wildcards
     import fooocus_version
+
+    pid = os.getpid()
 
     outputs = TaskOutputs(async_task)
     results = []
@@ -251,6 +256,19 @@ def process_generate(async_task: QueueTask):
 
         cfg_scale = float(guidance_scale)
         print(f'[Parameters] CFG = {cfg_scale}')
+
+        # todo: this two are params
+        read_wildcards_in_order = False
+        controlnet_softness = 0.25
+
+        patch_settings[pid] = PatchSettings(
+            sharpness,
+            advanced_parameters.adm_scaler_end,
+            advanced_parameters.adm_scaler_positive,
+            advanced_parameters.adm_scaler_negative,
+            controlnet_softness,
+            advanced_parameters.adaptive_cfg
+        )
 
         initial_latent = None
         denoising_strength = 1.0
@@ -425,10 +443,11 @@ def process_generate(async_task: QueueTask):
                 task_seed = (seed + i) % (constants.MAX_SEED + 1)  # randint is inclusive, % is not
                 task_rng = random.Random(task_seed)  # may bind to inpaint noise in the future
 
-                task_prompt = apply_wildcards(prompt, task_rng)
-                task_negative_prompt = apply_wildcards(negative_prompt, task_rng)
-                task_extra_positive_prompts = [apply_wildcards(pmt, task_rng) for pmt in extra_positive_prompts]
-                task_extra_negative_prompts = [apply_wildcards(pmt, task_rng) for pmt in extra_negative_prompts]
+                task_prompt = apply_wildcards(prompt, task_rng, i, read_wildcards_in_order)
+                task_prompt = apply_arrays(task_prompt, i)
+                task_negative_prompt = apply_wildcards(negative_prompt, task_rng, i, read_wildcards_in_order)
+                task_extra_positive_prompts = [apply_wildcards(pmt, task_rng, i, read_wildcards_in_order) for pmt in extra_positive_prompts]
+                task_extra_negative_prompts = [apply_wildcards(pmt, task_rng, i, read_wildcards_in_order) for pmt in extra_negative_prompts]
 
                 positive_basic_workloads = []
                 negative_basic_workloads = []
@@ -559,7 +578,7 @@ def process_generate(async_task: QueueTask):
 
             if direct_return:
                 d = [('Upscale (Fast)', '2x')]
-                log(uov_input_image, d)
+                log(uov_input_image, d, output_format=save_extension)
                 yield_result(async_task, uov_input_image, tasks, save_extension)
                 return
 
@@ -865,7 +884,7 @@ def process_generate(async_task: QueueTask):
                         if n != 'None':
                             d.append((f'LoRA', f'{n} : {w}'))
                     d.append(('Version', 'v' + fooocus_version.version))
-                    log(x, d)
+                    log(x, d, output_format=save_extension)
                 
                 # Fooocus async_worker.py code end
                 

@@ -24,6 +24,7 @@ from fooocusapi.task_queue import TaskType
 
 
 class Lora(BaseModel):
+    enabled: bool
     model_name: str
     weight: float = Field(default=0.5, ge=-2, le=2)
 
@@ -33,7 +34,7 @@ class Lora(BaseModel):
 
 
 LoraList = TypeAdapter(List[Lora])
-default_loras_model = [Lora(model_name=lora[0], weight=lora[1]) for lora in default_loras if lora[0] != 'None']
+default_loras_model = [Lora(enabled=lora[0], model_name=lora[1], weight=lora[2]) for lora in default_loras if lora[0] != 'None']
 default_loras_json = LoraList.dump_json(default_loras_model)
 
 

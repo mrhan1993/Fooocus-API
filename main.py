@@ -211,8 +211,8 @@ def download_models():
     ]
 
     from modules.model_loader import load_file_from_url
-    from modules.config import (path_checkpoints as modelfile_path,
-                                path_loras as lorafile_path,
+    from modules.config import (paths_checkpoints as modelfile_path,
+                                paths_loras as lorafile_path,
                                 path_vae_approx as vae_approx_path,
                                 path_fooocus_expansion as fooocus_expansion_path,
                                 checkpoint_downloads,
@@ -220,11 +220,11 @@ def download_models():
                                 embeddings_downloads, lora_downloads)
 
     for file_name, url in checkpoint_downloads.items():
-        load_file_from_url(url=url, model_dir=modelfile_path, file_name=file_name)
+        load_file_from_url(url=url, model_dir=modelfile_path[0], file_name=file_name)
     for file_name, url in embeddings_downloads.items():
         load_file_from_url(url=url, model_dir=embeddings_path, file_name=file_name)
     for file_name, url in lora_downloads.items():
-        load_file_from_url(url=url, model_dir=lorafile_path, file_name=file_name)
+        load_file_from_url(url=url, model_dir=lorafile_path[0], file_name=file_name)
     for file_name, url in vae_approx_filenames:
         load_file_from_url(url=url, model_dir=vae_approx_path, file_name=file_name)
 
