@@ -24,6 +24,7 @@ from fooocusapi.task_queue import TaskType
 
 
 class Lora(BaseModel):
+    enabled: bool
     model_name: str
     weight: float = Field(default=0.5, ge=-2, le=2)
 
@@ -33,7 +34,7 @@ class Lora(BaseModel):
 
 
 LoraList = TypeAdapter(List[Lora])
-default_loras_model = [Lora(model_name=lora[0], weight=lora[1]) for lora in default_loras if lora[0] != 'None']
+default_loras_model = [Lora(enabled=lora[0], model_name=lora[1], weight=lora[2]) for lora in default_loras if lora[0] != 'None']
 default_loras_json = LoraList.dump_json(default_loras_model)
 
 
@@ -74,15 +75,16 @@ class ImagePrompt(BaseModel):
 
 class AdvancedParams(BaseModel):
     disable_preview: bool = Field(False, description="Disable preview during generation")
+    disable_intermediate_results: bool = Field(False, description="Disable intermediate results")
+    disable_seed_increment: bool = Field(False, description="Disable Seed Increment")
     adm_scaler_positive: float = Field(1.5, description="Positive ADM Guidance Scaler", ge=0.1, le=3.0)
     adm_scaler_negative: float = Field(0.8, description="Negative ADM Guidance Scaler", ge=0.1, le=3.0)
     adm_scaler_end: float = Field(0.3, description="ADM Guidance End At Step", ge=0.0, le=1.0)
-    refiner_swap_method: str = Field('joint', description="Refiner swap method")
     adaptive_cfg: float = Field(7.0, description="CFG Mimicking from TSNR", ge=1.0, le=30.0)
     sampler_name: str = Field(default_sampler, description="Sampler")
     scheduler_name: str = Field(default_scheduler, description="Scheduler")
     overwrite_step: int = Field(-1, description="Forced Overwrite of Sampling Step", ge=-1, le=200)
-    overwrite_switch: int = Field(-1, description="Forced Overwrite of Refiner Switch Step", ge=-1, le=200)
+    overwrite_switch: float = Field(-1, description="Forced Overwrite of Refiner Switch Step", ge=-1, le=1)
     overwrite_width: int = Field(-1, description="Forced Overwrite of Generating Width", ge=-1, le=2048)
     overwrite_height: int = Field(-1, description="Forced Overwrite of Generating Height", ge=-1, le=2048)
     overwrite_vary_strength: float = Field(-1, description='Forced Overwrite of Denoising Strength of "Vary"', ge=-1, le=1.0)
@@ -91,9 +93,10 @@ class AdvancedParams(BaseModel):
     mixing_image_prompt_and_inpaint: bool = Field(False, description="Mixing Image Prompt and Inpaint")
     debugging_cn_preprocessor: bool = Field(False, description="Debug Preprocessors")
     skipping_cn_preprocessor: bool = Field(False, description="Skip Preprocessors")
-    controlnet_softness: float = Field(0.25, description="Softness of ControlNet", ge=0.0, le=1.0)
     canny_low_threshold: int = Field(64, description="Canny Low Threshold", ge=1, le=255)
     canny_high_threshold: int = Field(128, description="Canny High Threshold", ge=1, le=255)
+    refiner_swap_method: str = Field('joint', description="Refiner swap method")
+    controlnet_softness: float = Field(0.25, description="Softness of ControlNet", ge=0.0, le=1.0)
     freeu_enabled: bool = Field(False, description="FreeU enabled")
     freeu_b1: float = Field(1.01, description="FreeU B1")
     freeu_b2: float = Field(1.02, description="FreeU B2")
@@ -104,6 +107,7 @@ class AdvancedParams(BaseModel):
     inpaint_engine: str = Field('v1', description="Inpaint Engine")
     inpaint_strength: float = Field(1.0, description="Inpaint Denoising Strength", ge=0.0, le=1.0)
     inpaint_respective_field: float = Field(1.0, description="Inpaint Respective Field", ge=0.0, le=1.0)
+    inpaint_mask_upload_checkbox: bool = Field(False, description="Upload Mask")
     invert_mask_checkbox: bool = Field(False, description="Invert Mask")
     inpaint_erode_or_dilate: int = Field(0, description="Mask Erode or Dilate", ge=-64, le=64)
 
@@ -124,6 +128,7 @@ class Text2ImgRequest(BaseModel):
     loras: List[Lora] = Field(default=default_loras_model)
     advanced_params: AdvancedParams | None = AdvancedParams()
     save_extension: str = Field(default='png', description="Save extension, one of [png, jpg, webp]")
+    read_wildcards_in_order: bool = Field(default=False, description="Read wildcards in order")
     require_base64: bool = Field(default=False, description="Return base64 data of generated image")
     async_process: bool = Field(default=False, description="Set to true will run async and return job info for retrieve generataion result later")
     webhook_url: str | None = Field(default='', description="Optional URL for a webhook callback. If provided, the system will send a POST request to this URL upon task completion or failure."
@@ -152,15 +157,13 @@ def lora_parser(loras: str) -> List[Lora]:
         raise RequestValidationError(errors=[errs])
 
 def advanced_params_parser(advanced_params: str | None) -> AdvancedParams:
-    advanced_params_obj = None
     if advanced_params is not None and len(advanced_params) > 0:
         try:
             advanced_params_obj = AdvancedParams.__pydantic_validator__.validate_json(advanced_params)
             return advanced_params_obj
-        except ValidationError as ve:
-            errs = ve.errors()
-            raise RequestValidationError(errors=[errs])
-    return advanced_params_obj
+        except ValidationError:
+            return AdvancedParams()
+    return AdvancedParams()
 
 def oupaint_selections_parser(outpaint_selections: str) -> List[OutpaintExpansion]:
     outpaint_selections_arr: List[OutpaintExpansion] = []

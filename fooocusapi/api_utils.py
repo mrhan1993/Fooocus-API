@@ -130,46 +130,37 @@ def req_to_params(req: Text2ImgRequest) -> ImageGenerationParams:
             print(f"[Warning] Wrong inpaint_engine input: {adp.inpaint_engine}, using default")
             adp.inpaint_engine = default_inpaint_engine_version
         
-        advanced_params = [
-            adp.disable_preview, adp.adm_scaler_positive, adp.adm_scaler_negative, adp.adm_scaler_end, adp.adaptive_cfg, adp.sampler_name, \
-            adp.scheduler_name, False, adp.overwrite_step, adp.overwrite_switch, adp.overwrite_width, adp.overwrite_height, \
-            adp.overwrite_vary_strength, adp.overwrite_upscale_strength, \
-            adp.mixing_image_prompt_and_vary_upscale, adp.mixing_image_prompt_and_inpaint, \
-            adp.debugging_cn_preprocessor, adp.skipping_cn_preprocessor, adp.controlnet_softness, adp.canny_low_threshold, adp.canny_high_threshold, \
-            adp.refiner_swap_method, \
-            adp.freeu_enabled, adp.freeu_b1, adp.freeu_b2, adp.freeu_s1, adp.freeu_s2, \
-            adp.debugging_inpaint_preprocessor, adp.inpaint_disable_initial_latent, adp.inpaint_engine, adp.inpaint_strength, adp.inpaint_respective_field, \
-            False, adp.invert_mask_checkbox, adp.inpaint_erode_or_dilate
-        ]
+        advanced_params = adp
 
-    return ImageGenerationParams(prompt=prompt,
-                                 negative_prompt=negative_prompt,
-                                 style_selections=style_selections,
-                                 performance_selection=performance_selection,
-                                 aspect_ratios_selection=aspect_ratios_selection,
-                                 image_number=image_number,
-                                 image_seed=image_seed,
-                                 sharpness=sharpness,
-                                 guidance_scale=guidance_scale,
-                                 base_model_name=base_model_name,
-                                 refiner_model_name=refiner_model_name,
-                                 refiner_switch=refiner_switch,
-                                 loras=loras,
-                                 uov_input_image=uov_input_image,
-                                 uov_method=uov_method,
-                                 upscale_value=upscale_value,
-                                 outpaint_selections=outpaint_selections,
-                                 outpaint_distance_left=outpaint_distance_left,
-                                 outpaint_distance_right=outpaint_distance_right,
-                                 outpaint_distance_top=outpaint_distance_top,
-                                 outpaint_distance_bottom=outpaint_distance_bottom,
-                                 inpaint_input_image=inpaint_input_image,
-                                 inpaint_additional_prompt=inpaint_additional_prompt,
-                                 image_prompts=image_prompts,
-                                 advanced_params=advanced_params,
-                                 save_extension=req.save_extension,
-                                 require_base64=req.require_base64,
-                                 )
+    return ImageGenerationParams(
+        prompt=prompt,
+        negative_prompt=negative_prompt,
+        style_selections=style_selections,
+        performance_selection=performance_selection,
+        aspect_ratios_selection=aspect_ratios_selection,
+        image_number=image_number,
+        image_seed=image_seed,
+        sharpness=sharpness,
+        guidance_scale=guidance_scale,
+        base_model_name=base_model_name,
+        refiner_model_name=refiner_model_name,
+        refiner_switch=refiner_switch,
+        loras=loras,
+        uov_input_image=uov_input_image,
+        uov_method=uov_method,
+        upscale_value=upscale_value,
+        outpaint_selections=outpaint_selections,
+        outpaint_distance_left=outpaint_distance_left,
+        outpaint_distance_right=outpaint_distance_right,
+        outpaint_distance_top=outpaint_distance_top,
+        outpaint_distance_bottom=outpaint_distance_bottom,
+        inpaint_input_image=inpaint_input_image,
+        inpaint_additional_prompt=inpaint_additional_prompt,
+        image_prompts=image_prompts,
+        advanced_params=advanced_params,
+        save_extension=req.save_extension,
+        require_base64=req.require_base64,
+    )
 
 
 def generate_async_output(task: QueueTask, require_step_preview: bool = False) -> AsyncJobResponse:
@@ -213,7 +204,7 @@ def generate_image_result_output(results: List[ImageGenerationResult], require_b
     results = [GeneratedImageResult(
             base64=output_file_to_base64img(item.im) if require_base64 else None,
             url=get_file_serve_url(item.im),
-            seed=item.seed,
+            seed=str(item.seed),
             finish_reason=item.finish_reason) for item in results]
     return results
 

@@ -211,8 +211,8 @@ def download_models():
     ]
 
     from modules.model_loader import load_file_from_url
-    from modules.config import (path_checkpoints as modelfile_path,
-                                path_loras as lorafile_path,
+    from modules.config import (paths_checkpoints as modelfile_path,
+                                paths_loras as lorafile_path,
                                 path_vae_approx as vae_approx_path,
                                 path_fooocus_expansion as fooocus_expansion_path,
                                 checkpoint_downloads,
@@ -220,11 +220,11 @@ def download_models():
                                 embeddings_downloads, lora_downloads)
 
     for file_name, url in checkpoint_downloads.items():
-        load_file_from_url(url=url, model_dir=modelfile_path, file_name=file_name)
+        load_file_from_url(url=url, model_dir=modelfile_path[0], file_name=file_name)
     for file_name, url in embeddings_downloads.items():
         load_file_from_url(url=url, model_dir=embeddings_path, file_name=file_name)
     for file_name, url in lora_downloads.items():
-        load_file_from_url(url=url, model_dir=lorafile_path, file_name=file_name)
+        load_file_from_url(url=url, model_dir=lorafile_path[0], file_name=file_name)
     for file_name, url in vae_approx_filenames:
         load_file_from_url(url=url, model_dir=vae_approx_path, file_name=file_name)
 
@@ -247,6 +247,11 @@ def install_dependents(args):
         if not is_installed("torch") or not is_installed("torchvision"):
             print(f"torch_index_url: {torch_index_url}")
             run_pip(f"install torch==2.1.0 torchvision==0.16.0 --extra-index-url {torch_index_url}", "torch")
+        else:
+            import torch
+            if not torch.cuda.is_available():
+                print("Your torch installation does not have CUDA support. Application will not work well.")
+                print(f"try execute 'pip install torch==2.1.0 torchvision==0.16.0 --extra-index-url {torch_index_url}'")
 
         if args.persistent and not is_installed("sqlalchemy"):
             run_pip(f"install sqlalchemy==2.0.25", "sqlalchemy")
