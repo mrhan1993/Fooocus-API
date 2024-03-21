@@ -247,6 +247,11 @@ def install_dependents(args):
         if not is_installed("torch") or not is_installed("torchvision"):
             print(f"torch_index_url: {torch_index_url}")
             run_pip(f"install torch==2.1.0 torchvision==0.16.0 --extra-index-url {torch_index_url}", "torch")
+        else:
+            import torch
+            if not torch.cuda.is_available():
+                print("Your torch installation does not have CUDA support. Application will not work well.")
+                print(f"try execute 'pip install torch==2.1.0 torchvision==0.16.0 --extra-index-url {torch_index_url}'")
 
         if args.persistent and not is_installed("sqlalchemy"):
             run_pip(f"install sqlalchemy==2.0.25", "sqlalchemy")
