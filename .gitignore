@@ -1,5 +1,6 @@
 __pycache__
 .DS_Store
+# models
 *.ckpt
 *.safetensors
 *.pth
@@ -8,6 +9,14 @@ __pycache__
 *.patch
 *.backup
 *.corrupted
+
+# environment
+venv
+.venv
+.env
+.conda
+conda
+
 sorted_styles.json
 /language/default.json
 lena.png
@@ -20,8 +29,6 @@ user_path_config-deprecated.txt
 build_chb.py
 experiment.py
 /modules/*.png
-/repositories
-/venv
 /tmp
 /ui-config.json
 /outputs
