@@ -1,3 +1,13 @@
+# -*- coding: utf-8 -*-
+
+""" Entry for Fooocus API.
+
+Use for starting Fooocus API.
+    python main.py --help for more usage
+
+@module: main
+@author: Konie 
+"""
 import argparse
 import os
 import re
@@ -8,8 +18,12 @@ from importlib.util import find_spec
 from threading import Thread
 
 from fooocus_api_version import version
-from fooocusapi.repositories_versions import fooocus_commit_hash
-sys.path.append(os.path.dirname(os.path.realpath(__file__)))
+
+script_path = os.path.dirname(os.path.realpath(__file__))
+module_path = os.path.join(script_path, 'repositories/Fooocus')
+
+sys.path.append(script_path)
+sys.path.append(module_path)
 
 
 print('[System ARGV] ' + str(sys.argv))
@@ -21,67 +35,6 @@ python = sys.executable
 default_command_live = True
 index_url = os.environ.get('INDEX_URL', "")
 re_requirement = re.compile(r"\s*([-_a-zA-Z0-9]+)\s*(?:==\s*([-+_.a-zA-Z0-9]+))?\s*")
-
-fooocus_name = 'Fooocus'
-
-fooocus_gitee_repo = 'https://gitee.com/mirrors/fooocus'
-fooocus_github_repo = 'https://github.com/lllyasviel/Fooocus'
-
-modules_path = os.path.dirname(os.path.realpath(__file__))
-script_path = modules_path
-dir_repos = "repositories"
-
-
-# This function was copied from [Fooocus](https://github.com/lllyasviel/Fooocus) repository.
-def onerror(func, path, exc_info):
-    import stat
-    if not os.access(path, os.W_OK):
-        os.chmod(path, stat.S_IWUSR)
-        func(path)
-    else:
-        raise 'Failed to invoke "shutil.rmtree", git management failed.'
-
-
-# This function was copied from [Fooocus](https://github.com/lllyasviel/Fooocus) repository.
-def git_clone(url, dir, name, hash=None):
-    import pygit2
-
-    try:
-        try:
-            repo = pygit2.Repository(dir)
-            remote_url = repo.remotes['origin'].url
-            if remote_url not in [fooocus_gitee_repo, fooocus_github_repo]:
-                print(f'{name} exists but remote URL will be updated.')
-                del repo
-                raise url
-            else:
-                print(f'{name} exists and URL is correct.')
-            url = remote_url
-        except:
-            if os.path.isdir(dir) or os.path.exists(dir):
-                print("Fooocus exists, but not a git repo. You can find how to solve this problem here: https://github.com/konieshadow/Fooocus-API#use-exist-fooocus")
-                sys.exit(1)
-            os.makedirs(dir, exist_ok=True)
-            repo = pygit2.clone_repository(url, dir)
-            print(f'{name} cloned from {url}.')
-
-        remote = repo.remotes['origin']
-        remote.fetch()
-
-        commit = repo.get(hash)
-
-        repo.checkout_tree(commit, strategy=pygit2.GIT_CHECKOUT_FORCE)
-        repo.set_head(commit.id)
-
-        print(f'{name} checkout finished for {hash}.')
-    except Exception as e:
-        print(f'Git clone failed for {name}: {str(e)}')
-        raise e
-
-
-# This function was copied from [Fooocus](https://github.com/lllyasviel/Fooocus) repository.
-def repo_dir(name):
-    return os.path.join(script_path, dir_repos, name)
 
 
 # This function was copied from [Fooocus](https://github.com/lllyasviel/Fooocus) repository.
@@ -165,34 +118,6 @@ def requirements_met(requirements_file):
     return True
 
 
-def download_repositories():
-    import pygit2
-    import requests
-
-    pygit2.option(pygit2.GIT_OPT_SET_OWNER_VALIDATION, 0)
-
-    http_proxy = os.environ.get('HTTP_PROXY')
-    https_proxy = os.environ.get('HTTPS_PROXY')
-
-    if http_proxy is not None:
-        print(f"Using http proxy for git clone: {http_proxy}")
-        os.environ['http_proxy'] = http_proxy
-
-    if https_proxy is not None:
-        print(f"Using https proxy for git clone: {https_proxy}")
-        os.environ['https_proxy'] = https_proxy
-
-    try:
-        requests.get("https://policies.google.com/privacy", timeout=5)
-        fooocus_repo_url = fooocus_github_repo
-    except:
-        fooocus_repo_url = fooocus_gitee_repo
-    fooocus_repo = os.environ.get(
-        'FOOOCUS_REPO', fooocus_repo_url)
-    git_clone(fooocus_repo, repo_dir(fooocus_name),
-              "Fooocus", fooocus_commit_hash)
-
-
 def is_installed(package):
     try:
         spec = find_spec(package)
@@ -256,32 +181,6 @@ def install_dependents(args):
         if args.persistent and not is_installed("sqlalchemy"):
             run_pip(f"install sqlalchemy==2.0.25", "sqlalchemy")
 
-    skip_sync_repo = False
-    if args.sync_repo is not None:
-        if args.sync_repo == 'only':
-            print("Only download and sync depent repositories")
-            download_repositories()
-            models_path = os.path.join(
-                script_path, dir_repos, fooocus_name, "models")
-            print(
-                f"Sync repositories successful. Now you can put model files in subdirectories of '{models_path}'")
-            return False
-        elif args.sync_repo == 'skip':
-            skip_sync_repo = True
-        else:
-            print(
-                f"Invalid value for argument '--sync-repo', acceptable value are 'skip' and 'only'")
-            exit(1)
-
-    if not skip_sync_repo:
-        download_repositories()
-
-    # Add dependent repositories to import path
-    sys.path.append(script_path)
-    fooocus_path = os.path.join(script_path, dir_repos, fooocus_name)
-    sys.path.append(fooocus_path)
-    os.environ["PYTORCH_ENABLE_MPS_FALLBACK"] = "1"
-
 
 def prepare_environments(args) -> bool:
     if args.gpu_device_id is not None:
@@ -298,7 +197,7 @@ def prepare_environments(args) -> bool:
 
     if args.preset is not None:
         # Remove and copy preset folder
-        origin_preset_folder = os.path.abspath(os.path.join(script_path, dir_repos, fooocus_name, 'presets'))
+        origin_preset_folder = os.path.abspath(os.path.join(module_path, 'presets'))
         preset_folder = os.path.abspath(os.path.join(script_path, 'presets'))
         if os.path.exists(preset_folder):
             shutil.rmtree(preset_folder)
@@ -331,8 +230,7 @@ def prepare_environments(args) -> bool:
     return True
 
 
-def pre_setup(skip_sync_repo: bool = False,
-              disable_image_log: bool = False,
+def pre_setup(disable_image_log: bool = False,
               skip_pip=False,
               load_all_models: bool = False,
               preload_pipeline: bool = False,
@@ -343,7 +241,6 @@ def pre_setup(skip_sync_repo: bool = False,
         host = '127.0.0.1'
         port = 8888
         base_url = None
-        sync_repo = None
         disable_image_log = False
         skip_pip = False
         preload_pipeline = False
@@ -360,8 +257,6 @@ def pre_setup(skip_sync_repo: bool = False,
     print("[Pre Setup] Prepare environments")
 
     args = Args()
-    if skip_sync_repo:
-        args.sync_repo = 'skip'
     args.disable_image_log = disable_image_log
     args.skip_pip = skip_pip
     args.preload_pipeline = preload_pipeline
