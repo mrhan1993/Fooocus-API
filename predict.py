@@ -8,7 +8,7 @@ import numpy as np
 from PIL import Image
 from typing import List
 from cog import BasePredictor, BaseModel, Input, Path
-from fooocusapi.file_utils import output_dir
+from fooocusapi.utils.file_utils import output_dir
 from fooocusapi.parameters import (GenerationFinishReason,
                                    ImageGenerationParams,
                                    available_aspect_ratios,

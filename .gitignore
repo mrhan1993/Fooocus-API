@@ -17,6 +17,11 @@ venv
 .conda
 conda
 
+# log files
+*.log
+logs
+log
+
 sorted_styles.json
 /language/default.json
 lena.png
@@ -33,7 +38,6 @@ experiment.py
 /ui-config.json
 /outputs
 /config.json
-/log
 /webui.settings.bat
 /embeddings
 /styles.csv

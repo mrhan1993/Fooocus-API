@@ -5,18 +5,23 @@
 Use for starting Fooocus API.
     python main.py --help for more usage
 
-@module: main
-@author: Konie 
+@file: main.py
+@author: Konie
+@update: 2024-03-22 
 """
 import argparse
 import os
 import re
 import shutil
-import subprocess
 import sys
-from importlib.util import find_spec
 from threading import Thread
 
+from fooocusapi.utils.logger import logger
+from fooocusapi.utils.tools import (
+    run_pip,
+    check_torch_cuda,
+    requirements_check
+)
 from fooocus_api_version import version
 
 script_path = os.path.dirname(os.path.realpath(__file__))
@@ -37,152 +42,39 @@ index_url = os.environ.get('INDEX_URL', "")
 re_requirement = re.compile(r"\s*([-_a-zA-Z0-9]+)\s*(?:==\s*([-+_.a-zA-Z0-9]+))?\s*")
 
 
-# This function was copied from [Fooocus](https://github.com/lllyasviel/Fooocus) repository.
-def run(command, desc=None, errdesc=None, custom_env=None, live: bool = default_command_live) -> str:
-    if desc is not None:
-        print(desc)
 
-    run_kwargs = {
-        "args": command,
-        "shell": True,
-        "env": os.environ if custom_env is None else custom_env,
-        "encoding": 'utf8',
-        "errors": 'ignore',
-    }
-
-    if not live:
-        run_kwargs["stdout"] = run_kwargs["stderr"] = subprocess.PIPE
-
-    result = subprocess.run(**run_kwargs)
-
-    if result.returncode != 0:
-        error_bits = [
-            f"{errdesc or 'Error running command'}.",
-            f"Command: {command}",
-            f"Error code: {result.returncode}",
-        ]
-        if result.stdout:
-            error_bits.append(f"stdout: {result.stdout}")
-        if result.stderr:
-            error_bits.append(f"stderr: {result.stderr}")
-        raise RuntimeError("\n".join(error_bits))
-
-    return result.stdout or ""
-
-
-# This function was copied from [Fooocus](https://github.com/lllyasviel/Fooocus) repository.
-def run_pip(command, desc=None, live=default_command_live):
-    try:
-        index_url_line = f' --index-url {index_url}' if index_url != '' else ''
-        return run(f'"{python}" -m pip {command} --prefer-binary{index_url_line}', desc=f"Installing {desc}",
-                   errdesc=f"Couldn't install {desc}", live=live)
-    except Exception as e:
-        print(e)
-        print(f'CMD Failed {desc}: {command}')
-        return None
-
-
-# This function was copied from [Fooocus](https://github.com/lllyasviel/Fooocus) repository.
-def requirements_met(requirements_file):
+def install_dependents(skip: bool = False):
     """
-    Does a simple parse of a requirements.txt file to determine if all requirements in it
-    are already installed. Returns True if so, False if not installed or parsing fails.
+    Check and nstall dependencies
+    Args:
+        skip: skip pip install
     """
+    if skip:
+        return
 
-    import importlib.metadata
-    import packaging.version
+    torch_index_url = os.environ.get('TORCH_INDEX_URL', "https://download.pytorch.org/whl/cu121")
 
-    with open(requirements_file, "r", encoding="utf8") as file:
-        for line in file:
-            if line.strip() == "":
-                continue
+    # Check if you need pip install
+    if not requirements_check():
+        run_pip("install -r requirements.txt", "requirements")
 
-            m = re.match(re_requirement, line)
-            if m is None:
-                return False
-
-            package = m.group(1).strip()
-            version_required = (m.group(2) or "").strip()
-
-            if version_required == "":
-                continue
-
-            try:
-                version_installed = importlib.metadata.version(package)
-            except Exception:
-                return False
-
-            if packaging.version.parse(version_required) != packaging.version.parse(version_installed):
-                return False
-
-    return True
+    if not check_torch_cuda():
+        run_pip(f"install torch==2.1.0 torchvision==0.16.0 --extra-index-url {torch_index_url}",
+                desc="torch")
 
 
-def is_installed(package):
-    try:
-        spec = find_spec(package)
-    except ModuleNotFoundError:
-        return False
-
-    return spec is not None
-
-
-def download_models():
-    vae_approx_filenames = [
-        ('xlvaeapp.pth', 'https://huggingface.co/lllyasviel/misc/resolve/main/xlvaeapp.pth'),
-        ('vaeapp_sd15.pth', 'https://huggingface.co/lllyasviel/misc/resolve/main/vaeapp_sd15.pt'),
-        ('xl-to-v1_interposer-v3.1.safetensors',
-         'https://huggingface.co/lllyasviel/misc/resolve/main/xl-to-v1_interposer-v3.1.safetensors')
-    ]
-
-    from modules.model_loader import load_file_from_url
-    from modules.config import (paths_checkpoints as modelfile_path,
-                                paths_loras as lorafile_path,
-                                path_vae_approx as vae_approx_path,
-                                path_fooocus_expansion as fooocus_expansion_path,
-                                checkpoint_downloads,
-                                path_embeddings as embeddings_path,
-                                embeddings_downloads, lora_downloads)
-
-    for file_name, url in checkpoint_downloads.items():
-        load_file_from_url(url=url, model_dir=modelfile_path[0], file_name=file_name)
-    for file_name, url in embeddings_downloads.items():
-        load_file_from_url(url=url, model_dir=embeddings_path, file_name=file_name)
-    for file_name, url in lora_downloads.items():
-        load_file_from_url(url=url, model_dir=lorafile_path[0], file_name=file_name)
-    for file_name, url in vae_approx_filenames:
-        load_file_from_url(url=url, model_dir=vae_approx_path, file_name=file_name)
-
-    load_file_from_url(
-        url='https://huggingface.co/lllyasviel/misc/resolve/main/fooocus_expansion.bin',
-        model_dir=fooocus_expansion_path,
-        file_name='pytorch_model.bin'
-    )
-
-
-def install_dependents(args):
-    if not args.skip_pip:
-        torch_index_url = os.environ.get('TORCH_INDEX_URL', "https://download.pytorch.org/whl/cu121")
-
-        # Check if you need pip install
-        requirements_file = 'requirements.txt'
-        if not requirements_met(requirements_file):
-            run_pip(f"install -r \"{requirements_file}\"", "requirements")
-
-        if not is_installed("torch") or not is_installed("torchvision"):
-            print(f"torch_index_url: {torch_index_url}")
-            run_pip(f"install torch==2.1.0 torchvision==0.16.0 --extra-index-url {torch_index_url}", "torch")
-        else:
-            import torch
-            if not torch.cuda.is_available():
-                print("Your torch installation does not have CUDA support. Application will not work well.")
-                print(f"try execute 'pip install torch==2.1.0 torchvision==0.16.0 --extra-index-url {torch_index_url}'")
-
-        if args.persistent and not is_installed("sqlalchemy"):
-            run_pip(f"install sqlalchemy==2.0.25", "sqlalchemy")
+def preplaod_pipeline():
+    """Preload pipeline"""
+    logger.std_info("[Fooocus-API] Preloading pipeline ...")
+    import modules.default_pipeline as _
 
 
 def prepare_environments(args) -> bool:
+    """
+    Prepare environments
+    Args:
+        args: command line arguments
+    """
     if args.gpu_device_id is not None:
         os.environ['CUDA_VISIBLE_DEVICES'] = str(args.gpu_device_id)
         print("Set device to:", args.gpu_device_id)
@@ -195,16 +87,16 @@ def prepare_environments(args) -> bool:
 
     sys.argv = [sys.argv[0]]
 
-    if args.preset is not None:
-        # Remove and copy preset folder
-        origin_preset_folder = os.path.abspath(os.path.join(module_path, 'presets'))
-        preset_folder = os.path.abspath(os.path.join(script_path, 'presets'))
-        if os.path.exists(preset_folder):
-            shutil.rmtree(preset_folder)
-        shutil.copytree(origin_preset_folder, preset_folder)
+    # Remove and copy preset folder
+    origin_preset_folder = os.path.abspath(os.path.join(module_path, 'presets'))
+    preset_folder = os.path.abspath(os.path.join(script_path, 'presets'))
+    if os.path.exists(preset_folder):
+        shutil.rmtree(preset_folder)
+    shutil.copytree(origin_preset_folder, preset_folder)
 
-    import modules.config as config
-    import fooocusapi.parameters as parameters
+    from modules import config
+    from fooocusapi import parameters
+    from fooocusapi.utils.model_loader import download_models
     parameters.default_inpaint_engine_version = config.default_inpaint_engine_version
     parameters.default_styles = config.default_styles
     parameters.default_base_model_name = config.default_base_model_name
@@ -218,14 +110,18 @@ def prepare_environments(args) -> bool:
 
     download_models()
 
-    if args.preload_pipeline:
-        preplaod_pipeline()
-
     # Init task queue
-    import fooocusapi.worker as worker
+    from fooocusapi import worker
     from fooocusapi.task_queue import TaskQueue
-    worker.worker_queue = TaskQueue(queue_size=args.queue_size, hisotry_size=args.queue_history, webhook_url=args.webhook_url, persistent=args.persistent)
-    print(f"[Fooocus-API] Task queue size: {args.queue_size}, queue history size: {args.queue_history}, webhook url: {args.webhook_url}")
+    worker.worker_queue = TaskQueue(
+        queue_size=args.queue_size,
+        hisotry_size=args.queue_history,
+        webhook_url=args.webhook_url,
+        persistent=args.persistent)
+
+    logger.std_info(f"[Fooocus-API] Task queue size: {args.queue_size}")
+    logger.std_info(f"[Fooocus-API] Queue history size: {args.queue_size}")
+    logger.std_info(f"[Fooocus-API] Webhook url: {args.queue_size}")
 
     return True
 
@@ -278,24 +174,20 @@ def pre_setup(disable_image_log: bool = False,
     prepare_environments(args)
 
     if load_all_models:
-        import modules.config as config
+        from modules import config
         from fooocusapi.parameters import default_inpaint_engine_version
         config.downloading_upscale_model()
         config.downloading_inpaint_models(default_inpaint_engine_version)
         config.downloading_controlnet_canny()
         config.downloading_controlnet_cpds()
-        config.downloading_ip_adapters()
+        config.downloading_ip_adapters('ip')
+        config.downloading_ip_adapters('face')
     print("[Pre Setup] Finished")
 
 
-def preplaod_pipeline():
-    print("Preload pipeline")
-    import modules.default_pipeline as _
-
-
 if __name__ == "__main__":
-    print(f"Python {sys.version}")
-    print(f"Fooocus-API version: {version}")
+    logger.std_info(f"[Fooocus API] Python {sys.version}")
+    logger.std_info(f"[Fooocus API] Fooocus API version: {version}")
 
     from fooocusapi.base_args import add_base_args
 
@@ -303,7 +195,7 @@ if __name__ == "__main__":
     add_base_args(parser, True)
 
     args, _ = parser.parse_known_args()
-    install_dependents(args)
+    install_dependents(skip=args.skip_pip)
 
     from fooocusapi.args import args
 

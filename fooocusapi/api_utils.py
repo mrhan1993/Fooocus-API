@@ -5,8 +5,8 @@ from fastapi.security import APIKeyHeader
 from fastapi import HTTPException, Security
 
 from fooocusapi.args import args
-from fooocusapi.file_utils import get_file_serve_url, output_file_to_base64img, output_file_to_bytesimg
-from fooocusapi.img_utils import read_input_image
+from fooocusapi.utils.file_utils import get_file_serve_url, output_file_to_base64img, output_file_to_bytesimg
+from fooocusapi.utils.img_utils import read_input_image
 from fooocusapi.models import AsyncJobResponse, AsyncJobStage, GeneratedImageResult, GenerationFinishReason, ImgInpaintOrOutpaintRequest, ImgPromptRequest, ImgUpscaleOrVaryRequest, Text2ImgRequest
 from fooocusapi.models_v2 import *
 from fooocusapi.parameters import ImageGenerationParams, ImageGenerationResult, default_inpaint_engine_version, default_sampler, default_scheduler, default_base_model_name, default_refiner_model_name

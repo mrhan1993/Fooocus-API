@@ -129,7 +129,7 @@ class ImageGenerationParams(object):
         self.image_prompts = image_prompts
         self.save_extension = save_extension
         self.require_base64 = require_base64
-        
+
         if advanced_params is None:
             disable_preview = False
             adm_scaler_positive = 1.5
