@@ -296,13 +296,12 @@ def prepare_environments(args) -> bool:
 
     sys.argv = [sys.argv[0]]
 
-    if args.preset is not None:
-        # Remove and copy preset folder
-        origin_preset_folder = os.path.abspath(os.path.join(script_path, dir_repos, fooocus_name, 'presets'))
-        preset_folder = os.path.abspath(os.path.join(script_path, 'presets'))
-        if os.path.exists(preset_folder):
-            shutil.rmtree(preset_folder)
-        shutil.copytree(origin_preset_folder, preset_folder)
+    # Remove and copy preset folder
+    origin_preset_folder = os.path.abspath(os.path.join(script_path, dir_repos, fooocus_name, 'presets'))
+    preset_folder = os.path.abspath(os.path.join(script_path, 'presets'))
+    if os.path.exists(preset_folder):
+        shutil.rmtree(preset_folder)
+    shutil.copytree(origin_preset_folder, preset_folder)
 
     import modules.config as config
     import fooocusapi.parameters as parameters
