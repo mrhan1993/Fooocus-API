@@ -326,14 +326,15 @@ def describe_image(image: UploadFile, type: DescribeImageType = Query(DescribeIm
 
 @secure_router.get("/v1/engines/all-models", response_model=AllModelNamesResponse, description="Get all filenames of base model and lora")
 def all_models():
-    import modules.config as config
+    from modules import config
+    config.update_files()
     return AllModelNamesResponse(model_filenames=config.model_filenames, lora_filenames=config.lora_filenames)
 
 
-@secure_router.post("/v1/engines/refresh-models", response_model=AllModelNamesResponse, description="Refresh local files and get all filenames of base model and lora")
+@secure_router.post("/v1/engines/refresh-models", response_model=AllModelNamesResponse, description="Features are merged into all_models, and the interface will be removed later", deprecated=True)
 def refresh_models():
-    import modules.config as config
-    config.update_all_model_names()
+    from modules import config
+    config.update_files()
     return AllModelNamesResponse(model_filenames=config.model_filenames, lora_filenames=config.lora_filenames)
 
 
