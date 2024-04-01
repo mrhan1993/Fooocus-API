@@ -225,6 +225,11 @@ you can find all api detail [here](/docs/api_doc_en.md)
 
 # License
 
+This repository is licensed under the [GUN General Public License v3.0](https://github.com/mrhan1993/Fooocus-API/blob/main/LICENSE)
+
+The default checkpoint is published by [RunDiffusion](https://huggingface.co/RunDiffusion), is licensed under the [CreativeML Open RAIL-M](https://github.com/mrhan1993/Fooocus-API/blob/main/CreativeMLOpenRAIL-M).
+
+or, you can find it [here](https://huggingface.co/spaces/CompVis/stable-diffusion-license)
 
 # Thanks :purple_heart:
 
