@@ -1,3 +1,4 @@
+"""some utils for api"""
 from typing import List
 
 from fastapi import Response
@@ -53,12 +54,26 @@ from fooocusapi.task_queue import QueueTask
 api_key_header = APIKeyHeader(name="X-API-KEY", auto_error=False)
 
 def api_key_auth(apikey: str = Security(api_key_header)):
+    """
+    Check if the API key is valid, API key is not required if no API key is set
+    Args:
+        apikey: API key
+    returns:
+        None if API key is not set, otherwise raise HTTPException
+    """
     if args.apikey is None:
         return  # Skip API key check if no API key is set
     if apikey != args.apikey:
         raise HTTPException(status_code=403, detail="Forbidden")
 
 def req_to_params(req: Text2ImgRequest) -> ImageGenerationParams:
+    """
+    Convert Request to ImageGenerationParams
+    Args:
+        req: Request, Text2ImgRequest and classes inherited from Text2ImgRequest
+    returns:
+        ImageGenerationParams
+    """
     if req.base_model_name is not None:
         if req.base_model_name not in config.model_filenames:
             print(f"[Warning] Wrong base_model_name input: {req.base_model_name}, using default")
@@ -190,7 +205,17 @@ def req_to_params(req: Text2ImgRequest) -> ImageGenerationParams:
     )
 
 
-def generate_async_output(task: QueueTask, require_step_preview: bool = False) -> AsyncJobResponse:
+def generate_async_output(
+        task: QueueTask,
+        require_step_preview: bool = False) -> AsyncJobResponse:
+    """
+    Generate output for async job
+    Arguments:
+        task: QueueTask
+        require_step_preview: bool
+    Returns:
+        AsyncJobResponse
+    """
     job_stage = AsyncJobStage.running
     job_result = None
 
@@ -200,41 +225,60 @@ def generate_async_output(task: QueueTask, require_step_preview: bool = False) -
     if task.is_finished:
         if task.finish_with_error:
             job_stage = AsyncJobStage.error
-        elif task.task_result != None:
+        elif task.task_result is not None:
             job_stage = AsyncJobStage.success
             job_result = generate_image_result_output(task.task_result, task.req_param.require_base64)
-    return AsyncJobResponse(job_id=task.job_id,
-                            job_type=task.type,
-                            job_stage=job_stage,
-                            job_progress=task.finish_progress,
-                            job_status=task.task_status,
-                            job_step_preview= task.task_step_preview if require_step_preview else None,
-                            job_result=job_result)
+
+    result = AsyncJobResponse(
+        job_id=task.job_id,
+        job_type=task.type,
+        job_stage=job_stage,
+        job_progress=task.finish_progress,
+        job_status=task.task_status,
+        job_step_preview= task.task_step_preview if require_step_preview else None,
+        job_result=job_result)
+    return result
 
 
 def generate_streaming_output(results: List[ImageGenerationResult]) -> Response:
+    """
+    Generate streaming output for image generation results.
+    Args:
+        results (List[ImageGenerationResult]): List of image generation results.
+    Returns:
+        Response: Streaming response object, bytes image.
+    """
     if len(results) == 0:
         return Response(status_code=500)
     result = results[0]
     if result.finish_reason == GenerationFinishReason.queue_is_full:
         return Response(status_code=409, content=result.finish_reason.value)
-    elif result.finish_reason == GenerationFinishReason.user_cancel:
+    if result.finish_reason == GenerationFinishReason.user_cancel:
         return Response(status_code=400, content=result.finish_reason.value)
-    elif result.finish_reason == GenerationFinishReason.error:
+    if result.finish_reason == GenerationFinishReason.error:
         return Response(status_code=500, content=result.finish_reason.value)
-    
+
     img_bytes = output_file_to_bytesimg(results[0].im)
     return Response(img_bytes, media_type='image/png')
 
 
-def generate_image_result_output(results: List[ImageGenerationResult], require_base64: bool) -> List[GeneratedImageResult]:
-    results = [GeneratedImageResult(
+def generate_image_result_output(
+        results: List[ImageGenerationResult],
+        require_base64: bool) -> List[GeneratedImageResult]:
+    """
+    Generate image result output
+    Arguments:
+        results: List[ImageGenerationResult]
+        require_base64: bool
+    Returns:
+        List[GeneratedImageResult]
+    """
+    results = [
+        GeneratedImageResult(
             base64=output_file_to_base64img(item.im) if require_base64 else None,
             url=get_file_serve_url(item.im),
             seed=str(item.seed),
-            finish_reason=item.finish_reason) for item in results]
+            finish_reason=item.finish_reason
+            ) for item in results
+        ]
     return results
-
-
-class QueueReachLimitException(Exception):
-    pass
