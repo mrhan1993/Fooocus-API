@@ -120,8 +120,8 @@ def prepare_environments(args) -> bool:
         persistent=args.persistent)
 
     logger.std_info(f"[Fooocus-API] Task queue size: {args.queue_size}")
-    logger.std_info(f"[Fooocus-API] Queue history size: {args.queue_size}")
-    logger.std_info(f"[Fooocus-API] Webhook url: {args.queue_size}")
+    logger.std_info(f"[Fooocus-API] Queue history size: {args.queue_history}")
+    logger.std_info(f"[Fooocus-API] Webhook url: {args.webhook_url}")
 
     return True
 

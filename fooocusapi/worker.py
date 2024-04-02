@@ -12,6 +12,7 @@ from fooocusapi.parameters import GenerationFinishReason, ImageGenerationResult
 from fooocusapi.task_queue import QueueTask, TaskQueue, TaskOutputs
 from modules.patch import PatchSettings, patch_settings, patch_all
 from modules.sdxl_styles import apply_arrays
+from modules.flags import Performance
 
 patch_all()
 
@@ -146,7 +147,7 @@ def process_generate(async_task: QueueTask):
         prompt = params.prompt
         negative_prompt = params.negative_prompt
         style_selections = params.style_selections
-        performance_selection = params.performance_selection
+        performance_selection = Performance(params.performance_selection)
         aspect_ratios_selection = params.aspect_ratios_selection
         image_number = params.image_number
         save_extension = params.save_extension
@@ -247,13 +248,9 @@ def process_generate(async_task: QueueTask):
             print(f'Refiner disabled because base model and refiner are same.')
             refiner_model_name = 'None'
 
-        steps = 30
+        steps = performance_selection.steps()
 
-        if performance_selection == 'Speed':
-            steps = 30
-        if performance_selection == 'Quality':
-            steps = 60
-        if performance_selection == 'Extreme Speed':
+        if performance_selection == Performance.EXTREME_SPEED:
             print('Enter LCM mode.')
             progressbar(async_task, 1, 'Downloading LCM components ...')
             loras += [(config.downloading_sdxl_lcm_lora(), 1.0)]
@@ -271,9 +268,8 @@ def process_generate(async_task: QueueTask):
             adm_scaler_positive = 1.0
             adm_scaler_negative = 1.0
             adm_scaler_end = 0.0
-            steps = 8
 
-        elif performance_selection == 'LIGHTNING':
+        elif performance_selection == Performance.LIGHTNING:
             print('Enter Lightning mode.')
             progressbar(async_task, 1, 'Downloading Lightning components ...')
             loras += [(config.downloading_sdxl_lightning_lora(), 1.0)]
@@ -351,13 +347,7 @@ def process_generate(async_task: QueueTask):
                     if 'fast' in uov_method:
                         skip_prompt_processing = True
                     else:
-                        steps = 18
-                        if performance_selection == 'Speed':
-                            steps = 18
-                        if performance_selection == 'Quality':
-                            steps = 36
-                        if performance_selection == 'Extreme Speed':
-                            steps = 8
+                        steps = performance_selection.step_uov()
 
                     progressbar(async_task, 1, 'Downloading upscale models ...')
                     config.downloading_upscale_model()
