@@ -1,6 +1,30 @@
-from enum import Enum
 from typing import Dict, List, Tuple
 import numpy as np
+
+
+img_generate_responses = {
+    "200": {
+        "description": "PNG bytes if request's 'Accept' header is 'image/png', otherwise JSON",
+        "content": {
+            "application/json": {
+                "example": [{
+                    "base64": "...very long string...",
+                    "seed": "1050625087",
+                    "finish_reason": "SUCCESS"
+                }]
+            },
+            "application/json async": {
+                "example": {
+                    "job_id": 1,
+                    "job_type": "Text to Image"
+                }
+            },
+            "image/png": {
+                "example": "PNG bytes, what did you expect?"
+            }
+        }
+    }
+}
 
 
 default_inpaint_engine_version = 'v2.6'
@@ -61,21 +85,7 @@ def get_aspect_ratio_value(label: str) -> str:
     return label.split(' ')[0].replace('×', '*')
 
 
-class GenerationFinishReason(str, Enum):
-    success = 'SUCCESS'
-    queue_is_full = 'QUEUE_IS_FULL'
-    user_cancel = 'USER_CANCEL'
-    error = 'ERROR'
-
-
-class ImageGenerationResult(object):
-    def __init__(self, im: str | None, seed: str, finish_reason: GenerationFinishReason):
-        self.im = im
-        self.seed = seed
-        self.finish_reason = finish_reason
-
-
-class ImageGenerationParams(object):
+class ImageGenerationParams:
     def __init__(self, prompt: str,
                  negative_prompt: str,
                  style_selections: List[str],

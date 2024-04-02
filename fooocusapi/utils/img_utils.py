@@ -78,11 +78,10 @@ def read_input_image(input_image: UploadFile | str | None) -> np.ndarray | None:
         return None
     if isinstance(input_image, str):
         input_image_bytes = base64.b64decode(input_image)
-        pil_image = Image.open(BytesIO(input_image_bytes))
-        image = np.array(pil_image)
-        return image
-    input_image_bytes = input_image.file.read()
-    image = np.frombuffer(input_image_bytes, np.uint8)
+    else:
+        input_image_bytes = input_image.file.read()
+    pil_image = Image.open(BytesIO(input_image_bytes))
+    image = np.array(pil_image)
     return image
 
 

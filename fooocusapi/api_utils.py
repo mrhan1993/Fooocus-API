@@ -4,17 +4,51 @@ from fastapi import Response
 from fastapi.security import APIKeyHeader
 from fastapi import HTTPException, Security
 
-from fooocusapi.args import args
-from fooocusapi.utils.file_utils import get_file_serve_url, output_file_to_base64img, output_file_to_bytesimg
-from fooocusapi.utils.img_utils import read_input_image
-from fooocusapi.models import AsyncJobResponse, AsyncJobStage, GeneratedImageResult, GenerationFinishReason, ImgInpaintOrOutpaintRequest, ImgPromptRequest, ImgUpscaleOrVaryRequest, Text2ImgRequest
-from fooocusapi.models_v2 import *
-from fooocusapi.parameters import ImageGenerationParams, ImageGenerationResult, default_inpaint_engine_version, default_sampler, default_scheduler, default_base_model_name, default_refiner_model_name
-from fooocusapi.task_queue import QueueTask
-
 from modules import flags
 from modules import config
 from modules.sdxl_styles import legal_style_names
+
+from fooocusapi.args import args
+from fooocusapi.utils.img_utils import read_input_image
+from fooocusapi.utils.file_utils import (
+    get_file_serve_url,
+    output_file_to_base64img,
+    output_file_to_bytesimg
+)
+from fooocusapi.models.common.requests import (
+    CommonRequest as Text2ImgRequest
+)
+from fooocusapi.models.common.response import (
+    AsyncJobResponse,
+    AsyncJobStage,
+    GeneratedImageResult
+)
+from fooocusapi.models.requests_v1 import (
+    ImgInpaintOrOutpaintRequest,
+    ImgPromptRequest,
+    ImgUpscaleOrVaryRequest
+)
+from fooocusapi.models.requests_v2 import (
+    Text2ImgRequestWithPrompt,
+    ImgInpaintOrOutpaintRequestJson,
+    ImgUpscaleOrVaryRequestJson,
+    ImgPromptRequestJson
+)
+from fooocusapi.models.common.task import (
+    ImageGenerationResult,
+    GenerationFinishReason
+)
+from fooocusapi.parameters import (
+    ImageGenerationParams,
+    default_inpaint_engine_version,
+    default_sampler,
+    default_scheduler,
+    default_base_model_name,
+    default_refiner_model_name
+)
+
+from fooocusapi.task_queue import QueueTask
+
 
 api_key_header = APIKeyHeader(name="X-API-KEY", auto_error=False)
 
@@ -56,30 +90,23 @@ def req_to_params(req: Text2ImgRequest) -> ImageGenerationParams:
     loras = [(lora.model_name, lora.weight) for lora in req.loras]
     uov_input_image = None
     if not isinstance(req, Text2ImgRequestWithPrompt):
-        if isinstance(req, ImgUpscaleOrVaryRequest) or isinstance(req, ImgUpscaleOrVaryRequestJson):
+        if isinstance(req, (ImgUpscaleOrVaryRequest, ImgUpscaleOrVaryRequestJson)):
             uov_input_image = read_input_image(req.input_image)
-    uov_method = flags.disabled if not (isinstance(
-        req, ImgUpscaleOrVaryRequest) or isinstance(req, ImgUpscaleOrVaryRequestJson)) else req.uov_method.value
-    upscale_value = None if not (isinstance(
-                req, ImgUpscaleOrVaryRequest) or isinstance(req, ImgUpscaleOrVaryRequestJson)) else req.upscale_value
-    outpaint_selections = [] if not (isinstance(
-        req, ImgInpaintOrOutpaintRequest) or isinstance(req, ImgInpaintOrOutpaintRequestJson)) else [
+    uov_method = flags.disabled if not isinstance(req, (ImgUpscaleOrVaryRequest, ImgUpscaleOrVaryRequestJson)) else req.uov_method.value
+    upscale_value = None if not isinstance(req, (ImgUpscaleOrVaryRequest, ImgUpscaleOrVaryRequestJson)) else req.upscale_value
+    outpaint_selections = [] if not isinstance(req, (ImgInpaintOrOutpaintRequest, ImgInpaintOrOutpaintRequestJson)) else [
         s.value for s in req.outpaint_selections]
-    outpaint_distance_left = None if not (isinstance(
-        req, ImgInpaintOrOutpaintRequest) or isinstance(req, ImgInpaintOrOutpaintRequestJson)) else req.outpaint_distance_left
-    outpaint_distance_right = None if not (isinstance(
-        req, ImgInpaintOrOutpaintRequest) or isinstance(req, ImgInpaintOrOutpaintRequestJson)) else req.outpaint_distance_right
-    outpaint_distance_top = None if not (isinstance(
-        req, ImgInpaintOrOutpaintRequest) or isinstance(req, ImgInpaintOrOutpaintRequestJson)) else req.outpaint_distance_top
-    outpaint_distance_bottom = None if not (isinstance(
-        req, ImgInpaintOrOutpaintRequest) or isinstance(req, ImgInpaintOrOutpaintRequestJson)) else req.outpaint_distance_bottom
+    outpaint_distance_left = None if not isinstance(req, (ImgInpaintOrOutpaintRequest, ImgInpaintOrOutpaintRequestJson)) else req.outpaint_distance_left
+    outpaint_distance_right = None if not isinstance(req, (ImgInpaintOrOutpaintRequest, ImgInpaintOrOutpaintRequestJson)) else req.outpaint_distance_right
+    outpaint_distance_top = None if not isinstance(req, (ImgInpaintOrOutpaintRequest, ImgInpaintOrOutpaintRequestJson)) else req.outpaint_distance_top
+    outpaint_distance_bottom = None if not isinstance(req, (ImgInpaintOrOutpaintRequest, ImgInpaintOrOutpaintRequestJson)) else req.outpaint_distance_bottom
 
     if refiner_model_name == '':
         refiner_model_name = 'None'
 
     inpaint_input_image = None
     inpaint_additional_prompt = None
-    if (isinstance(req, ImgInpaintOrOutpaintRequest) or isinstance(req, ImgInpaintOrOutpaintRequestJson)) and req.input_image is not None:
+    if isinstance(req, (ImgInpaintOrOutpaintRequest, ImgInpaintOrOutpaintRequestJson)) and req.input_image is not None:
         inpaint_additional_prompt = req.inpaint_additional_prompt
         input_image = read_input_image(req.input_image)
         input_mask = None
@@ -91,7 +118,7 @@ def req_to_params(req: Text2ImgRequest) -> ImageGenerationParams:
         }
 
     image_prompts = []
-    if isinstance(req, ImgPromptRequest) or isinstance(req, ImgPromptRequestJson) or isinstance(req, Text2ImgRequestWithPrompt) or isinstance(req, ImgUpscaleOrVaryRequestJson) or isinstance(req, ImgInpaintOrOutpaintRequestJson):
+    if isinstance(req, (ImgInpaintOrOutpaintRequestJson, ImgPromptRequest, ImgPromptRequestJson, ImgUpscaleOrVaryRequestJson, Text2ImgRequestWithPrompt)):
         # Auto set mixing_image_prompt_and_inpaint to True
         if len(req.image_prompts) > 0 and uov_input_image is not None:
             print("[INFO] Mixing image prompt and vary upscale is set to True")
@@ -109,7 +136,7 @@ def req_to_params(req: Text2ImgRequest) -> ImageGenerationParams:
                     img_prompt.cn_weight = flags.default_parameters[img_prompt.cn_type.value][1]
                 image_prompts.append(
                     (cn_img, img_prompt.cn_stop, img_prompt.cn_weight, img_prompt.cn_type.value))
-                
+
     advanced_params = None
     if req.advanced_params is not None:
         adp = req.advanced_params
@@ -129,7 +156,7 @@ def req_to_params(req: Text2ImgRequest) -> ImageGenerationParams:
         if adp.inpaint_engine not in flags.inpaint_engine_versions:
             print(f"[Warning] Wrong inpaint_engine input: {adp.inpaint_engine}, using default")
             adp.inpaint_engine = default_inpaint_engine_version
-        
+
         advanced_params = adp
 
     return ImageGenerationParams(
@@ -196,8 +223,8 @@ def generate_streaming_output(results: List[ImageGenerationResult]) -> Response:
     elif result.finish_reason == GenerationFinishReason.error:
         return Response(status_code=500, content=result.finish_reason.value)
     
-    bytes = output_file_to_bytesimg(results[0].im)
-    return Response(bytes, media_type='image/png')
+    img_bytes = output_file_to_bytesimg(results[0].im)
+    return Response(img_bytes, media_type='image/png')
 
 
 def generate_image_result_output(results: List[ImageGenerationResult], require_base64: bool) -> List[GeneratedImageResult]:

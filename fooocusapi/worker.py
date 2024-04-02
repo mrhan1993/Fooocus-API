@@ -2,24 +2,28 @@ import copy
 import os
 import random
 import time
+from typing import List
+import logging
 import numpy as np
 import torch
-import logging
 
-from typing import List
-from fooocusapi.utils.file_utils import save_output_file
-from fooocusapi.parameters import GenerationFinishReason, ImageGenerationResult
-from fooocusapi.task_queue import QueueTask, TaskQueue, TaskOutputs
 from modules.patch import PatchSettings, patch_settings, patch_all
 from modules.sdxl_styles import apply_arrays
 from modules.flags import Performance
+
+from fooocusapi.utils.file_utils import save_output_file
+from fooocusapi.models.common.task import (
+    GenerationFinishReason,
+    ImageGenerationResult
+)
+from fooocusapi.task_queue import QueueTask, TaskQueue, TaskOutputs
 
 patch_all()
 
 worker_queue: TaskQueue = None
 last_model_name = None
 
-def process_top():
+def process_stop():
     import ldm_patched.modules.model_management
     ldm_patched.modules.model_management.interrupt_current_processing()
 
@@ -347,7 +351,7 @@ def process_generate(async_task: QueueTask):
                     if 'fast' in uov_method:
                         skip_prompt_processing = True
                     else:
-                        steps = performance_selection.step_uov()
+                        steps = performance_selection.steps_uov()
 
                     progressbar(async_task, 1, 'Downloading upscale models ...')
                     config.downloading_upscale_model()

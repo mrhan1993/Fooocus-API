@@ -1,22 +1,54 @@
-import uvicorn
-
 from typing import List, Optional
-from fastapi import Depends, FastAPI, Header, Query, Response, UploadFile, APIRouter, Depends
+from fastapi import Depends, FastAPI, Header, Query, Response, UploadFile, APIRouter
 from fastapi.params import File
 from fastapi.staticfiles import StaticFiles
 from fastapi.middleware.cors import CORSMiddleware
 
-from fooocusapi.args import args
-from fooocusapi.models import *
-from fooocusapi.api_utils import req_to_params, generate_async_output, generate_streaming_output, generate_image_result_output, api_key_auth
-import fooocusapi.utils.file_utils as file_utils
-from fooocusapi.parameters import GenerationFinishReason, ImageGenerationResult
-from fooocusapi.task_queue import TaskType
-from fooocusapi.worker import worker_queue, process_top, blocking_get_task_result
-from fooocusapi.models_v2 import *
-from fooocusapi.utils.img_utils import base64_to_stream, read_input_image
-
 from modules.util import HWC3
+import uvicorn
+
+from fooocusapi.args import args
+
+from fooocusapi.models.common.base import DescribeImageType
+
+from fooocusapi.models.common.requests import (
+    CommonRequest as Text2ImgRequest,
+    QueryJobRequest
+)
+from fooocusapi.models.requests_v1 import (
+    ImgUpscaleOrVaryRequest,
+    ImgPromptRequest,
+    ImgInpaintOrOutpaintRequest,
+    ImagePrompt
+)
+from fooocusapi.models.requests_v2 import (
+    ImgInpaintOrOutpaintRequestJson,
+    ImgPromptRequestJson,
+    Text2ImgRequestWithPrompt,
+    ImgUpscaleOrVaryRequestJson
+)
+from fooocusapi.models.common.response import (
+    AsyncJobResponse,
+    GeneratedImageResult,
+    JobHistoryInfo,
+    JobQueueInfo,
+    JobHistoryResponse,
+    DescribeImageResponse,
+    AllModelNamesResponse,
+    StopResponse
+)
+from fooocusapi.models.common.task import (
+    GenerationFinishReason,
+    ImageGenerationResult,
+    AsyncJobStage
+)
+from fooocusapi.api_utils import req_to_params, generate_async_output, generate_streaming_output, generate_image_result_output, api_key_auth
+from fooocusapi.utils import file_utils
+from fooocusapi.task_queue import TaskType
+from fooocusapi.worker import worker_queue, process_stop, blocking_get_task_result
+from fooocusapi.utils.img_utils import base64_to_stream, read_input_image
+from fooocusapi.parameters import img_generate_responses
+
 
 app = FastAPI()
 
@@ -31,30 +63,6 @@ app.add_middleware(
 secure_router = APIRouter(
     dependencies=[Depends(api_key_auth)]
 )
-
-img_generate_responses = {
-    "200": {
-        "description": "PNG bytes if request's 'Accept' header is 'image/png', otherwise JSON",
-        "content": {
-            "application/json": {
-                "example": [{
-                    "base64": "...very long string...",
-                    "seed": "1050625087",
-                    "finish_reason": "SUCCESS"
-                }]
-            },
-            "application/json async": {
-                "example": {
-                    "job_id": 1,
-                    "job_type": "Text to Image"
-                }
-            },
-            "image/png": {
-                "example": "PNG bytes, what did you expect?"
-            }
-        }
-    }
-}
 
 
 def get_task_type(req: Text2ImgRequest) -> TaskType:
@@ -111,7 +119,7 @@ def call_worker(req: Text2ImgRequest, accept: str) -> Response | AsyncJobRespons
 
 
 def stop_worker():
-    process_top()
+    process_stop()
 
 
 @app.get("/")

@@ -1,21 +1,18 @@
 import uuid
 import time
-import requests
-import numpy as np
-
-from enum import Enum
 from typing import List, Tuple
+import numpy as np
+import requests
 
 from fooocusapi.utils.file_utils import delete_output_file, get_file_serve_url
 from fooocusapi.utils.img_utils import narray_to_base64img
-from fooocusapi.parameters import ImageGenerationParams, ImageGenerationResult, GenerationFinishReason
 
-class TaskType(str, Enum):
-    text_2_img = 'Text to Image'
-    img_uov = 'Image Upscale or Variation'
-    img_inpaint_outpaint = 'Image Inpaint or Outpaint'
-    img_prompt = 'Image Prompt'
-    not_found = 'Not Found'
+from fooocusapi.models.common.task import (
+    ImageGenerationResult,
+    GenerationFinishReason
+)
+from fooocusapi.parameters import ImageGenerationParams
+from fooocusapi.models.common.task import TaskType
 
 
 class QueueTask(object):
