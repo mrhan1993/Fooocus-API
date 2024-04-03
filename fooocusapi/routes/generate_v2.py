@@ -4,7 +4,7 @@
 from typing import List
 from fastapi import APIRouter, Depends, Header, Query
 
-from fooocusapi.api_utils import api_key_auth
+from fooocusapi.utils.api_utils import api_key_auth
 from fooocusapi.models.requests_v1 import ImagePrompt
 from fooocusapi.models.requests_v2 import (
     ImgInpaintOrOutpaintRequestJson,
@@ -36,20 +36,20 @@ def text_to_img_with_ip(
     accept: str = Header(None),
     accept_query: str | None = Query(
         None, alias='accept',
-        description="Parameter to overvide 'Accept' header, 'image/png' for output bytes")):
+        description="Parameter to override 'Accept' header, 'image/png' for output bytes")):
     """\nText to image with prompt\n
     Text to image with prompt
     Arguments:
         req {Text2ImgRequestWithPrompt} -- Text to image generation request
         accept {str} -- Accept header
-        accept_query {str} -- Parameter to overvide 'Accept' header, 'image/png' for output bytes
+        accept_query {str} -- Parameter to override 'Accept' header, 'image/png' for output bytes
     Returns:
         Response -- img_generate_responses
     """
     if accept_query is not None and len(accept_query) > 0:
         accept = accept_query
 
-    default_image_promt = ImagePrompt(cn_img=None)
+    default_image_prompt = ImagePrompt(cn_img=None)
     image_prompts_files: List[ImagePrompt] = []
     for image_prompt in req.image_prompts:
         image_prompt.cn_img = base64_to_stream(image_prompt.cn_img)
@@ -61,7 +61,7 @@ def text_to_img_with_ip(
         image_prompts_files.append(image)
 
     while len(image_prompts_files) <= 4:
-        image_prompts_files.append(default_image_promt)
+        image_prompts_files.append(default_image_prompt)
 
     req.image_prompts = image_prompts_files
 
@@ -77,13 +77,13 @@ def img_upscale_or_vary(
     req: ImgUpscaleOrVaryRequestJson,
     accept: str = Header(None),
     accept_query: str | None = Query(
-        None, alias='accept', description="Parameter to overvide 'Accept' header, 'image/png' for output bytes")):
+        None, alias='accept', description="Parameter to override 'Accept' header, 'image/png' for output bytes")):
     """\nImage upscale or vary\n
     Image upscale or vary
     Arguments:
         req {ImgUpscaleOrVaryRequestJson} -- Image upscale or vary request
         accept {str} -- Accept header
-        accept_query {str} -- Parameter to overvide 'Accept' header, 'image/png' for output bytes
+        accept_query {str} -- Parameter to override 'Accept' header, 'image/png' for output bytes
     Returns:
             Response -- img_generate_responses    
     """
@@ -92,7 +92,7 @@ def img_upscale_or_vary(
 
     req.input_image = base64_to_stream(req.input_image)
 
-    default_image_promt = ImagePrompt(cn_img=None)
+    default_image_prompt = ImagePrompt(cn_img=None)
     image_prompts_files: List[ImagePrompt] = []
     for image_prompt in req.image_prompts:
         image_prompt.cn_img = base64_to_stream(image_prompt.cn_img)
@@ -103,7 +103,7 @@ def img_upscale_or_vary(
             cn_type=image_prompt.cn_type)
         image_prompts_files.append(image)
     while len(image_prompts_files) <= 4:
-        image_prompts_files.append(default_image_promt)
+        image_prompts_files.append(default_image_prompt)
     req.image_prompts = image_prompts_files
 
     return call_worker(req, accept)
@@ -119,13 +119,13 @@ def img_inpaint_or_outpaint(
     accept: str = Header(None),
     accept_query: str | None = Query(
         None, alias='accept',
-        description="Parameter to overvide 'Accept' header, 'image/png' for output bytes")):
+        description="Parameter to override 'Accept' header, 'image/png' for output bytes")):
     """\nInpaint or outpaint\n
     Inpaint or outpaint
     Arguments:
         req {ImgInpaintOrOutpaintRequestJson} -- Request body
         accept {str} -- Accept header
-        accept_query {str} -- Parameter to overvide 'Accept' header, 'image/png' for output bytes
+        accept_query {str} -- Parameter to override 'Accept' header, 'image/png' for output bytes
     Returns:
         Response -- img_generate_responses
     """
@@ -135,7 +135,7 @@ def img_inpaint_or_outpaint(
     req.input_image = base64_to_stream(req.input_image)
     if req.input_mask is not None:
         req.input_mask = base64_to_stream(req.input_mask)
-    default_image_promt = ImagePrompt(cn_img=None)
+    default_image_prompt = ImagePrompt(cn_img=None)
     image_prompts_files: List[ImagePrompt] = []
     for image_prompt in req.image_prompts:
         image_prompt.cn_img = base64_to_stream(image_prompt.cn_img)
@@ -146,7 +146,7 @@ def img_inpaint_or_outpaint(
             cn_type=image_prompt.cn_type)
         image_prompts_files.append(image)
     while len(image_prompts_files) <= 4:
-        image_prompts_files.append(default_image_promt)
+        image_prompts_files.append(default_image_prompt)
     req.image_prompts = image_prompts_files
 
     return call_worker(req, accept)
@@ -162,13 +162,13 @@ def img_prompt(
     accept: str = Header(None),
     accept_query: str | None = Query(
         None, alias='accept',
-        description="Parameter to overvide 'Accept' header, 'image/png' for output bytes")):
+        description="Parameter to override 'Accept' header, 'image/png' for output bytes")):
     """\nImage prompt\n
     Image prompt generation
     Arguments:
         req {ImgPromptRequest} -- Request body
         accept {str} -- Accept header
-        accept_query {str} -- Parameter to overvide 'Accept' header, 'image/png' for output bytes
+        accept_query {str} -- Parameter to override 'Accept' header, 'image/png' for output bytes
     Returns:
         Response -- img_generate_responses
     """
@@ -180,7 +180,7 @@ def img_prompt(
     if req.input_mask is not None:
         req.input_mask = base64_to_stream(req.input_mask)
 
-    default_image_promt = ImagePrompt(cn_img=None)
+    default_image_prompt = ImagePrompt(cn_img=None)
     image_prompts_files: List[ImagePrompt] = []
     for image_prompt in req.image_prompts:
         image_prompt.cn_img = base64_to_stream(image_prompt.cn_img)
@@ -192,7 +192,7 @@ def img_prompt(
         image_prompts_files.append(image)
 
     while len(image_prompts_files) <= 4:
-        image_prompts_files.append(default_image_promt)
+        image_prompts_files.append(default_image_prompt)
 
     req.image_prompts = image_prompts_files
 

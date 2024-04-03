@@ -42,10 +42,9 @@ index_url = os.environ.get('INDEX_URL', "")
 re_requirement = re.compile(r"\s*([-_a-zA-Z0-9]+)\s*(?:==\s*([-+_.a-zA-Z0-9]+))?\s*")
 
 
-
 def install_dependents(skip: bool = False):
     """
-    Check and nstall dependencies
+    Check and install dependencies
     Args:
         skip: skip pip install
     """
@@ -63,7 +62,7 @@ def install_dependents(skip: bool = False):
                 desc="torch")
 
 
-def preplaod_pipeline():
+def preload_pipeline():
     """Preload pipeline"""
     logger.std_info("[Fooocus-API] Preloading pipeline ...")
     import modules.default_pipeline as _
@@ -115,7 +114,7 @@ def prepare_environments(args) -> bool:
     from fooocusapi.task_queue import TaskQueue
     worker.worker_queue = TaskQueue(
         queue_size=args.queue_size,
-        hisotry_size=args.queue_history,
+        history_size=args.queue_history,
         webhook_url=args.webhook_url,
         persistent=args.persistent)
 
@@ -168,7 +167,7 @@ def pre_setup(disable_image_log: bool = False,
     if args.disable_image_log:
         sys.argv.append('--disable-image-log')
 
-    install_dependents(args)
+    install_dependents(args.skip_pip)
 
     import fooocusapi.args as _
     prepare_environments(args)
@@ -203,7 +202,7 @@ if __name__ == "__main__":
         sys.argv = [sys.argv[0]]
 
         # Load pipeline in new thread
-        preload_pipeline_thread = Thread(target=preplaod_pipeline, daemon=True)
+        preload_pipeline_thread = Thread(target=preload_pipeline, daemon=True)
         preload_pipeline_thread.start()
 
         # Start task schedule thread

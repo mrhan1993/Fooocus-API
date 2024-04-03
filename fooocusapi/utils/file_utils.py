@@ -81,6 +81,7 @@ def delete_output_file(filename: str):
     except OSError:
         logger.std_error(f'[Fooocus API] Delete output file failed: {filename}')
 
+
 def output_file_to_base64img(filename: str | None) -> str | None:
     """
     Convert an image file to a base64 string.

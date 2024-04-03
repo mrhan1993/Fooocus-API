@@ -219,7 +219,7 @@ def generate_async_output(
     job_stage = AsyncJobStage.running
     job_result = None
 
-    if task.start_millis == 0:
+    if task.start_mills == 0:
         job_stage = AsyncJobStage.waiting
 
     if task.is_finished:

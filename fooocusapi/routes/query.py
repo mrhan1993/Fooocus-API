@@ -14,7 +14,7 @@ from fooocusapi.models.common.response import (
 )
 from fooocusapi.models.common.task import AsyncJobStage
 
-from fooocusapi.api_utils import generate_async_output, api_key_auth
+from fooocusapi.utils.api_utils import generate_async_output, api_key_auth
 from fooocusapi.task_queue import TaskType
 from fooocusapi.worker import worker_queue
 

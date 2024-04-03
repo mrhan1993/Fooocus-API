@@ -29,7 +29,7 @@ def upload2base64(image: UploadFile) -> str | None:
     return image_base64
 
 
-def narray_to_base64img(narray: np.ndarray) -> str:
+def narray_to_base64img(narray: np.ndarray) -> str | None:
     """
     Convert numpy array to base64 image string.
     Args:
@@ -44,11 +44,11 @@ def narray_to_base64img(narray: np.ndarray) -> str:
     output_buffer = BytesIO()
     img.save(output_buffer, format='PNG')
     byte_data = output_buffer.getvalue()
-    base64_str = base64.b64encode(byte_data)
+    base64_str = base64.b64encode(byte_data).decode('utf-8')
     return base64_str
 
 
-def narray_to_bytesimg(narray) -> bytes:
+def narray_to_bytesimg(narray) -> bytes | None:
     """
     Convert numpy array to bytes image.
     Args:

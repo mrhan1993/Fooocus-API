@@ -3,8 +3,6 @@ from typing import List
 from pydantic import BaseModel, Field
 from pydantic import ValidationError
 
-from fastapi.exceptions import RequestValidationError
-
 from fooocusapi.parameters import (
     default_sampler,
     default_scheduler,
@@ -91,9 +89,9 @@ class CommonRequest(BaseModel):
     save_extension: str = Field(default='png', description="Save extension, one of [png, jpg, webp]")
     read_wildcards_in_order: bool = Field(default=False, description="Read wildcards in order")
     require_base64: bool = Field(default=False, description="Return base64 data of generated image")
-    async_process: bool = Field(default=False, description="Set to true will run async and return job info for retrieve generataion result later")
+    async_process: bool = Field(default=False, description="Set to true will run async and return job info for retrieve generation result later")
     webhook_url: str | None = Field(default='', description="Optional URL for a webhook callback. If provided, the system will send a POST request to this URL upon task completion or failure."
-                                                              " This allows for asynchronous notification of task status.")
+                                                            " This allows for asynchronous notification of task status.")
 
 
 def advanced_params_parser(advanced_params: str | None) -> AdvancedParams:
@@ -104,7 +102,6 @@ def advanced_params_parser(advanced_params: str | None) -> AdvancedParams:
     Returns:
         AdvancedParams object, if validate error return default value
     """
-    advanced_params_obj = None
     if advanced_params is not None and len(advanced_params) > 0:
         try:
             advanced_params_obj = AdvancedParams.__pydantic_validator__.validate_json(advanced_params)

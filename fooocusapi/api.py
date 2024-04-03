@@ -1,5 +1,5 @@
 """
-Entry for starup fastapi server
+Entry for startup fastapi server
 """
 from fastapi import FastAPI
 from fastapi.staticfiles import StaticFiles
@@ -29,6 +29,7 @@ app.mount("/files", StaticFiles(directory=file_utils.output_dir), name="files")
 app.include_router(query)
 app.include_router(generate_v1)
 app.include_router(generate_v2)
+
 
 def start_app(args):
     """Start the FastAPI application"""

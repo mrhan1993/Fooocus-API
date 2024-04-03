@@ -17,6 +17,7 @@ class ImagePromptJson(BaseModel):
     cn_weight: float | None = Field(0, ge=0, le=2, description="Weight for image prompt, 0 for default value")
     cn_type: ControlNetType = Field(default=ControlNetType.cn_ip, description="ControlNet type for image prompt")
 
+
 class ImgInpaintOrOutpaintRequestJson(CommonRequest):
     """image inpaint or outpaint request"""
     input_image: str = Field(description="Init image for inpaint or outpaint as base64")
@@ -29,18 +30,21 @@ class ImgInpaintOrOutpaintRequestJson(CommonRequest):
     outpaint_distance_bottom: int | None = Field(-1, description="Set outpaint bottom distance")
     image_prompts: List[ImagePromptJson | ImagePrompt] = []
 
+
 class ImgPromptRequestJson(ImgInpaintOrOutpaintRequestJson):
     """img prompt request json"""
     input_image: str | None = Field(None, description="Init image for inpaint or outpaint as base64")
     image_prompts: List[ImagePromptJson | ImagePrompt]
 
+
 class Text2ImgRequestWithPrompt(CommonRequest):
-    """text2img request with prompt"""
+    """text to image request with prompt"""
     image_prompts: List[ImagePromptJson] = []
+
 
 class ImgUpscaleOrVaryRequestJson(CommonRequest):
     """img upscale or vary request json"""
     uov_method: UpscaleOrVaryMethod = "Upscale (2x)"
     upscale_value: float | None = Field(1.0, ge=1.0, le=5.0, description="Upscale custom value, 1.0 for default value")
-    input_image: str = Field(description="Init image for upsacale or outpaint as base64")
+    input_image: str = Field(description="Init image for upscale or outpaint as base64")
     image_prompts: List[ImagePromptJson | ImagePrompt] = []

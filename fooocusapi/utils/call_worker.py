@@ -15,7 +15,7 @@ from fooocusapi.models.common.task import (
     AsyncJobStage,
     TaskType
 )
-from fooocusapi.api_utils import (
+from fooocusapi.utils.api_utils import (
     req_to_params,
     generate_async_output,
     generate_streaming_output,

@@ -53,12 +53,12 @@ class ImgUpscaleOrVaryRequest(CommonRequest):
     upscale_value: float | None
 
     @classmethod
-    def as_form(cls, input_image: UploadFile = Form(description="Init image for upsacale or outpaint"),
+    def as_form(cls, input_image: UploadFile = Form(description="Init image for upscale or outpaint"),
                 uov_method: UpscaleOrVaryMethod = Form(),
                 upscale_value: float | None = Form(None, description="Upscale custom value, None for default value", ge=1.0, le=5.0),
                 prompt: str = Form(''),
                 negative_prompt: str = Form(default_prompt_negative),
-                style_selections: List[str] = Form(default_styles, description="Fooocus style selections, seperated by comma"),
+                style_selections: List[str] = Form(default_styles, description="Fooocus style selections, separated by comma"),
                 performance_selection: PerformanceSelection = Form(PerformanceSelection.speed, description="Performance Selection, one of 'Speed','Quality','Extreme Speed'"),
                 aspect_ratios_selection: str = Form(default_aspect_ratio, description="Aspect Ratios Selection, default 1152*896"),
                 image_number: int = Form(default=1, description="Image number", ge=1, le=32),
@@ -72,13 +72,13 @@ class ImgUpscaleOrVaryRequest(CommonRequest):
                 advanced_params: str | None = Form(default=None, description="Advanced parameters in JSON"),
                 save_extension: str = Form(default="png", description="Save extension, png, jpg or webp"),
                 require_base64: bool = Form(default=False, description="Return base64 data of generated image"),
-                async_process: bool = Form(default=False, description="Set to true will run async and return job info for retrieve generataion result later"),
+                async_process: bool = Form(default=False, description="Set to true will run async and return job info for retrieve generation result later"),
                 ):
         style_selection_arr = style_selection_parser(style_selections)
         loras_model = lora_parser(loras)
         advanced_params_obj = advanced_params_parser(advanced_params)
 
-        return cls(input_image=input_image, uov_method=uov_method,upscale_value=upscale_value,
+        return cls(input_image=input_image, uov_method=uov_method, upscale_value=upscale_value,
                    prompt=prompt, negative_prompt=negative_prompt, style_selections=style_selection_arr,
                    performance_selection=performance_selection, aspect_ratios_selection=aspect_ratios_selection,
                    image_number=image_number, image_seed=image_seed, sharpness=sharpness, guidance_scale=guidance_scale,
@@ -104,14 +104,14 @@ class ImgInpaintOrOutpaintRequest(CommonRequest):
     def as_form(cls, input_image: UploadFile = Form(description="Init image for inpaint or outpaint"),
                 input_mask: UploadFile = Form(File(None), description="Inpaint or outpaint mask"),
                 inpaint_additional_prompt: str | None = Form(None, description="Describe what you want to inpaint"),
-                outpaint_selections: List[str] = Form([], description="Outpaint expansion selections, literal 'Left', 'Right', 'Top', 'Bottom' seperated by comma"),
+                outpaint_selections: List[str] = Form([], description="Outpaint expansion selections, literal 'Left', 'Right', 'Top', 'Bottom' separated by comma"),
                 outpaint_distance_left: int = Form(default=0, description="Set outpaint left distance, -1 for default"),
                 outpaint_distance_right: int = Form(default=0, description="Set outpaint right distance, -1 for default"),
                 outpaint_distance_top: int = Form(default=0, description="Set outpaint top distance, -1 for default"),
                 outpaint_distance_bottom: int = Form(default=0, description="Set outpaint bottom distance, -1 for default"),
                 prompt: str = Form(''),
                 negative_prompt: str = Form(default_prompt_negative),
-                style_selections: List[str] = Form(default_styles, description="Fooocus style selections, seperated by comma"),
+                style_selections: List[str] = Form(default_styles, description="Fooocus style selections, separated by comma"),
                 performance_selection: PerformanceSelection = Form(PerformanceSelection.speed, description="Performance Selection, one of 'Speed','Quality','Extreme Speed'"),
                 aspect_ratios_selection: str = Form(default_aspect_ratio, description="Aspect Ratios Selection, default 1152*896"),
                 image_number: int = Form(default=1, description="Image number", ge=1, le=32),
@@ -122,22 +122,22 @@ class ImgInpaintOrOutpaintRequest(CommonRequest):
                 refiner_model_name: str = Form(default_refiner_model_name),
                 refiner_switch: float = Form(default=default_refiner_switch, description="Refiner Switch At", ge=0.1, le=1.0),
                 loras: str | None = Form(default=default_loras_json, description='Lora config in JSON. Format as [{"model_name": "sd_xl_offset_example-lora_1.0.safetensors", "weight": 0.5}]'),
-                advanced_params: str| None = Form(default=None, description="Advanced parameters in JSON"),
+                advanced_params: str | None = Form(default=None, description="Advanced parameters in JSON"),
                 save_extension: str = Form(default="png", description="Save extension, png, jpg or webp"),
                 require_base64: bool = Form(default=False, description="Return base64 data of generated image"),
-                async_process: bool = Form(default=False, description="Set to true will run async and return job info for retrieve generataion result later"),
+                async_process: bool = Form(default=False, description="Set to true will run async and return job info for retrieve generation result later"),
                 ):
 
         if isinstance(input_mask, File):
             input_mask = None
-        
+
         outpaint_selections_arr = outpaint_selections_parser(outpaint_selections)
         style_selection_arr = style_selection_parser(style_selections)
         loras_model = lora_parser(loras)
         advanced_params_obj = advanced_params_parser(advanced_params)
 
         return cls(input_image=input_image, input_mask=input_mask, inpaint_additional_prompt=inpaint_additional_prompt,
-                   outpaint_selections=outpaint_selections_arr,outpaint_distance_left=outpaint_distance_left,
+                   outpaint_selections=outpaint_selections_arr, outpaint_distance_left=outpaint_distance_left,
                    outpaint_distance_right=outpaint_distance_right, outpaint_distance_top=outpaint_distance_top,
                    outpaint_distance_bottom=outpaint_distance_bottom, prompt=prompt, negative_prompt=negative_prompt, style_selections=style_selection_arr,
                    performance_selection=performance_selection, aspect_ratios_selection=aspect_ratios_selection,
@@ -156,7 +156,7 @@ class ImgPromptRequest(ImgInpaintOrOutpaintRequest):
     def as_form(cls, input_image: UploadFile = Form(File(None), description="Init image for inpaint or outpaint"),
                 input_mask: UploadFile = Form(File(None), description="Inpaint or outpaint mask"),
                 inpaint_additional_prompt: str | None = Form(None, description="Describe what you want to inpaint"),
-                outpaint_selections: List[str] = Form([], description="Outpaint expansion selections, literal 'Left', 'Right', 'Top', 'Bottom' seperated by comma"),
+                outpaint_selections: List[str] = Form([], description="Outpaint expansion selections, literal 'Left', 'Right', 'Top', 'Bottom' separated by comma"),
                 outpaint_distance_left: int = Form(default=0, description="Set outpaint left distance, 0 for default"),
                 outpaint_distance_right: int = Form(default=0, description="Set outpaint right distance, 0 for default"),
                 outpaint_distance_top: int = Form(default=0, description="Set outpaint top distance, 0 for default"),
@@ -194,7 +194,7 @@ class ImgPromptRequest(ImgInpaintOrOutpaintRequest):
                     default=ControlNetType.cn_ip, description="ControlNet type for image prompt"),
                 prompt: str = Form(''),
                 negative_prompt: str = Form(default_prompt_negative),
-                style_selections: List[str] = Form(default_styles, description="Fooocus style selections, seperated by comma"),
+                style_selections: List[str] = Form(default_styles, description="Fooocus style selections, separated by comma"),
                 performance_selection: PerformanceSelection = Form(
                     PerformanceSelection.speed),
                 aspect_ratios_selection: str = Form(default_aspect_ratio),
@@ -207,10 +207,10 @@ class ImgPromptRequest(ImgInpaintOrOutpaintRequest):
                 refiner_model_name: str = Form(default_refiner_model_name),
                 refiner_switch: float = Form(default=default_refiner_switch, description="Refiner Switch At", ge=0.1, le=1.0),
                 loras: str | None = Form(default=default_loras_json, description='Lora config in JSON. Format as [{"model_name": "sd_xl_offset_example-lora_1.0.safetensors", "weight": 0.5}]'),
-                advanced_params: str| None = Form(default=None, description="Advanced parameters in JSON"),
+                advanced_params: str | None = Form(default=None, description="Advanced parameters in JSON"),
                 save_extension: str = Form(default="png", description="Save extension, png, jpg or webp"),
                 require_base64: bool = Form(default=False, description="Return base64 data of generated image"),
-                async_process: bool = Form(default=False, description="Set to true will run async and return job info for retrieve generataion result later"),
+                async_process: bool = Form(default=False, description="Set to true will run async and return job info for retrieve generation result later"),
                 ):
         if isinstance(input_image, File):
             input_image = None

@@ -8,7 +8,7 @@ from fastapi.params import File
 from modules.util import HWC3
 
 from fooocusapi.models.common.base import DescribeImageType
-from fooocusapi.api_utils import api_key_auth
+from fooocusapi.utils.api_utils import api_key_auth
 
 from fooocusapi.models.common.requests import CommonRequest as Text2ImgRequest
 from fooocusapi.models.requests_v1 import (
@@ -48,13 +48,13 @@ def text2img_generation(
     accept: str = Header(None),
     accept_query: str | None = Query(
         None, alias='accept',
-        description="Parameter to overvide 'Accept' header, 'image/png' for output bytes")):
+        description="Parameter to override 'Accept' header, 'image/png' for output bytes")):
     """\nText to Image Generation\n
     A text to image generation endpoint
     Arguments:
         req {Text2ImgRequest} -- Text to image generation request
         accept {str} -- Accept header
-        accept_query {str} -- Parameter to overvide 'Accept' header, 'image/png' for output bytes
+        accept_query {str} -- Parameter to override 'Accept' header, 'image/png' for output bytes
     returns:
         Response -- img_generate_responses
     """
@@ -75,14 +75,14 @@ def img_upscale_or_vary(
     accept: str = Header(None),
     accept_query: str | None = Query(
         None, alias='accept',
-        description="Parameter to overvide 'Accept' header, 'image/png' for output bytes")):
+        description="Parameter to override 'Accept' header, 'image/png' for output bytes")):
     """\nImage upscale or vary\n
     Image upscale or vary
     Arguments:
         input_image {UploadFile} -- Input image file
         req {ImgUpscaleOrVaryRequest} -- Request body
         accept {str} -- Accept header
-        accept_query {str} -- Parameter to overvide 'Accept' header, 'image/png' for output bytes
+        accept_query {str} -- Parameter to override 'Accept' header, 'image/png' for output bytes
     Returns:
         Response -- img_generate_responses
     """
@@ -103,14 +103,14 @@ def img_inpaint_or_outpaint(
     accept: str = Header(None),
     accept_query: str | None = Query(
         None, alias='accept',
-        description="Parameter to overvide 'Accept' header, 'image/png' for output bytes")):
+        description="Parameter to override 'Accept' header, 'image/png' for output bytes")):
     """\nInpaint or outpaint\n
     Inpaint or outpaint
     Arguments:
         input_image {UploadFile} -- Input image file
         req {ImgInpaintOrOutpaintRequest} -- Request body
         accept {str} -- Accept header
-        accept_query {str} -- Parameter to overvide 'Accept' header, 'image/png' for output bytes
+        accept_query {str} -- Parameter to override 'Accept' header, 'image/png' for output bytes
     """
     if accept_query is not None and len(accept_query) > 0:
         accept = accept_query
@@ -129,7 +129,7 @@ def img_prompt(
     accept: str = Header(None),
     accept_query: str | None = Query(
         None, alias='accept',
-        description="Parameter to overvide 'Accept' header, 'image/png' for output bytes")):
+        description="Parameter to override 'Accept' header, 'image/png' for output bytes")):
     """\nImage Prompt\n
     Image Prompt
     A prompt-based image generation.
@@ -137,7 +137,7 @@ def img_prompt(
         cn_img1 {UploadFile} -- Input image file
         req {ImgPromptRequest} -- Request body
         accept {str} -- Accept header
-        accept_query {str} -- Parameter to overvide 'Accept' header, 'image/png' for output bytes
+        accept_query {str} -- Parameter to override 'Accept' header, 'image/png' for output bytes
     Returns:
         Response -- img_generate_responses
     """
@@ -157,7 +157,7 @@ def describe_image(
         DescribeImageType.photo,
         description="Image type, 'Photo' or 'Anime'")):
     """\nDescribe image\n
-    Describe image, Get tags from a image
+    Describe image, Get tags from an image
     Arguments:
         image {UploadFile} -- Image to get tags
         image_type {DescribeImageType} -- Image type, 'Photo' or 'Anime'
@@ -178,9 +178,9 @@ def describe_image(
 @secure_router.post(
         path="/v1/generation/stop",
         response_model=StopResponse,
-        description="Job stoping",
+        description="Job stopping",
         tags=["Default"])
 def stop():
-    """Interupt worker"""
+    """Interrupt worker"""
     stop_worker()
     return StopResponse(msg="success")

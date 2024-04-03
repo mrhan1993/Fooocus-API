@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-""" A simpely logger.
+""" A simply logger.
 
 This module is used to log the program.
 
@@ -56,8 +56,6 @@ class ConfigLogger:
         self.log_path = log_path
         self.std_format = std_format
         self.file_format = file_format
-
-
 
 
 class Logger:

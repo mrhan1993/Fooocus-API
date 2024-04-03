@@ -156,7 +156,7 @@ class MysqlSQLAlchemy:
         """
         self.session.add_all([GenerateRecord(**record)])
         self.session.commit()
-    
+
     def get_history(self, task_id: str=None, page: int=0, page_size: int=20,
                     order_by: str='date_time') -> list:
         """
@@ -169,7 +169,7 @@ class MysqlSQLAlchemy:
             if len(res) == 0:
                 return []
             return convert_to_dict_list(res)
-        
+
         res = self.session.query(GenerateRecord).order_by(getattr(GenerateRecord, order_by).desc()).offset(page * page_size).limit(page_size).all()
         if len(res) == 0:
             return []

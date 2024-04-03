@@ -51,7 +51,7 @@ class JobQueueInfo(BaseModel):
         last_job_id: str, Last submit generation job id
     """
     running_size: int = Field(description="The current running and waiting job count")
-    finished_size: int = Field(description="Finished job cound (after auto clean)")
+    finished_size: int = Field(description="Finished job count (after auto clean)")
     last_job_id: str | None = Field(description="Last submit generation job id")
 
 
