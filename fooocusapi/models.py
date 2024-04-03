@@ -42,7 +42,8 @@ class PerfomanceSelection(str, Enum):
     speed = 'Speed'
     quality = 'Quality'
     extreme_speed = 'Extreme Speed'
-    
+    lightning = 'Lightning'
+
 
 class UpscaleOrVaryMethod(str, Enum):
     subtle_variation = 'Vary (Subtle)'
