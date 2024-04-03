@@ -25,111 +25,208 @@ class Config:
     img_prompt = '/v2/generation/image-prompt'
 
 
-upscale_params = {
-    "uov_method": "Upscale (Custom)",
-    "upscale_value": 3,
-    "input_image": ""
-}
-
-inpaint_params = {
-    "input_image": "",
-    "input_mask": None,
-    "inpaint_additional_prompt": None,
-}
-
-img_prompt_params = {
-    "image_prompts": []
-}
-
-headers = {
-    "accept": "application/json"
-}
-
-imgs_base_path = os.path.join(os.path.dirname(__file__), 'imgs')
-
-with open(os.path.join(imgs_base_path, "bear.jpg"), "rb") as f:
-    img1 = f.read()
-    image_base64 = base64.b64encode(img1).decode('utf-8')
-    f.close()
-
-with open(os.path.join(imgs_base_path, "s.jpg"), "rb") as f:
-    s = f.read()
-    s_base64 = base64.b64encode(s).decode('utf-8')
-    f.close()
-
-with open(os.path.join(imgs_base_path, "m.png"), "rb") as f:
-    m = f.read()
-    m_base64 = base64.b64encode(m).decode('utf-8')
-    f.close()
+def read_image(image_name: str) -> str:
+    """
+    Read image from file
+    Args:
+        image_name (str): Image file name
+    Returns:
+        str: Image base64
+    """
+    path = os.path.join('imgs', image_name)
+    with open(path, "rb") as f:
+        image = f.read()
+        f.close()
+    return base64.b64encode(image).decode('utf-8')
 
 
-def upscale_vary(image, params=upscale_params) -> dict:
+class ImageList:
+    """
+    Image List
+    """
+    bear = read_image('bear.jpg')
+    image_prompt_0 = read_image('image_prompt-0.jpg')
+    image_prompt_1 = read_image('image_prompt-1.png')
+    image_prompt_2 = read_image('image_prompt-2.png')
+    image_prompt_3 = read_image('image_prompt-3.png')
+    inpaint_source = read_image('inpaint_source.jpg')
+    inpaint_mask = read_image('inpaint_mask.png')
+    source_face_f = read_image('source_face_female.png')
+    source_face_m = read_image('source_face_man.png')
+    target_face = read_image('target_face.png')
+
+
+def upscale_vary(params: dict) -> dict:
     """
     Upscale or Vary
+    Args:
+        params (dict): Params
+    Returns:
+        dict: Response
     """
-    params["input_image"] = image
     data = json.dumps(params)
-    response = requests.post(url=f"{cfg.fooocus_host}{cfg.img_upscale}",
-                             data=data,
-                             headers=headers,
-                             timeout=300)
+    response = requests.post(
+        url=f"{Config.fooocus_host}{Config.img_upscale}",
+        data=data,
+        timeout=300)
     return response.json()
 
 
-def inpaint_outpaint(input_image: str, input_mask: str = None, params=inpaint_params) -> dict:
+def inpaint_outpaint(params: dict = None) -> dict:
     """
     Inpaint or Outpaint
+    Args:
+        params (dict): Params
+    Returns:
+        dict: Response
     """
-    params["input_image"] = input_image
-    params["input_mask"] = input_mask
-    params["outpaint_selections"] = ["Left", "Right"]
-    params["prompt"] = "cat"
     data = json.dumps(params)
-    response = requests.post(url=f"{cfg.fooocus_host}{cfg.inpaint_outpaint}",
-                             data=data,
-                             headers=headers,
-                             timeout=300)
+    response = requests.post(
+        url=f"{Config.fooocus_host}{Config.inpaint_outpaint}",
+        data=data,
+        timeout=300)
     return response.json()
 
 
-def image_prompt(img_prompt: list, params: dict) -> dict:
+def image_prompt(params: dict) -> dict:
     """
     Image Prompt
+    Args:
+        params (dict): Params
+    Returns:
+        dict: Response
     """
-    params["image_prompts"] = img_prompt
     data = json.dumps(params)
-    response = requests.post(url=f"{cfg.fooocus_host}{cfg.img_prompt}",
-                             data=data,
-                             headers=headers,
-                             timeout=300)
+    response = requests.post(
+        url=f"{Config.fooocus_host}{Config.img_prompt}",
+        data=data,
+        timeout=300)
     return response.json()
 
 
-def image_prompt_with_inpaint(img_prompt: list, input_image: str, input_mask: str, params: dict) -> dict:
+def text2image_image_prompt(params: dict) -> dict:
     """
-    Image Prompt
+    Text to image with image Prompt
+    Args:
+        params (dict): Params
+    Returns:
+        dict: Response
     """
-    params["image_prompts"] = img_prompt
-    params["input_image"] = input_image
-    params["input_mask"] = input_mask
     params["outpaint_selections"] = ["Left", "Right"]
     data = json.dumps(params)
-    response = requests.post(url=f"{cfg.fooocus_host}{cfg.img_prompt}",
-                             data=data,
-                             headers=headers,
-                             timeout=300)
+    response = requests.post(
+        url=f"{Config.fooocus_host}{Config.text2img_ip}",
+        data=data,
+        timeout=300)
     return response.json()
 
 
-img_prompt = [
-    {
-        "cn_img": image_base64,
-        "cn_stop": 0.6,
-        "cn_weight": 0.6,
-        "cn_type": "ImagePrompt"
-    }
-]
-# print(upscale_vary(image=image_base64))
-# print(inpaint_outpaint(input_image=s_base64, input_mask=m_base64))
-print(image_prompt(img_prompt=img_prompt, params=img_prompt_params))
-print(image_prompt_with_inpaint(img_prompt=img_prompt, input_image=s_base64, input_mask=m_base64, params=img_prompt_params))
+# ################################################################
+# Upscale or Vary
+# ################################################################
+
+# Upscale (2x) example
+uov_params = {
+    "input_image": ImageList.image_prompt_0,
+    "performance_selection": "Lightning",
+    "uov_method": "Upscale (2x)",
+    "async_process": True
+}
+
+upscale_result =upscale_vary(params=uov_params)
+print(
+    json.dumps(
+        upscale_result,
+        indent=4,
+        ensure_ascii=False
+    ))
+
+# Vary (Strong) example
+uov_params['uov_method'] = 'Vary (Strong)'
+
+vary_result = upscale_vary(params=uov_params)
+print(
+    json.dumps(
+        vary_result,
+        indent=4,
+        ensure_ascii=False
+    ))
+
+
+# ################################################################
+# Inpaint or Outpaint
+# ################################################################
+
+# Inpaint outpaint example
+inpaint_params = {
+    "prompt": "a cat", # use background prompt to remove anything what you don't want
+    "performance_selection": "Speed", # use Lightning the quality is not good
+    "input_image": ImageList.inpaint_source,
+    "input_mask": ImageList.inpaint_mask,
+    "outpaint_selections": ["Left", "Right"],
+    "async_process": False
+}
+
+inpaint_result = inpaint_outpaint(params=inpaint_params)
+print(json.dumps(inpaint_result))
+
+
+# ################################################################
+# Image Prompt example
+# more detail for image prompt can be found:
+# https://github.com/lllyasviel/Fooocus/discussions/557
+# ################################################################
+
+# face swap example
+# This parameter comes from the default parameter of the Fooocus interface,
+# but the effect of using this parameter for face swap with Fooocus is general.
+# It is too large for the return of the original image. If necessary, try to adjust more parameters.
+face_swap_params = {
+    "performance_selection": "Speed",
+    "aspect_ratios_selection": "896*1152",
+    "image_prompts": [
+        {
+            "cn_img": ImageList.source_face_m,
+            "cn_stop": 0.5,
+            "cn_weight": 0.6,
+            "cn_type": "ImagePrompt"
+        },{
+            "cn_img": ImageList.target_face,
+            "cn_stop": 0.9,
+            "cn_weight": 0.75,
+            "cn_type": "FaceSwap"
+        }
+    ],
+    "async_process": False
+}
+
+face_swap_result = image_prompt(params=face_swap_params)
+print(json.dumps(face_swap_result))
+
+
+# ################################################################
+# Text to image with image Prompt
+# ################################################################
+
+# Text to image with image Prompt example
+t2i_ip_params = {
+    "prompt": "a cat",
+    "performance_selection": "Speed",
+    "image_prompts": [
+        {
+            "cn_img": ImageList.image_prompt_1,
+            "cn_stop": 0.6,
+            "cn_weight": 0.8,
+            "cn_type": "ImagePrompt"
+        },{
+            "cn_img": ImageList.image_prompt_2,
+            "cn_stop": 0.6,
+            "cn_weight": 0.6,
+            "cn_type": "ImagePrompt"
+        }
+    ],
+    "async_process": False
+}
+
+t2i_ip_result = text2image_image_prompt(params=t2i_ip_params)
+print(json.dumps(t2i_ip_result))

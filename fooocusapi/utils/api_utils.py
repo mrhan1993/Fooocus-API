@@ -231,7 +231,7 @@ def generate_async_output(
 
     result = AsyncJobResponse(
         job_id=task.job_id,
-        job_type=task.type,
+        job_type=task.task_type,
         job_stage=job_stage,
         job_progress=task.finish_progress,
         job_status=task.task_status,

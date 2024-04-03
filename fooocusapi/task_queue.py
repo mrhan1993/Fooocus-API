@@ -255,7 +255,7 @@ class TaskQueue:
 
             if self.persistent:
                 from fooocusapi.sql_client import add_history
-                add_history(task.req_param, task.type, task.job_id,
+                add_history(task.req_param, task.task_type, task.job_id,
                             ','.join([job["url"] for job in data["job_result"]]),
                             task.task_result[0].finish_reason)
 

@@ -118,7 +118,7 @@ def process_generate(async_task: QueueTask):
         logger.std_info(f'[Fooocus] {text}')
         outputs.append(['preview', (number, text, None)])
 
-    def yield_result(async_task, imgs, tasks, extension='png'):
+    def yield_result(_, imgs, tasks, extension='png'):
         if not isinstance(imgs, list):
             imgs = [imgs]
 
