@@ -7,6 +7,8 @@ from typing import Optional
 from sqlalchemy import Integer, Float,VARCHAR, Boolean, JSON, Text, create_engine
 from sqlalchemy.orm import declarative_base, Session, Mapped, mapped_column
 
+from fooocusapi.parameters import ImageGenerationParams
+
 
 Base = declarative_base()
 
@@ -190,15 +192,18 @@ def req_to_dict(req: dict) -> dict:
     del req["uov_input_image"]
     return req
 
-def add_history(params: dict, task_type: str, task_id: str, result_url: str, finish_reason: str) -> None:
-    params = req_to_dict(params["params"])
+def add_history(req_params: ImageGenerationParams, task_type: str, task_id: str, result_url: str, finish_reason: str) -> None:
+    params = {}
+    for attr, value in vars(req_params).items():
+        if not callable(value) and not attr.startswith("__") and not attr.startswith("_"):
+            params[attr] = value
     params["date_time"] = int(time.time())
     params["task_type"] = task_type
     params["task_id"] = task_id
     params["result_url"] = result_url
     params["finish_reason"] = finish_reason
 
-    db.store_history(params)
+    db.store_history(req_to_dict(params))
 
 
 def query_history(task_id: str=None, page: int=0, page_size: int=20, order_by: str="date_time") -> list:
