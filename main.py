@@ -382,13 +382,14 @@ def pre_setup(skip_sync_repo: bool = False,
     prepare_environments(args)
 
     if load_all_models:
-        import modules.config as config
+        from modules import config
         from fooocusapi.parameters import default_inpaint_engine_version
         config.downloading_upscale_model()
         config.downloading_inpaint_models(default_inpaint_engine_version)
         config.downloading_controlnet_canny()
         config.downloading_controlnet_cpds()
-        config.downloading_ip_adapters()
+        config.downloading_ip_adapters('ip')
+        config.downloading_ip_adapters('face')
     print("[Pre Setup] Finished")
 
 

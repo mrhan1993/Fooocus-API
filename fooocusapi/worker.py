@@ -684,7 +684,7 @@ def process_generate(async_task: QueueTask):
             )
 
             if debugging_inpaint_preprocessor:
-                yield_result(async_task, inpaint_worker.current_task.visualize_mask_processing())
+                yield_result(async_task, inpaint_worker.current_task.visualize_mask_processing(), tasks)
                 return
 
             progressbar(async_task, 13, 'VAE Inpaint encoding ...')
