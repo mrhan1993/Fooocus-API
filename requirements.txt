@@ -24,3 +24,5 @@ requests
 numpy
 sqlalchemy
 packaging
+rich
+chardet

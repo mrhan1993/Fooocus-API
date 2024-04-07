@@ -1,6 +1,6 @@
 """
-# Prediction interface for Cog ⚙️
-# https://github.com/replicate/cog/blob/main/docs/python.md
+Prediction interface for Cog ⚙️
+https://github.com/replicate/cog/blob/main/docs/python.md
 """
 
 import copy
@@ -10,9 +10,9 @@ import numpy as np
 
 from PIL import Image
 from cog import BasePredictor, BaseModel, Input, Path
-from fooocusapi.file_utils import output_dir
+from fooocusapi.utils.file_utils import output_dir
+from fooocusapi.models.common.task import GenerationFinishReason
 from fooocusapi.parameters import (
-    GenerationFinishReason,
     ImageGenerationParams,
     available_aspect_ratios,
     uov_methods,
@@ -25,19 +25,26 @@ from fooocusapi.parameters import (
     default_cfg_scale,
     default_prompt_negative
 )
+
 from fooocusapi.task_queue import TaskType
 
 
 class Output(BaseModel):
+    """
+    Output model
+    """
     seeds: List[str]
     paths: List[Path]
 
 
 class Predictor(BasePredictor):
+    """Predictor"""
     def setup(self) -> None:
-        """Load the model into memory to make running multiple predictions efficient"""
+        """
+        Load the model into memory to make running multiple predictions efficient
+        """
         from main import pre_setup
-        pre_setup(disable_image_log=True, skip_pip=True, preload_pipeline=True, preset='default')
+        pre_setup()
 
     def predict(
         self,
@@ -46,13 +53,13 @@ class Predictor(BasePredictor):
             description="Prompt for image generation"),
         negative_prompt: str = Input(
             default=default_prompt_negative,
-            description="Negtive prompt for image generation"),
+            description="Negative prompt for image generation"),
         style_selections: str = Input(
             default=','.join(default_styles),
-            description="Fooocus styles applied for image generation, seperated by comma"),
+            description="Fooocus styles applied for image generation, separated by comma"),
         performance_selection: str = Input(
-            default='Speed',
-            choices=['Speed', 'Quality', 'Extreme Speed', 'Lightning'],
+            default='Speed', 
+            choices=['Speed', 'Quality', 'Extreme Speed'],
             description="Performance selection"),
         aspect_ratios_selection: str = Input(
             default='1152*896',
@@ -62,10 +69,6 @@ class Predictor(BasePredictor):
             default=1,
             ge=1, le=8,
             description="How many image to generate"),
-        save_extension: str = Input(
-            default='png',
-            choices=['png', 'jpg', 'webp'],
-            description="File extension for image generation"),
         image_seed: int = Input(
             default=-1,
             description="Seed to generate image, -1 for random"),
@@ -98,7 +101,7 @@ class Predictor(BasePredictor):
             description="Input mask for inpaint"),
         outpaint_selections: str = Input(
             default='',
-            description="Outpaint expansion selections, literal 'Left', 'Right', 'Top', 'Bottom' seperated by comma"),
+            description="Outpaint expansion selections, literal 'Left', 'Right', 'Top', 'Bottom' separated by comma"),
         outpaint_distance_left: int = Input(
             default=0,
             description="Outpaint expansion distance from Left of the image"),
@@ -256,16 +259,20 @@ class Predictor(BasePredictor):
             outpaint_distance_top=outpaint_distance_top,
             outpaint_distance_right=outpaint_distance_right,
             outpaint_distance_bottom=outpaint_distance_bottom,
+            save_extension='png',
             require_base64=False,
-            save_extension=save_extension
         )
 
         print(f"[Predictor Predict] Params: {params.__dict__}")
 
-        async_task = worker_queue.add_task(TaskType.text_2_img, params.__dict__)
+        async_task = worker_queue.add_task(
+            TaskType.text_2_img,
+            params)
+
         if async_task is None:
             print("[Task Queue] The task queue has reached limit")
             raise Exception("The task queue has reached limit.")
+
         results = blocking_get_task_result(async_task.job_id)
 
         output_paths: List[Path] = []

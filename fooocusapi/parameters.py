@@ -1,83 +1,103 @@
-from enum import Enum
 from typing import Dict, List, Tuple
 import numpy as np
+import copy
 
 from pydantic import BaseModel, Field
 
 
-default_inpaint_engine_version = 'v2.6'
+img_generate_responses = {
+    "200": {
+        "description": "PNG bytes if request's 'Accept' header is 'image/png', otherwise JSON",
+        "content": {
+            "application/json": {
+                "example": [{
+                        "base64": "...very long string...",
+                        "seed": "1050625087",
+                        "finish_reason": "SUCCESS",
+                    }]
+            },
+            "application/json async": {
+                "example": {
+                    "job_id": 1,
+                    "job_type": "Text to Image"
+                }
+            },
+            "image/png": {
+                "example": "PNG bytes, what did you expect?"
+            },
+        },
+    }
+}
 
+default_inpaint_engine_version = "v2.6"
 
-default_styles = ['Fooocus V2', 'Fooocus Enhance', 'Fooocus Sharp']
-default_base_model_name = 'juggernautXL_v8Rundiffusion.safetensors'
-default_refiner_model_name = 'None'
+default_styles = ["Fooocus V2", "Fooocus Enhance", "Fooocus Sharp"]
+default_base_model_name = "juggernautXL_v8Rundiffusion.safetensors"
+default_refiner_model_name = "None"
 default_refiner_switch = 0.5
-default_loras = [['sd_xl_offset_example-lora_1.0.safetensors', 0.1]]
+default_loras = [["sd_xl_offset_example-lora_1.0.safetensors", 0.1]]
 default_cfg_scale = 4.0
-default_prompt_negative = ''
-default_aspect_ratio = '1152*896'
-default_sampler = 'dpmpp_2m_sde_gpu'
-default_scheduler = 'karras'
-
+default_prompt_negative = ""
+default_aspect_ratio = "1152*896"
+default_sampler = "dpmpp_2m_sde_gpu"
+default_scheduler = "karras"
 
 available_aspect_ratios = [
-    '704*1408',
-    '704*1344',
-    '768*1344',
-    '768*1280',
-    '832*1216',
-    '832*1152',
-    '896*1152',
-    '896*1088',
-    '960*1088',
-    '960*1024',
-    '1024*1024',
-    '1024*960',
-    '1088*960',
-    '1088*896',
-    '1152*896',
-    '1152*832',
-    '1216*832',
-    '1280*768',
-    '1344*768',
-    '1344*704',
-    '1408*704',
-    '1472*704',
-    '1536*640',
-    '1600*640',
-    '1664*576',
-    '1728*576',
+    "704*1408",
+    "704*1344",
+    "768*1344",
+    "768*1280",
+    "832*1216",
+    "832*1152",
+    "896*1152",
+    "896*1088",
+    "960*1088",
+    "960*1024",
+    "1024*1024",
+    "1024*960",
+    "1088*960",
+    "1088*896",
+    "1152*896",
+    "1152*832",
+    "1216*832",
+    "1280*768",
+    "1344*768",
+    "1344*704",
+    "1408*704",
+    "1472*704",
+    "1536*640",
+    "1600*640",
+    "1664*576",
+    "1728*576",
 ]
 
 uov_methods = [
-    'Disabled', 'Vary (Subtle)', 'Vary (Strong)', 'Upscale (1.5x)', 'Upscale (2x)', 'Upscale (Fast 2x)', 'Upscale (Custom)'
+    "Disabled",
+    "Vary (Subtle)",
+    "Vary (Strong)",
+    "Upscale (1.5x)",
+    "Upscale (2x)",
+    "Upscale (Fast 2x)",
+    "Upscale (Custom)",
 ]
 
-
-outpaint_expansions = [
-    'Left', 'Right', 'Top', 'Bottom'
-]
+outpaint_expansions = ["Left", "Right", "Top", "Bottom"]
 
 
 def get_aspect_ratio_value(label: str) -> str:
-    return label.split(' ')[0].replace('×', '*')
+    """
+    Get aspect ratio
+    Args:
+        label: str, aspect ratio
 
+    Returns:
 
-class GenerationFinishReason(str, Enum):
-    success = 'SUCCESS'
-    queue_is_full = 'QUEUE_IS_FULL'
-    user_cancel = 'USER_CANCEL'
-    error = 'ERROR'
-
-
-class ImageGenerationResult(object):
-    def __init__(self, im: str | None, seed: str, finish_reason: GenerationFinishReason):
-        self.im = im
-        self.seed = seed
-        self.finish_reason = finish_reason
+    """
+    return label.split(" ")[0].replace("×", "*")
 
 
 class AdvancedParams(BaseModel):
+    """Common params object AdvancedParams"""
     disable_preview: bool = Field(False, description="Disable preview during generation")
     disable_intermediate_results: bool = Field(False, description="Disable intermediate results")
     disable_seed_increment: bool = Field(False, description="Disable Seed Increment")
@@ -116,34 +136,37 @@ class AdvancedParams(BaseModel):
     inpaint_erode_or_dilate: int = Field(0, description="Mask Erode or Dilate", ge=-64, le=64)
 
 
-class ImageGenerationParams(object):
-    def __init__(self, prompt: str,
-                 negative_prompt: str,
-                 style_selections: List[str],
-                 performance_selection: str,
-                 aspect_ratios_selection: str,
-                 image_number: int,
-                 image_seed: int | None,
-                 sharpness: float,
-                 guidance_scale: float,
-                 base_model_name: str,
-                 refiner_model_name: str,
-                 refiner_switch: float,
-                 loras: List[Tuple[str, float]],
-                 uov_input_image: np.ndarray | None,
-                 uov_method: str,
-                 upscale_value: float | None,
-                 outpaint_selections: List[str],
-                 outpaint_distance_left: int,
-                 outpaint_distance_right: int,
-                 outpaint_distance_top: int,
-                 outpaint_distance_bottom: int,
-                 inpaint_input_image: Dict[str, np.ndarray] | None,
-                 inpaint_additional_prompt: str | None,
-                 image_prompts: List[Tuple[np.ndarray, float, float, str]],
-                 advanced_params: List[any] | None,
-                 save_extension: str,
-                 require_base64: bool):
+class ImageGenerationParams:
+    def __init__(
+        self,
+        prompt: str,
+        negative_prompt: str,
+        style_selections: List[str],
+        performance_selection: str,
+        aspect_ratios_selection: str,
+        image_number: int,
+        image_seed: int | None,
+        sharpness: float,
+        guidance_scale: float,
+        base_model_name: str,
+        refiner_model_name: str,
+        refiner_switch: float,
+        loras: List[Tuple[str, float]],
+        uov_input_image: np.ndarray | None,
+        uov_method: str,
+        upscale_value: float | None,
+        outpaint_selections: List[str],
+        outpaint_distance_left: int,
+        outpaint_distance_right: int,
+        outpaint_distance_top: int,
+        outpaint_distance_bottom: int,
+        inpaint_input_image: Dict[str, np.ndarray] | None,
+        inpaint_additional_prompt: str | None,
+        image_prompts: List[Tuple[np.ndarray, float, float, str]],
+        advanced_params: List[any] | None,
+        save_extension: str,
+        require_base64: bool,
+    ):
         self.prompt = prompt
         self.negative_prompt = negative_prompt
         self.style_selections = style_selections
@@ -182,3 +205,15 @@ class ImageGenerationParams(object):
             if len(self.image_prompts) > 0 and self.uov_input_image is not None:
                 print("Mixing Image Prompts and Vary Upscale Enabled")
                 self.advanced_params.mixing_image_prompt_and_vary_upscale = True
+
+    def to_dict(self):
+        """
+        Convert the ImageGenerationParams object to a dictionary.
+        Args:
+            self:
+
+        Returns:
+            self to dict
+        """
+        obj_dict = copy.deepcopy(self)
+        return obj_dict.__dict__

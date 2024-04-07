@@ -2,25 +2,34 @@ import copy
 import os
 import random
 import time
+from typing import List
+import logging
 import numpy as np
 import torch
-import logging
 
-from typing import List
-from fooocusapi.file_utils import save_output_file
-from fooocusapi.parameters import GenerationFinishReason, ImageGenerationResult
-from fooocusapi.task_queue import QueueTask, TaskQueue, TaskOutputs
 from modules.patch import PatchSettings, patch_settings, patch_all
 from modules.sdxl_styles import apply_arrays
 from modules.flags import Performance
 
+from fooocusapi.utils.file_utils import save_output_file
+from fooocusapi.models.common.task import (
+    GenerationFinishReason,
+    ImageGenerationResult
+)
+from fooocusapi.utils.logger import logger
+from fooocusapi.task_queue import (
+    QueueTask,
+    TaskQueue,
+    TaskOutputs
+)
 
 patch_all()
 
 worker_queue: TaskQueue = None
 last_model_name = None
 
-def process_top():
+
+def process_stop():
     import ldm_patched.modules.model_management
     ldm_patched.modules.model_management.interrupt_current_processing()
 
@@ -32,9 +41,9 @@ def task_schedule_loop():
         if len(worker_queue.queue) == 0:
             time.sleep(0.05)
             continue
-        
+
         current_task = worker_queue.queue[0]
-        if current_task.start_millis == 0:
+        if current_task.start_mills == 0:
             process_generate(current_task)
 
 
@@ -45,13 +54,13 @@ def blocking_get_task_result(job_id: str) -> List[ImageGenerationResult]:
     waiting_start_time = time.perf_counter()
     while not worker_queue.is_task_finished(job_id):
         if waiting_sleep_steps == 0:
-            print(f"[Task Queue] Waiting for task finished, job_id={job_id}")
+            logger.std_info(f"[Task Queue] Waiting for task finished, job_id={job_id}")
         delay = 0.05
         time.sleep(delay)
         waiting_sleep_steps += 1
         if waiting_sleep_steps % int(10 / delay) == 0:
             waiting_time = time.perf_counter() - waiting_start_time
-            print(f"[Task Queue] Already waiting for {round(waiting_time, 1)} seconds, job_id={job_id}")
+            logger.std_info(f"[Task Queue] Already waiting for {round(waiting_time, 1)} seconds, job_id={job_id}")
 
     task = worker_queue.get_task(job_id, True)
     return task.task_result
@@ -63,11 +72,11 @@ def process_generate(async_task: QueueTask):
     try:
         import modules.default_pipeline as pipeline
     except Exception as e:
-        print('Import default pipeline error:', e)
+        logger.std_error(f'[Task Queue] Import default pipeline error: {e}')
         if not async_task.is_finished:
             worker_queue.finish_task(async_task.job_id)
             async_task.set_result([], True, str(e))
-            print(f"[Task Queue] Finish task with error, seq={async_task.job_id}")
+            logger.std_error(f"[Task Queue] Finish task with error, seq={async_task.job_id}")
         return []
 
     import modules.flags as flags
@@ -105,9 +114,9 @@ def process_generate(async_task: QueueTask):
         except ValueError:
             pass
         return random.randint(constants.MIN_SEED, constants.MAX_SEED)
-        
+
     def progressbar(_, number, text):
-        print(f'[Fooocus] {text}')
+        logger.std_info(f'[Fooocus] {text}')
         outputs.append(['preview', (number, text, None)])
 
     def yield_result(_, imgs, tasks, extension='png'):
@@ -121,22 +130,22 @@ def process_generate(async_task: QueueTask):
             results.append(ImageGenerationResult(im=img_filename, seed=str(seed), finish_reason=GenerationFinishReason.success))
         async_task.set_result(results, False)
         worker_queue.finish_task(async_task.job_id)
-        print(f"[Task Queue] Finish task, job_id={async_task.job_id}")
+        logger.std_info(f"[Task Queue] Finish task, job_id={async_task.job_id}")
 
         outputs.append(['results', imgs])
         pipeline.prepare_text_encoder(async_call=True)
 
     try:
-        print(f"[Task Queue] Task queue start task, job_id={async_task.job_id}")
+        logger.std_info(f"[Task Queue] Task queue start task, job_id={async_task.job_id}")
         # clear memory
         global last_model_name
 
         if last_model_name is None:
             last_model_name = async_task.req_param.base_model_name
         if last_model_name != async_task.req_param.base_model_name:
-            model_management.cleanup_models() # key1
+            model_management.cleanup_models()  # key1
             model_management.unload_all_models()
-            model_management.soft_empty_cache() # key2
+            model_management.soft_empty_cache()  # key2
             last_model_name = async_task.req_param.base_model_name
 
         worker_queue.start_task(async_task.job_id)
@@ -246,18 +255,18 @@ def process_generate(async_task: QueueTask):
         use_style = len(style_selections) > 0
 
         if base_model_name == refiner_model_name:
-            print(f'Refiner disabled because base model and refiner are same.')
+            logger.std_warn('[Fooocus] Refiner disabled because base model and refiner are same.')
             refiner_model_name = 'None'
 
         steps = performance_selection.steps()
 
         if performance_selection == Performance.EXTREME_SPEED:
-            print('Enter LCM mode.')
+            logger.std_warn('[Fooocus] Enter LCM mode.')
             progressbar(async_task, 1, 'Downloading LCM components ...')
             loras += [(config.downloading_sdxl_lcm_lora(), 1.0)]
 
             if refiner_model_name != 'None':
-                print(f'Refiner disabled in LCM mode.')
+                logger.std_info('[Fooocus] Refiner disabled in LCM mode.')
 
             refiner_model_name = 'None'
             sampler_name = 'lcm'
@@ -271,12 +280,12 @@ def process_generate(async_task: QueueTask):
             adm_scaler_end = 0.0
 
         elif performance_selection == Performance.LIGHTNING:
-            print('Enter Lightning mode.')
+            logger.std_info('[Fooocus] Enter Lightning mode.')
             progressbar(async_task, 1, 'Downloading Lightning components ...')
             loras += [(config.downloading_sdxl_lightning_lora(), 1.0)]
 
             if refiner_model_name != 'None':
-                print(f'Refiner disabled in Lightning mode.')
+                logger.std_info('[Fooocus] Refiner disabled in Lightning mode.')
 
             refiner_model_name = 'None'
             sampler_name = 'euler'
@@ -289,13 +298,13 @@ def process_generate(async_task: QueueTask):
             adm_scaler_negative = 1.0
             adm_scaler_end = 0.0
 
-        print(f'[Parameters] Adaptive CFG = {adaptive_cfg}')
-        print(f'[Parameters] Sharpness = {sharpness}')
-        print(f'[Parameters] ControlNet Softness = {controlnet_softness}')
-        print(f'[Parameters] ADM Scale = '
-              f'{adm_scaler_positive} : '
-              f'{adm_scaler_negative} : '
-              f'{adm_scaler_end}')
+        logger.std_info(f'[Parameters] Adaptive CFG = {adaptive_cfg}')
+        logger.std_info(f'[Parameters] Sharpness = {sharpness}')
+        logger.std_info(f'[Parameters] ControlNet Softness = {controlnet_softness}')
+        logger.std_info(f'[Parameters] ADM Scale = '
+                        f'{adm_scaler_positive} : '
+                        f'{adm_scaler_negative} : '
+                        f'{adm_scaler_end}')
 
         patch_settings[pid] = PatchSettings(
             sharpness,
@@ -307,7 +316,7 @@ def process_generate(async_task: QueueTask):
         )
 
         cfg_scale = float(guidance_scale)
-        print(f'[Parameters] CFG = {cfg_scale}')
+        logger.std_info(f'[Parameters] CFG = {cfg_scale}')
 
         initial_latent = None
         denoising_strength = 1.0
@@ -331,7 +340,7 @@ def process_generate(async_task: QueueTask):
         clip_vision_path, ip_negative_path, ip_adapter_path, ip_adapter_face_path = None, None, None, None
 
         seed = int(image_seed)
-        print(f'[Parameters] Seed = {seed}')
+        logger.std_info(f'[Parameters] Seed = {seed}')
 
         goals = []
         tasks = []
@@ -383,13 +392,13 @@ def process_generate(async_task: QueueTask):
                         inpaint_head_model_path, inpaint_patch_model_path = config.downloading_inpaint_models(
                             inpaint_engine)
                         base_model_additional_loras += [(inpaint_patch_model_path, 1.0)]
-                        print(f'[Inpaint] Current inpaint model is {inpaint_patch_model_path}')
+                        logger.std_info(f'[Inpaint] Current inpaint model is {inpaint_patch_model_path}')
                         if refiner_model_name == 'None':
                             use_synthetic_refiner = True
                             refiner_switch = 0.8
                     else:
                         inpaint_head_model_path, inpaint_patch_model_path = None, None
-                        print(f'[Inpaint] Parameterized inpaint is disabled.')
+                        logger.std_info('[Inpaint] Parameterized inpaint is disabled.')
                     if inpaint_additional_prompt != '':
                         if prompt == '':
                             prompt = inpaint_additional_prompt
@@ -431,8 +440,8 @@ def process_generate(async_task: QueueTask):
         if overwrite_height > 0:
             height = overwrite_height
 
-        print(f'[Parameters] Sampler = {sampler_name} - {scheduler_name}')
-        print(f'[Parameters] Steps = {steps} - {switch}')
+        logger.std_info(f'[Parameters] Sampler = {sampler_name} - {scheduler_name}')
+        logger.std_info(f'[Parameters] Steps = {steps} - {switch}')
 
         progressbar(async_task, 1, 'Initializing ...')
 
@@ -452,13 +461,15 @@ def process_generate(async_task: QueueTask):
             extra_negative_prompts = negative_prompts[1:] if len(negative_prompts) > 1 else []
 
             progressbar(async_task, 3, 'Loading models ...')
-            pipeline.refresh_everything(refiner_model_name=refiner_model_name, base_model_name=base_model_name,
-                                        loras=loras, base_model_additional_loras=base_model_additional_loras,
-                                        use_synthetic_refiner=use_synthetic_refiner)
+            pipeline.refresh_everything(
+                refiner_model_name=refiner_model_name,
+                base_model_name=base_model_name,
+                loras=loras, base_model_additional_loras=base_model_additional_loras,
+                use_synthetic_refiner=use_synthetic_refiner)
 
             progressbar(async_task, 3, 'Processing prompts ...')
             tasks = []
-            
+
             for i in range(image_number):
                 if disable_seed_increment:
                     task_seed = seed % (constants.MAX_SEED + 1)
@@ -510,7 +521,7 @@ def process_generate(async_task: QueueTask):
                 for i, t in enumerate(tasks):
                     progressbar(async_task, 5, f'Preparing Fooocus text #{i + 1} ...')
                     expansion = pipeline.final_expansion(t['task_prompt'], t['task_seed'])
-                    print(f'[Prompt Expansion] {expansion}')
+                    logger.std_info(f'[Prompt Expansion] {expansion}')
                     t['expansion'] = expansion
                     t['positive'] = copy.deepcopy(t['positive']) + [expansion]  # Deep copy.
 
@@ -538,10 +549,10 @@ def process_generate(async_task: QueueTask):
 
             shape_ceil = get_image_shape_ceil(uov_input_image)
             if shape_ceil < 1024:
-                print(f'[Vary] Image is resized because it is too small.')
+                logger.std_warn('[Vary] Image is resized because it is too small.')
                 shape_ceil = 1024
             elif shape_ceil > 2048:
-                print(f'[Vary] Image is resized because it is too big.')
+                logger.std_warn('[Vary] Image is resized because it is too big.')
                 shape_ceil = 2048
 
             uov_input_image = set_image_shape_ceil(uov_input_image, shape_ceil)
@@ -560,13 +571,13 @@ def process_generate(async_task: QueueTask):
             B, C, H, W = initial_latent['samples'].shape
             width = W * 8
             height = H * 8
-            print(f'Final resolution is {str((height, width))}.')
+            logger.std_info(f'[Vary] Final resolution is {str((height, width))}.')
 
         if 'upscale' in goals:
             H, W, C = uov_input_image.shape
             progressbar(async_task, 13, f'Upscaling image from {str((H, W))} ...')
             uov_input_image = perform_upscale(uov_input_image)
-            print(f'Image upscaled.')
+            logger.std_info('[Upscale] Image upscale.')
 
             if upscale_value is not None and upscale_value > 1.0:
                 f = upscale_value
@@ -581,7 +592,7 @@ def process_generate(async_task: QueueTask):
             shape_ceil = get_shape_ceil(H * f, W * f)
 
             if shape_ceil < 1024:
-                print(f'[Upscale] Image is resized because it is too small.')
+                logger.std_info('[Upscale] Image is resized because it is too small.')
                 uov_input_image = set_image_shape_ceil(uov_input_image, 1024)
                 shape_ceil = 1024
             else:
@@ -592,15 +603,15 @@ def process_generate(async_task: QueueTask):
             if 'fast' in uov_method:
                 direct_return = True
             elif image_is_super_large:
-                print('Image is too large. Directly returned the SR image. '
-                      'Usually directly return SR image at 4K resolution '
-                      'yields better results than SDXL diffusion.')
+                logger.std_info('[Upscale] Image is too large. Directly returned the SR image. '
+                                'Usually directly return SR image at 4K resolution '
+                                'yields better results than SDXL diffusion.')
                 direct_return = True
             else:
                 direct_return = False
 
             if direct_return:
-                d = [('Upscale (Fast)', '2x')]
+                # d = [('Upscale (Fast)', '2x')]
                 # log(uov_input_image, d, output_format=save_extension)
                 yield_result(async_task, uov_input_image, tasks, save_extension)
                 return
@@ -627,7 +638,7 @@ def process_generate(async_task: QueueTask):
             B, C, H, W = initial_latent['samples'].shape
             width = W * 8
             height = H * 8
-            print(f'Final resolution is {str((height, width))}.')
+            logger.std_info(f'[Upscale] Final resolution is {str((height, width))}.')
 
         if 'inpaint' in goals:
             if len(outpaint_selections) > 0:
@@ -640,7 +651,7 @@ def process_generate(async_task: QueueTask):
                     inpaint_image = np.pad(inpaint_image, [[distance_top, 0], [0, 0], [0, 0]], mode='edge')
                     inpaint_mask = np.pad(inpaint_mask, [[distance_top, 0], [0, 0]], mode='constant',
                                           constant_values=255)
-                
+
                 if 'bottom' in outpaint_selections:
                     distance_bottom = int(H * 0.3)
                     if outpaint_distance_bottom > 0:
@@ -655,16 +666,16 @@ def process_generate(async_task: QueueTask):
                     distance_left = int(W * 0.3)
                     if outpaint_distance_left > 0:
                         distance_left = outpaint_distance_left
-                    
+
                     inpaint_image = np.pad(inpaint_image, [[0, 0], [distance_left, 0], [0, 0]], mode='edge')
                     inpaint_mask = np.pad(inpaint_mask, [[0, 0], [distance_left, 0]], mode='constant',
                                           constant_values=255)
-                
+
                 if 'right' in outpaint_selections:
                     distance_right = int(W * 0.3)
                     if outpaint_distance_right > 0:
                         distance_right = outpaint_distance_right
-                    
+
                     inpaint_image = np.pad(inpaint_image, [[0, 0], [0, distance_right], [0, 0]], mode='edge')
                     inpaint_mask = np.pad(inpaint_mask, [[0, 0], [0, distance_right]], mode='constant',
                                           constant_values=255)
@@ -734,7 +745,7 @@ def process_generate(async_task: QueueTask):
             B, C, H, W = latent_fill.shape
             height, width = H * 8, W * 8
             final_height, final_width = inpaint_worker.current_task.image.shape[:2]
-            print(f'Final resolution is {str((final_height, final_width))}, latent is {str((height, width))}.')
+            logger.std_info(f'[Inpaint] Final resolution is {str((final_height, final_width))}, latent is {str((height, width))}.')
 
         if 'cn' in goals:
             for task in cn_tasks[flags.cn_canny]:
@@ -793,7 +804,7 @@ def process_generate(async_task: QueueTask):
                 pipeline.final_unet = ip_adapter.patch_model(pipeline.final_unet, all_ip_tasks)
 
         if freeu_enabled:
-            print(f'FreeU is enabled!')
+            logger.std_info('[Fooocus] FreeU is enabled!')
             pipeline.final_unet = core.apply_freeu(
                 pipeline.final_unet,
                 freeu_b1,
@@ -804,17 +815,17 @@ def process_generate(async_task: QueueTask):
 
         all_steps = steps * image_number
 
-        print(f'[Parameters] Denoising Strength = {denoising_strength}')
+        logger.std_info(f'[Parameters] Denoising Strength = {denoising_strength}')
 
         if isinstance(initial_latent, dict) and 'samples' in initial_latent:
             log_shape = initial_latent['samples'].shape
         else:
             log_shape = f'Image Space {(height, width)}'
 
-        print(f'[Parameters] Initial Latent shape: {log_shape}')
+        logger.std_info(f'[Parameters] Initial Latent shape: {log_shape}')
 
         preparation_time = time.perf_counter() - execution_start_time
-        print(f'Preparation time: {preparation_time:.2f} seconds')
+        logger.std_info(f'[Fooocus] Preparation time: {preparation_time:.2f} seconds')
 
         final_sampler_name = sampler_name
         final_scheduler_name = scheduler_name
@@ -831,7 +842,7 @@ def process_generate(async_task: QueueTask):
                     pipeline.final_refiner_unet,
                     sampling='lcm',
                     zsnr=False)[0]
-            print('Using lcm scheduler.')
+            logger.std_info('[Fooocus] Using lcm scheduler.')
 
         outputs.append(['preview', (13, 'Moving model to GPU ...', None)])
 
@@ -881,18 +892,18 @@ def process_generate(async_task: QueueTask):
 
                 if inpaint_worker.current_task is not None:
                     imgs = [inpaint_worker.current_task.post_process(x) for x in imgs]
-                
+
                 # Fooocus async_worker.py code end
-                
+
                 results += imgs
             except model_management.InterruptProcessingException as e:
-                print("User stopped")
+                logger.std_warn("[Fooocus] User stopped")
                 results.append(ImageGenerationResult(
                     im=None, seed=task['task_seed'], finish_reason=GenerationFinishReason.user_cancel))
                 async_task.set_result(results, True, str(e))
                 break
             except Exception as e:
-                print('Process error:', e)
+                logger.std_error(f'[Fooocus] Process error: {e}')
                 logging.exception(e)
                 results.append(ImageGenerationResult(
                     im=None, seed=task['task_seed'], finish_reason=GenerationFinishReason.error))
@@ -900,7 +911,7 @@ def process_generate(async_task: QueueTask):
                 break
 
             execution_time = time.perf_counter() - execution_start_time
-            print(f'Generating and saving time: {execution_time:.2f} seconds')
+            logger.std_info(f'[Fooocus] Generating and saving time: {execution_time:.2f} seconds')
 
         if async_task.finish_with_error:
             worker_queue.finish_task(async_task.job_id)
@@ -908,10 +919,9 @@ def process_generate(async_task: QueueTask):
         yield_result(None, results, tasks, save_extension)
         return
     except Exception as e:
-        print('Worker error:', e)
-        logging.exception(e)
+        logger.std_error(f'[Fooocus] Worker error: {e}')
 
         if not async_task.is_finished:
             async_task.set_result([], True, str(e))
             worker_queue.finish_task(async_task.job_id)
-            print(f"[Task Queue] Finish task with error, job_id={async_task.job_id}")
+            logger.std_info(f"[Task Queue] Finish task with error, job_id={async_task.job_id}")

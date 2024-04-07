@@ -7,7 +7,7 @@
   - [Fooocus-API](#fooocus-api)
 - [Get-Start](#get-start)
   - [Run with Replicate](#run-with-replicate)
-  - [Self hosted](#self-hosted)
+  - [Self-hosted](#self-hosted)
     - [conda](#conda)
     - [venv](#venv)
     - [predownload and install](#predownload-and-install)
@@ -19,12 +19,16 @@
 - [License](#license)
 - [Thanks :purple\_heart:](#thanks-purple_heart)
 
+# :warning: Compatibility warning: Warning:
+
+1. If you are using an external Fooocus model (that is, the model is not located in the `repositories` directory), delete the `repositories` directory directly, and then update the `git pull`.
+2. If not, move the `repositories` directory to any directory, delete the `repositories` directory, then update the `git pull`, and move the `models` directory back to its original location when it is finished.
 
 # Introduction
 
 FastAPI powered API for [Fooocus](https://github.com/lllyasviel/Fooocus).
 
-Currently loaded Fooocus version: [2.1.860](https://github.com/lllyasviel/Fooocus/blob/main/update_log.md).
+Currently loaded Fooocus version: [2.3.0](https://github.com/lllyasviel/Fooocus/blob/main/update_log.md).
 
 ## Fooocus
 
@@ -61,7 +65,7 @@ With preset:
 
 I believe this is the easiest way to generate image with Fooocus's power.
 
-## Self hosted
+## Self-hosted
 
 You need python version >= 3.10, or use conda to create a new env.
 
@@ -103,15 +107,15 @@ If you want to deal with environmental problems manually and download the model 
 
 After creating a complete environment using conda or venv, you can manually complete the installation of the subsequent environment, just follow
 
-first, install requirements `pip install -r requirements.txt`
+first, install requirements: `pip install -r requirements.txt`
 
-then, pytorch with cuda `pip install torch==2.1.0 torchvision==0.16.0 torchaudio==2.1.0 --index-url https://download.pytorch.org/whl/cu121` , you can find more info about this [here](https://pytorch.org/get-started/previous-versions/),
+then, pytorch with cuda: `pip install torch==2.1.0 torchvision==0.16.0 torchaudio==2.1.0 --index-url https://download.pytorch.org/whl/cu121` , you can find more info about this [here](https://pytorch.org/get-started/previous-versions/),
 
 > It is important to note that for pytorch and cuda versions, the recommended version of Fooocus is used, which is currently pytorch2.1.0+cuda12.1. If you insist, you can also use other versions, but you need to add `--skip-pip` when you start app, otherwise the recommended version will be installed automatically
 
-next, make a dir named `repositories` and clone `https://github.com/lllyasviel/Fooocus` in to it. You must be use `git clone` but not download zip. If you have an existing Fooocus, please see [here](#already-exist-fooocus)
+Go to the `repositories` directories, download models and put it into `repositories\Fooocus\models`
 
-last, you can download models and put it into `repositories\Fooocus\models`
+If you have Fooocus installed, see [already-exist-fooocus](#already-exist-fooocus)
 
 here is a list need to download for startup (for different [startup params](#cmd-flags) maybe difference):
 
@@ -134,7 +138,7 @@ If you already have Fooocus installed, and it is work well, The recommended way 
 
 Use this method you will have both Fooocus and Fooocus-API running at the same time. And they operate independently and do not interfere with each other.
 
-> It is not recommended to copy an existing Fooocus installation directly to the repository's directory. If you insist on doing this, please make sure that the Fooocus directory is a Git repository, otherwise the program will not start properly
+> Do not copy Fooocus to repositories directory
 
 ## Start with docker
 
@@ -174,7 +178,6 @@ You can add `-e PIP_INDEX_URL={pypi-mirror-url}` to docker run command to change
 - `--host HOST` Set the listen host, default: 127.0.0.1
 - `--base-url BASE_URL` Set base url for outside visit, default is http://host:port
 - `--log-level LOG_LEVEL` Log info for Uvicorn, default: info
-- `--sync-repo SYNC_REPO` Sync dependent git repositories to local, 'skip' for skip sync action, 'only' for only do the sync action and not launch app
 - `--skip-pip` Skip automatic pip install when setup
 - `--preload-pipeline` Preload pipeline before start http server
 - `--queue-size QUEUE_SIZE` Working queue size, default: 100, generation requests exceeding working queue size will return failure
