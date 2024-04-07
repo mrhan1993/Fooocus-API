@@ -35,7 +35,7 @@ def text_to_img_with_ip(
     req: Text2ImgRequestWithPrompt,
     accept: str = Header(None),
     accept_query: str | None = Query(
-        None, alias='accept',
+        default=None, alias='accept',
         description="Parameter to override 'Accept' header, 'image/png' for output bytes")):
     """\nText to image with prompt\n
     Text to image with prompt

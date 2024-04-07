@@ -71,6 +71,7 @@ def text2image(params: dict) -> dict:
         timeout=300)
     return response.json()
 
+
 def upscale_vary(image: bytes, params: dict) -> dict:
     """
     Upscale or Vary
@@ -126,6 +127,8 @@ def image_prompt(
     Image Prompt
     Args:
         params (dict): Params
+        input_image (bytes): Image data
+        input_mask (bytes): Image mask data
         cn_img1 (bytes): Image data
         cn_img2 (bytes): Image data
         cn_img3 (bytes): Image data

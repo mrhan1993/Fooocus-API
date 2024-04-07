@@ -30,8 +30,12 @@ build:
     - "omegaconf==2.2.3"
     - "pygit2==1.12.2"
     - "opencv-contrib-python==4.8.0.74"
+    - "onnxruntime==1.16.3"
+    - "timm==0.9.2"
     - "torch==2.1.0"
     - "torchvision==0.16.0"
+    - "colorlog==6.8.2"
+    - "rich==13.7.1"
 
   # commands run after the environment is setup
   # run:

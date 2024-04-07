@@ -16,6 +16,7 @@ from fooocusapi.utils.file_utils import (
     output_file_to_base64img,
     output_file_to_bytesimg
 )
+from fooocusapi.utils.logger import logger
 from fooocusapi.models.common.requests import (
     CommonRequest as Text2ImgRequest
 )
@@ -53,6 +54,7 @@ from fooocusapi.task_queue import QueueTask
 
 api_key_header = APIKeyHeader(name="X-API-KEY", auto_error=False)
 
+
 def api_key_auth(apikey: str = Security(api_key_header)):
     """
     Check if the API key is valid, API key is not required if no API key is set
@@ -66,6 +68,7 @@ def api_key_auth(apikey: str = Security(api_key_header)):
     if apikey != args.apikey:
         raise HTTPException(status_code=403, detail="Forbidden")
 
+
 def req_to_params(req: Text2ImgRequest) -> ImageGenerationParams:
     """
     Convert Request to ImageGenerationParams
@@ -74,20 +77,21 @@ def req_to_params(req: Text2ImgRequest) -> ImageGenerationParams:
     returns:
         ImageGenerationParams
     """
+    config.update_files()
     if req.base_model_name is not None:
         if req.base_model_name not in config.model_filenames:
-            print(f"[Warning] Wrong base_model_name input: {req.base_model_name}, using default")
+            logger.std_warn(f"[Warning] Wrong base_model_name input: {req.base_model_name}, using default")
             req.base_model_name = default_base_model_name
 
     if req.refiner_model_name is not None and req.refiner_model_name != 'None':
         if req.refiner_model_name not in config.model_filenames:
-            print(f"[Warning] Wrong refiner_model_name input: {req.refiner_model_name}, using default")
+            logger.std_warn(f"[Warning] Wrong refiner_model_name input: {req.refiner_model_name}, using default")
             req.refiner_model_name = default_refiner_model_name
 
-    for l in req.loras:
-        if l.model_name != 'None' and l.model_name not in config.lora_filenames:
-            print(f"[Warning] Wrong lora model_name input: {l.model_name}, using 'None'")
-            l.model_name = 'None'
+    for lora in req.loras:
+        if lora.model_name != 'None' and lora.model_name not in config.lora_filenames:
+            logger.std_warn(f"[Warning] Wrong lora model_name input: {lora.model_name}, using 'None'")
+            lora.model_name = 'None'
 
     prompt = req.prompt
     negative_prompt = req.negative_prompt
@@ -235,7 +239,7 @@ def generate_async_output(
         job_stage=job_stage,
         job_progress=task.finish_progress,
         job_status=task.task_status,
-        job_step_preview= task.task_step_preview if require_step_preview else None,
+        job_step_preview=task.task_step_preview if require_step_preview else None,
         job_result=job_result)
     return result
 

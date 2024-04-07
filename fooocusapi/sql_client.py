@@ -1,63 +1,40 @@
+"""
+SQLite client for Fooocus API
+"""
 import os
 import time
 import platform
 from datetime import datetime
 from typing import Optional
+import copy
 
-from sqlalchemy import Integer, Float,VARCHAR, Boolean, JSON, Text, create_engine
+from sqlalchemy import Integer, Float, VARCHAR, Boolean, JSON, Text, create_engine
 from sqlalchemy.orm import declarative_base, Session, Mapped, mapped_column
 
 
 Base = declarative_base()
 
-adv_params_keys = [
-    "disable_preview",
-    "adm_scaler_positive",
-    "adm_scaler_negative",
-    "adm_scaler_end",
-    "adaptive_cfg",
-    "sampler_name",
-    "scheduler_name",
-    "generate_image_grid",
-    "overwrite_step",
-    "overwrite_switch",
-    "overwrite_width",
-    "overwrite_height",
-    "overwrite_vary_strength",
-    "overwrite_upscale_strength",
-    "mixing_image_prompt_and_vary_upscale",
-    "mixing_image_prompt_and_inpaint",
-    "debugging_cn_preprocessor",
-    "skipping_cn_preprocessor",
-    "controlnet_softness",
-    "canny_low_threshold",
-    "canny_high_threshold",
-    "refiner_swap_method",
-    "freeu_enabled",
-    "freeu_b1",
-    "freeu_b2",
-    "freeu_s1",
-    "freeu_s2",
-    "debugging_inpaint_preprocessor",
-    "inpaint_disable_initial_latent",
-    "inpaint_engine",
-    "inpaint_strength",
-    "inpaint_respective_field",
-    "inpaint_mask_upload_checkbox",
-    "invert_mask_checkbox",
-    "inpaint_erode_or_dilate"
-]
 
-if platform.system().lower() == 'windows':
-    default_sqlite_db_path = os.path.join(os.path.dirname(__file__), "../database.db").replace("\\", "/")
+if platform.system().lower() == "windows":
+    default_sqlite_db_path = os.path.join(
+        os.path.dirname(__file__), "../database.db"
+    ).replace("\\", "/")
 else:
     default_sqlite_db_path = os.path.join(os.path.dirname(__file__), "../database.db")
 
-connection_uri = os.environ.get("FOOOCUS_DB_CONF", f"sqlite:///{default_sqlite_db_path}")
+connection_uri = os.environ.get(
+    "FOOOCUS_DB_CONF", f"sqlite:///{default_sqlite_db_path}"
+)
 
 
 class GenerateRecord(Base):
+    """
+    GenerateRecord
+
     __tablename__ = 'generate_record'
+    """
+
+    __tablename__ = "generate_record"
 
     task_id: Mapped[str] = mapped_column(VARCHAR(255), nullable=False, primary_key=True)
     task_type: Mapped[str] = mapped_column(Text, nullable=False)
@@ -110,6 +87,7 @@ class GenerateRecord(Base):
                 upscale_value={self.upscale_value!r}, webhook_url={self.webhook_url!r}, require_base64={self.require_base64!r}, \
                 async_process={self.async_process!r})"
 
+
 engine = create_engine(connection_uri)
 
 session = Session(engine)
@@ -117,35 +95,54 @@ Base.metadata.create_all(engine, checkfirst=True)
 session.close()
 
 
-def convert_to_dict_list(obj_list: list[object]) -> dict:
+def convert_to_dict_list(obj_list: list[object]) -> list[dict]:
+    """
+    Convert a list of objects to a list of dictionaries.
+    Args:
+        obj_list:
+
+    Returns:
+        dict_list:
+    """
     dict_list = []
     for obj in obj_list:
         # 将对象属性转化为字典键值对
         dict_obj = {}
         for attr, value in vars(obj).items():
-            if not callable(value) and not attr.startswith("__") and not attr.startswith("_"):
+            if (
+                not callable(value)
+                and not attr.startswith("__")
+                and not attr.startswith("_")
+            ):
                 dict_obj[attr] = value
         task_info = {
             "task_id": obj.task_id,
             "task_type": obj.task_type,
             "result_url": obj.result_url,
             "finish_reason": obj.finish_reason,
-            "date_time": datetime.fromtimestamp(obj.date_time).strftime("%Y-%m-%d %H:%M:%S"),
+            "date_time": datetime.fromtimestamp(obj.date_time).strftime(
+                "%Y-%m-%d %H:%M:%S"
+            ),
         }
-        del dict_obj['task_id']
-        del dict_obj['task_type']
-        del dict_obj['result_url']
-        del dict_obj['finish_reason']
-        del dict_obj['date_time']
+        del dict_obj["task_id"]
+        del dict_obj["task_type"]
+        del dict_obj["result_url"]
+        del dict_obj["finish_reason"]
+        del dict_obj["date_time"]
         dict_list.append({"params": dict_obj, "task_info": task_info})
     return dict_list
 
 
+class MySQLAlchemy:
+    """
+    MySQLAlchemy, a toolkit for managing SQLAlchemy connections and sessions.
 
-class MysqlSQLAlchemy:
-    def __init__(self, connection_uri: str):
+    :param uri: SQLAlchemy connection URI
+    """
+
+    def __init__(self, uri: str):
         # 'mysql+pymysql://{username}:{password}@{host}:{port}/{database}'
-        self.engine = create_engine(connection_uri)
+        self.engine = create_engine(uri)
         self.session = Session(self.engine)
 
     def store_history(self, record: dict) -> None:
@@ -157,49 +154,113 @@ class MysqlSQLAlchemy:
         self.session.add_all([GenerateRecord(**record)])
         self.session.commit()
 
-    def get_history(self, task_id: str=None, page: int=0, page_size: int=20,
-                    order_by: str='date_time') -> list:
+    def get_history(
+        self,
+        task_id: str = None,
+        page: int = 0,
+        page_size: int = 20,
+        order_by: str = "date_time",
+    ) -> list:
         """
         Get history from database
         :param task_id:
+        :param page:
+        :param page_size:
+        :param order_by:
         :return:
         """
         if task_id is not None:
-            res = self.session.query(GenerateRecord).filter(GenerateRecord.task_id == task_id).all()
+            res = (
+                self.session.query(GenerateRecord)
+                .filter(GenerateRecord.task_id == task_id)
+                .all()
+            )
             if len(res) == 0:
                 return []
             return convert_to_dict_list(res)
 
-        res = self.session.query(GenerateRecord).order_by(getattr(GenerateRecord, order_by).desc()).offset(page * page_size).limit(page_size).all()
+        res = (
+            self.session.query(GenerateRecord)
+            .order_by(getattr(GenerateRecord, order_by).desc())
+            .offset(page * page_size)
+            .limit(page_size)
+            .all()
+        )
         if len(res) == 0:
             return []
         return convert_to_dict_list(res)
 
 
-db = MysqlSQLAlchemy(connection_uri=connection_uri)
+db = MySQLAlchemy(uri=connection_uri)
+
+
 def req_to_dict(req: dict) -> dict:
+    """
+    Convert request to dictionary
+    Args:
+        req:
+
+    Returns:
+
+    """
     req["loras"] = [{"model_name": lora[0], "weight": lora[1]} for lora in req["loras"]]
-    req["advanced_params"] = dict(zip(adv_params_keys, req["advanced_params"]))
-    req["image_prompts"] = [{
-        "cn_img": "",
-        "cn_stop": image[1],
-        "cn_weight": image[2],
-        "cn_type": image[3]
-    } for image in req["image_prompts"]]
+    # req["advanced_params"] = dict(zip(adv_params_keys, req["advanced_params"]))
+    req["image_prompts"] = [
+        {"cn_img": "", "cn_stop": image[1], "cn_weight": image[2], "cn_type": image[3]}
+        for image in req["image_prompts"]
+    ]
     del req["inpaint_input_image"]
     del req["uov_input_image"]
     return req
 
-def add_history(params: dict, task_type: str, task_id: str, result_url: str, finish_reason: str) -> None:
-    params = req_to_dict(params["params"])
+
+def add_history(
+    params: dict, task_type: str, task_id: str, result_url: str, finish_reason: str
+) -> None:
+    """
+    Store history to database
+    Args:
+        params:
+        task_type:
+        task_id:
+        result_url:
+        finish_reason:
+
+    Returns:
+
+    """
+    adv = copy.deepcopy(params["advanced_params"])
+    params["advanced_params"] = adv.__dict__
     params["date_time"] = int(time.time())
     params["task_type"] = task_type
     params["task_id"] = task_id
     params["result_url"] = result_url
     params["finish_reason"] = finish_reason
 
+    del params["inpaint_input_image"]
+    del params["uov_input_image"]
+    del params["save_extension"]
+
     db.store_history(params)
 
 
-def query_history(task_id: str=None, page: int=0, page_size: int=20, order_by: str="date_time") -> list:
-    return db.get_history(task_id=task_id, page=page, page_size=page_size, order_by=order_by)
+def query_history(
+        task_id: str = None,
+        page: int = 0,
+        page_size: int = 20,
+        order_by: str = "date_time"
+) -> list:
+    """
+    Query history from database
+    Args:
+        task_id:
+        page:
+        page_size:
+        order_by:
+
+    Returns:
+
+    """
+    return db.get_history(
+        task_id=task_id, page=page, page_size=page_size, order_by=order_by
+    )

@@ -28,6 +28,7 @@ patch_all()
 worker_queue: TaskQueue = None
 last_model_name = None
 
+
 def process_stop():
     import ldm_patched.modules.model_management
     ldm_patched.modules.model_management.interrupt_current_processing()
@@ -142,9 +143,9 @@ def process_generate(async_task: QueueTask):
         if last_model_name is None:
             last_model_name = async_task.req_param.base_model_name
         if last_model_name != async_task.req_param.base_model_name:
-            model_management.cleanup_models() # key1
+            model_management.cleanup_models()  # key1
             model_management.unload_all_models()
-            model_management.soft_empty_cache() # key2
+            model_management.soft_empty_cache()  # key2
             last_model_name = async_task.req_param.base_model_name
 
         worker_queue.start_task(async_task.job_id)
@@ -460,9 +461,11 @@ def process_generate(async_task: QueueTask):
             extra_negative_prompts = negative_prompts[1:] if len(negative_prompts) > 1 else []
 
             progressbar(async_task, 3, 'Loading models ...')
-            pipeline.refresh_everything(refiner_model_name=refiner_model_name, base_model_name=base_model_name,
-                                        loras=loras, base_model_additional_loras=base_model_additional_loras,
-                                        use_synthetic_refiner=use_synthetic_refiner)
+            pipeline.refresh_everything(
+                refiner_model_name=refiner_model_name,
+                base_model_name=base_model_name,
+                loras=loras, base_model_additional_loras=base_model_additional_loras,
+                use_synthetic_refiner=use_synthetic_refiner)
 
             progressbar(async_task, 3, 'Processing prompts ...')
             tasks = []

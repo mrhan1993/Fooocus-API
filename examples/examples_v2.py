@@ -133,7 +133,7 @@ uov_params = {
     "async_process": True
 }
 
-upscale_result =upscale_vary(params=uov_params)
+upscale_result = upscale_vary(params=uov_params)
 print(
     json.dumps(
         upscale_result,
@@ -159,8 +159,8 @@ print(
 
 # Inpaint outpaint example
 inpaint_params = {
-    "prompt": "a cat", # use background prompt to remove anything what you don't want
-    "performance_selection": "Speed", # use Lightning the quality is not good
+    "prompt": "a cat",  # use background prompt to remove anything what you don't want
+    "performance_selection": "Speed",  # use Lightning the quality is not good
     "input_image": ImageList.inpaint_source,
     "input_mask": ImageList.inpaint_mask,
     "outpaint_selections": ["Left", "Right"],
@@ -190,7 +190,7 @@ face_swap_params = {
             "cn_stop": 0.5,
             "cn_weight": 0.6,
             "cn_type": "ImagePrompt"
-        },{
+        }, {
             "cn_img": ImageList.target_face,
             "cn_stop": 0.9,
             "cn_weight": 0.75,
@@ -218,7 +218,7 @@ t2i_ip_params = {
             "cn_stop": 0.6,
             "cn_weight": 0.8,
             "cn_type": "ImagePrompt"
-        },{
+        }, {
             "cn_img": ImageList.image_prompt_2,
             "cn_stop": 0.6,
             "cn_weight": 0.6,

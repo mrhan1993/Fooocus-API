@@ -25,3 +25,4 @@ numpy
 sqlalchemy
 packaging
 rich
+chardet

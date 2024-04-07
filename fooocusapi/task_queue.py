@@ -13,17 +13,11 @@ from typing import List, Tuple
 import numpy as np
 import requests
 
-from fooocusapi.utils.file_utils import (
-    delete_output_file,
-    get_file_serve_url
-)
+from fooocusapi.utils.file_utils import delete_output_file, get_file_serve_url
 from fooocusapi.utils.img_utils import narray_to_base64img
 from fooocusapi.utils.logger import logger
 
-from fooocusapi.models.common.task import (
-    ImageGenerationResult,
-    GenerationFinishReason
-)
+from fooocusapi.models.common.task import ImageGenerationResult, GenerationFinishReason
 from fooocusapi.parameters import ImageGenerationParams
 from fooocusapi.models.common.task import TaskType
 
@@ -47,6 +41,7 @@ class QueueTask:
         error_message (str): The error message, if any.
         webhook_url (str): The webhook URL, if any.
     """
+
     job_id: str
     task_type: TaskType
     req_param: ImageGenerationParams
@@ -63,10 +58,12 @@ class QueueTask:
     webhook_url: str | None = None  # attribute for individual webhook_url
 
     def __init__(
-            self, job_id: str,
-            task_type: TaskType,
-            req_param: ImageGenerationParams,
-            webhook_url: str | None = None):
+        self,
+        job_id: str,
+        task_type: TaskType,
+        req_param: ImageGenerationParams,
+        webhook_url: str | None = None,
+    ):
         self.job_id = job_id
         self.task_type = task_type
         self.req_param = req_param
@@ -92,9 +89,12 @@ class QueueTask:
         """
         self.task_step_preview = task_step_preview
 
-    def set_result(self, task_result: List[ImageGenerationResult],
-                   finish_with_error: bool,
-                   error_message: str | None = None):
+    def set_result(
+        self,
+        task_result: List[ImageGenerationResult],
+        finish_with_error: bool,
+        error_message: str | None = None,
+    ):
         """set result
         Set task result
         Arguments:
@@ -104,18 +104,18 @@ class QueueTask:
         """
         if not finish_with_error:
             self.finish_progress = 100
-            self.task_status = 'Finished'
+            self.task_status = "Finished"
         self.task_result = task_result
         self.finish_with_error = finish_with_error
         self.error_message = error_message
 
     def __str__(self) -> str:
-        return f'QueueTask(job_id={self.job_id}, task_type={self.task_type},\
+        return f"QueueTask(job_id={self.job_id}, task_type={self.task_type},\
                 is_finished={self.is_finished}, finished_progress={self.finish_progress}, \
                 in_queue_mills={self.in_queue_mills}, start_mills={self.start_mills}, \
                 finish_mills={self.finish_mills}, finish_with_error={self.finish_with_error}, \
                 error_message={self.error_message}, task_status={self.task_status}, \
-                task_step_preview={self.task_step_preview}, webhook_url={self.webhook_url})'
+                task_step_preview={self.task_step_preview}, webhook_url={self.webhook_url})"
 
 
 class TaskQueue:
@@ -129,24 +129,31 @@ class TaskQueue:
         webhook_url: str
         persistent: bool
     """
+
     queue: List[QueueTask] = []
     history: List[QueueTask] = []
     last_job_id: str = None
     webhook_url: str | None = None
     persistent: bool = False
 
-    def __init__(self, queue_size: int,
-                 history_size: int,
-                 webhook_url: str | None = None,
-                 persistent: bool | None = False):
+    def __init__(
+        self,
+        queue_size: int,
+        history_size: int,
+        webhook_url: str | None = None,
+        persistent: bool | None = False,
+    ):
         self.queue_size = queue_size
         self.history_size = history_size
         self.webhook_url = webhook_url
         self.persistent = False if persistent is None else persistent
 
-    def add_task(self, task_type: TaskType,
-                 req_param: ImageGenerationParams,
-                 webhook_url: str | None = None) -> QueueTask | None:
+    def add_task(
+        self,
+        task_type: TaskType,
+        req_param: ImageGenerationParams,
+        webhook_url: str | None = None,
+    ) -> QueueTask | None:
         """
         Create and add task to queue
         :param task_type: task type
@@ -157,18 +164,21 @@ class TaskQueue:
         if len(self.queue) >= self.queue_size:
             return None
 
+        if isinstance(req_param, dict):
+            req_param = ImageGenerationParams(**req_param)
+
         job_id = str(uuid.uuid4())
         task = QueueTask(
             job_id=job_id,
             task_type=task_type,
             req_param=req_param,
-            webhook_url=webhook_url)
+            webhook_url=webhook_url,
+        )
         self.queue.append(task)
         self.last_job_id = job_id
         return task
 
-    def get_task(self, job_id: str,
-                 include_history: bool = False) -> QueueTask | None:
+    def get_task(self, job_id: str, include_history: bool = False) -> QueueTask | None:
         """
         Get task by job_id
         :param job_id: job id
@@ -236,43 +246,58 @@ class TaskQueue:
 
             if isinstance(task.task_result, List):
                 for item in task.task_result:
-                    data["job_result"].append({
-                        "url": get_file_serve_url(item.im) if item.im else None,
-                        "seed": item.seed if item.seed else "-1",
-                    })
+                    data["job_result"].append(
+                        {
+                            "url": get_file_serve_url(item.im) if item.im else None,
+                            "seed": item.seed if item.seed else "-1",
+                        }
+                    )
 
             # Send webhook
             if task.is_finished and webhook_url:
                 try:
                     res = requests.post(webhook_url, json=data, timeout=15)
-                    print(f'Call webhook response status: {res.status_code}')
+                    print(f"Call webhook response status: {res.status_code}")
                 except Exception as e:
-                    print('Call webhook error:', e)
+                    print("Call webhook error:", e)
 
             # Move task to history
             self.queue.remove(task)
             self.history.append(task)
 
+            # save history to database
             if self.persistent:
                 from fooocusapi.sql_client import add_history
-                add_history(task.req_param, task.task_type, task.job_id,
-                            ','.join([job["url"] for job in data["job_result"]]),
-                            task.task_result[0].finish_reason)
+
+                add_history(
+                    params=task.req_param.to_dict(),
+                    task_type=task.task_type.value,
+                    task_id=task.job_id,
+                    result_url=",".join([job["url"] for job in data["job_result"]]),
+                    finish_reason=task.task_result[0].finish_reason.value,
+                )
 
             # Clean history
             if len(self.history) > self.history_size != 0:
                 removed_task = self.history.pop(0)
                 if isinstance(removed_task.task_result, List):
                     for item in removed_task.task_result:
-                        if isinstance(item, ImageGenerationResult) and item.finish_reason == GenerationFinishReason.success and item.im is not None:
+                        if (
+                            isinstance(item, ImageGenerationResult)
+                            and item.finish_reason == GenerationFinishReason.success
+                            and item.im is not None
+                        ):
                             delete_output_file(item.im)
-                logger.std_info(f"[TaskQueue] Clean task history, remove task: {removed_task.job_id}")
+                logger.std_info(
+                    f"[TaskQueue] Clean task history, remove task: {removed_task.job_id}"
+                )
 
 
 class TaskOutputs:
     """
     TaskOutputs is a container for task outputs
     """
+
     outputs = []
 
     def __init__(self, task: QueueTask):
@@ -280,12 +305,16 @@ class TaskOutputs:
 
     def append(self, args: List[any]):
         """
-        Append output to task outputs
+        Append output to task outputs list
         :param args: output arguments
         """
         self.outputs.append(args)
         if len(args) >= 2:
-            if args[0] == 'preview' and isinstance(args[1], Tuple) and len(args[1]) >= 2:
+            if (
+                args[0] == "preview"
+                and isinstance(args[1], Tuple)
+                and len(args[1]) >= 2
+            ):
                 number = args[1][0]
                 text = args[1][1]
                 self.task.set_progress(number, text)

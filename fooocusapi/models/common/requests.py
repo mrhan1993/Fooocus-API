@@ -3,7 +3,7 @@ from typing import List
 from pydantic import BaseModel, Field
 from pydantic import ValidationError
 
-from fooocusapi.parameters import (
+from modules.config import (
     default_sampler,
     default_scheduler,
     default_prompt_negative,

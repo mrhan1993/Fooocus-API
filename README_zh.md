@@ -19,12 +19,16 @@
 - [License](#license)
 - [感谢 :purple\_heart:](#感谢-purple_heart)
 
+# :warning: 兼容性警告 :warning:
+
+1. 如果你使用的是外部 Fooocus 模型（即模型不是位于 `repositories/Fooocus/models` 目录下），直接删除 `repositories` 目录，然后执行 `git pull` 更新即可
+2. 如果不是上述方式，将 `repositories/Fooocus/models` 目录移动到任意目录，删除 `repositories` 目录，然后执行 `git pull` 更新，完成后将 `models` 目录移动回原位置
 
 # 简介
 
 使用 FastAPI 构建的 [Fooocus](https://github.com/lllyasviel/Fooocus) 的 API。
 
-当前支持的 Fooocus 版本: [2.1.860](https://github.com/lllyasviel/Fooocus/blob/main/update_log.md)。
+当前支持的 Fooocus 版本: [2.3.0](https://github.com/lllyasviel/Fooocus/blob/main/update_log.md)。
 
 ## Fooocus
 
@@ -82,7 +86,7 @@ conda activate fooocus-api
 
 ### venv
 
-和使用 conda 差不多，创建虚拟环境，启动 app ，等待程序完成环境安装、模型下载
+和使用 conda 类似，创建虚拟环境，启动 app ，等待程序完成环境安装、模型下载
 
 ```powershell
 # windows
@@ -107,16 +111,14 @@ source venv/bin/activate
 
 然后安装 pytorch+cuda： `pip install torch==2.1.0 torchvision==0.16.0 torchaudio==2.1.0 --index-url https://download.pytorch.org/whl/cu121` 更多安装信息在[这儿](https://pytorch.org/get-started/previous-versions/),
 
-> 关于 pytorch 和 cuda 的版本，Fooocus API 使用的是 Fooocus 推荐的版本，目前是 pytorch2.1.0+cuda12.1。如果你是个"犟种"非要用其他版本，我测试过也是可以的，不过启动的时候记得加上 `--skip-pip`，否则程序会自动替换为推荐版本。
+> 关于 pytorch 和 cuda 的版本，Fooocus API 使用的是 Fooocus 推荐的版本，目前是 pytorch2.1.0+cuda12.1。如果你是个 "犟种" 非要用其他版本，我测试过也是可以的，不过启动的时候记得加上 `--skip-pip`，否则程序会自动替换为推荐版本。
 
-然后创建一个名为 `repositories` 的目录，将 `https://github.com/lllyasviel/Fooocus` 克隆到其中。注意必须使用 `git clone`，`download zip`下载解压不包含Git信息，无法正常运行。如果你有一个已经安装完成的 Fooocus，查看[这里](#已经有安装好的-fooocus)
-
-最后，把下载的模型放到这个目录 `repositories\Fooocus\models`
+进入 `repositories` 的目录，下载的模型放到这个目录 `repositories\Fooocus\models`。如果你有一个已经安装完成的 Fooocus，查看[这里](#已经有安装好的-fooocus)
 
 这里是一个启动必须下载的模型列表 (也可能不一样如果 [启动参数](#命令行参数) 不同的话):
 
 - checkpoint: 放到 `repositories\Fooocus\models\checkpoints`
-    + [juggernautXL_version6Rundiffusion.safetensors](https://huggingface.co/lllyasviel/fav_models/resolve/main/fav/juggernautXL_version6Rundiffusion.safetensors)
+    + [juggernautXL_v8Rundiffusion.safetensors](https://huggingface.co/lllyasviel/fav_models/resolve/main/fav/juggernautXL_v8Rundiffusion.safetensors)
 
 - vae_approx: 放到 `repositories\Fooocus\models\vae_approx`
     + [xlvaeapp.pth](https://huggingface.co/lllyasviel/misc/resolve/main/xlvaeapp.pth)
@@ -134,7 +136,7 @@ source venv/bin/activate
 
 使用这种方法 Fooocus 和 Fooocus API 会同时存在，独立运行互不干扰。
 
-> 除非你能确保已安装的 Fooocus 目录是一个 Git 仓库，否则不推荐直接将其复制到 repositories 目录。
+> 不要将已安装的 Fooocus 目录复制到 repositories 目录。
 
 ## 使用Docker启动
 
@@ -174,7 +176,6 @@ docker run -d --gpus=all \
 - `--host HOST` 设置监听地址，默认：127.0.0.1
 - `--base-url BASE_URL` 设置返回结果中的地址，默认是： http://host:port
 - `--log-level LOG_LEVEL` Uvicorn 中的日志等级，默认：info
-- `--sync-repo SYNC_REPO` 同步 Fooocus 仓库到本地，`skip` 用于在启动时跳过同步，`only` 只同步不启动程序
 - `--skip-pip` 跳过启动时的 pip 安装
 - `--preload-pipeline` 启动 http server 之前加载 pipeline
 - `--queue-size QUEUE_SIZE` 工作队列大小，默认是 100 ，超过队列的请求会返回失败
@@ -214,7 +215,7 @@ python main.py --all-in-fp16 --always-gpu
 
 **[23/12/28] v0.3.26** : **重大变更**: 添加 webhook 选项以支持生成完毕后的事件通知。将 async 的任务 ID 由数字改为 UUID 来避免应用重启后造成的混乱
 
-**[23/12/22] v0.3.25** : 增加对 Fooocus 命令行选项的支持 **重大变更**: 移除`disable-private-log` 选项，你可以使用 Fooocus 原生的 `--disable-image-log` 来达到同样的效果
+**[23/12/22] v0.3.25** : 增加对 Fooocus 命令行选项的支持 **重大变更**: 移除 `disable-private-log` 选项，你可以使用 Fooocus 原生的 `--disable-image-log` 来达到同样的效果
 
 更早的日志可以在 [release page](https://github.com/konieshadow/Fooocus-API/releases) 找到
 
@@ -224,6 +225,12 @@ python main.py --all-in-fp16 --always-gpu
 你可以在[这里](/docs/api_doc_zh.md)找到所有的 API 细节
 
 # License
+
+This repository is licensed under the [GUN General Public License v3.0](https://github.com/mrhan1993/Fooocus-API/blob/main/LICENSE)
+
+The default checkpoint is published by [RunDiffusion](https://huggingface.co/RunDiffusion), is licensed under the [CreativeML Open RAIL-M](https://github.com/mrhan1993/Fooocus-API/blob/main/CreativeMLOpenRAIL-M).
+
+or, you can find it [here](https://huggingface.co/spaces/CompVis/stable-diffusion-license)
 
 
 # 感谢 :purple_heart:
