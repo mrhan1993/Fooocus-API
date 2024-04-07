@@ -9,7 +9,7 @@ default_inpaint_engine_version = 'v2.6'
 
 
 default_styles = ['Fooocus V2', 'Fooocus Enhance', 'Fooocus Sharp']
-default_base_model_name = 'juggernautXL_version6Rundiffusion.safetensors'
+default_base_model_name = 'juggernautXL_v8Rundiffusion.safetensors'
 default_refiner_model_name = 'None'
 default_refiner_switch = 0.5
 default_loras = [['sd_xl_offset_example-lora_1.0.safetensors', 0.1]]
