@@ -174,3 +174,11 @@ class ImageGenerationParams(object):
 
         if self.advanced_params is None:
             self.advanced_params = AdvancedParams()
+
+            # Auto set mixing_image_prompt_and_inpaint to True
+            if len(self.image_prompts) > 0 and self.inpaint_input_image is not None:
+                print("Mixing Image Prompts and Inpaint Enabled")
+                self.advanced_params.mixing_image_prompt_and_inpaint = True
+            if len(self.image_prompts) > 0 and self.uov_input_image is not None:
+                print("Mixing Image Prompts and Vary Upscale Enabled")
+                self.advanced_params.mixing_image_prompt_and_vary_upscale = True
