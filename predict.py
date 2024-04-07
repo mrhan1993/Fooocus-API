@@ -262,7 +262,7 @@ class Predictor(BasePredictor):
 
         print(f"[Predictor Predict] Params: {params.__dict__}")
 
-        async_task = worker_queue.add_task(TaskType.text_2_img, {'params': params.__dict__, 'require_base64': False})
+        async_task = worker_queue.add_task(TaskType.text_2_img, params.__dict__)
         if async_task is None:
             print("[Task Queue] The task queue has reached limit")
             raise Exception("The task queue has reached limit.")

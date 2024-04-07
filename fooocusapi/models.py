@@ -105,7 +105,7 @@ class AdvancedParams(BaseModel):
     freeu_s2: float = Field(0.95, description="FreeU B4")
     debugging_inpaint_preprocessor: bool = Field(False, description="Debug Inpaint Preprocessing")
     inpaint_disable_initial_latent: bool = Field(False, description="Disable initial latent in inpaint")
-    inpaint_engine: str = Field('v1', description="Inpaint Engine")
+    inpaint_engine: str = Field('v2.6', description="Inpaint Engine")
     inpaint_strength: float = Field(1.0, description="Inpaint Denoising Strength", ge=0.0, le=1.0)
     inpaint_respective_field: float = Field(1.0, description="Inpaint Respective Field", ge=0.0, le=1.0)
     inpaint_mask_upload_checkbox: bool = Field(False, description="Upload Mask")
