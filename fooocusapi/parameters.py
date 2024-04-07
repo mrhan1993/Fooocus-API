@@ -2,6 +2,8 @@ from enum import Enum
 from typing import Dict, List, Tuple
 import numpy as np
 
+from pydantic import BaseModel, Field
+
 
 default_inpaint_engine_version = 'v2.6'
 
@@ -75,6 +77,45 @@ class ImageGenerationResult(object):
         self.finish_reason = finish_reason
 
 
+class AdvancedParams(BaseModel):
+    disable_preview: bool = Field(False, description="Disable preview during generation")
+    disable_intermediate_results: bool = Field(False, description="Disable intermediate results")
+    disable_seed_increment: bool = Field(False, description="Disable Seed Increment")
+    adm_scaler_positive: float = Field(1.5, description="Positive ADM Guidance Scaler", ge=0.1, le=3.0)
+    adm_scaler_negative: float = Field(0.8, description="Negative ADM Guidance Scaler", ge=0.1, le=3.0)
+    adm_scaler_end: float = Field(0.3, description="ADM Guidance End At Step", ge=0.0, le=1.0)
+    adaptive_cfg: float = Field(7.0, description="CFG Mimicking from TSNR", ge=1.0, le=30.0)
+    sampler_name: str = Field(default_sampler, description="Sampler")
+    scheduler_name: str = Field(default_scheduler, description="Scheduler")
+    overwrite_step: int = Field(-1, description="Forced Overwrite of Sampling Step", ge=-1, le=200)
+    overwrite_switch: float = Field(-1, description="Forced Overwrite of Refiner Switch Step", ge=-1, le=1)
+    overwrite_width: int = Field(-1, description="Forced Overwrite of Generating Width", ge=-1, le=2048)
+    overwrite_height: int = Field(-1, description="Forced Overwrite of Generating Height", ge=-1, le=2048)
+    overwrite_vary_strength: float = Field(-1, description='Forced Overwrite of Denoising Strength of "Vary"', ge=-1, le=1.0)
+    overwrite_upscale_strength: float = Field(-1, description='Forced Overwrite of Denoising Strength of "Upscale"', ge=-1, le=1.0)
+    mixing_image_prompt_and_vary_upscale: bool = Field(False, description="Mixing Image Prompt and Vary/Upscale")
+    mixing_image_prompt_and_inpaint: bool = Field(False, description="Mixing Image Prompt and Inpaint")
+    debugging_cn_preprocessor: bool = Field(False, description="Debug Preprocessors")
+    skipping_cn_preprocessor: bool = Field(False, description="Skip Preprocessors")
+    canny_low_threshold: int = Field(64, description="Canny Low Threshold", ge=1, le=255)
+    canny_high_threshold: int = Field(128, description="Canny High Threshold", ge=1, le=255)
+    refiner_swap_method: str = Field('joint', description="Refiner swap method")
+    controlnet_softness: float = Field(0.25, description="Softness of ControlNet", ge=0.0, le=1.0)
+    freeu_enabled: bool = Field(False, description="FreeU enabled")
+    freeu_b1: float = Field(1.01, description="FreeU B1")
+    freeu_b2: float = Field(1.02, description="FreeU B2")
+    freeu_s1: float = Field(0.99, description="FreeU B3")
+    freeu_s2: float = Field(0.95, description="FreeU B4")
+    debugging_inpaint_preprocessor: bool = Field(False, description="Debug Inpaint Preprocessing")
+    inpaint_disable_initial_latent: bool = Field(False, description="Disable initial latent in inpaint")
+    inpaint_engine: str = Field('v2.6', description="Inpaint Engine")
+    inpaint_strength: float = Field(1.0, description="Inpaint Denoising Strength", ge=0.0, le=1.0)
+    inpaint_respective_field: float = Field(1.0, description="Inpaint Respective Field", ge=0.0, le=1.0)
+    inpaint_mask_upload_checkbox: bool = Field(False, description="Upload Mask")
+    invert_mask_checkbox: bool = Field(False, description="Invert Mask")
+    inpaint_erode_or_dilate: int = Field(0, description="Mask Erode or Dilate", ge=-64, le=64)
+
+
 class ImageGenerationParams(object):
     def __init__(self, prompt: str,
                  negative_prompt: str,
@@ -129,60 +170,7 @@ class ImageGenerationParams(object):
         self.image_prompts = image_prompts
         self.save_extension = save_extension
         self.require_base64 = require_base64
-        
-        if advanced_params is None:
-            disable_preview = False
-            adm_scaler_positive = 1.5
-            adm_scaler_negative = 0.8
-            adm_scaler_end = 0.3
-            adaptive_cfg = 7.0
-            sampler_name = default_sampler
-            scheduler_name = default_scheduler
-            generate_image_grid = False
-            overwrite_step = -1
-            overwrite_switch = -1
-            overwrite_width = -1
-            overwrite_height = -1
-            overwrite_vary_strength = -1
-            overwrite_upscale_strength = -1
-            mixing_image_prompt_and_vary_upscale = False
-            mixing_image_prompt_and_inpaint = False
-            debugging_cn_preprocessor = False
-            skipping_cn_preprocessor = False
-            controlnet_softness = 0.25
-            canny_low_threshold = 64
-            canny_high_threshold = 128
-            refiner_swap_method = 'joint'
-            freeu_enabled = False
-            freeu_b1, freeu_b2, freeu_s1, freeu_s2 = [None] * 4
-            debugging_inpaint_preprocessor = False
-            inpaint_disable_initial_latent = False
-            inpaint_engine = default_inpaint_engine_version
-            inpaint_strength = 1.0
-            inpaint_respective_field = 0.618
-            inpaint_mask_upload_checkbox = False
-            invert_mask_checkbox = False
-            inpaint_erode_or_dilate = 0
+        self.advanced_params = advanced_params
 
-
-            # Auto set mixing_image_prompt_and_inpaint to True
-            if len(self.image_prompts) > 0 and inpaint_input_image is not None:
-                print('Mixing Image Prompts and Inpaint Enabled')
-                mixing_image_prompt_and_inpaint = True
-            if len(self.image_prompts) > 0 and uov_input_image is not None:
-                print('Mixing Image Prompts and Vary Upscale Enabled')
-                mixing_image_prompt_and_vary_upscale = True
-
-            self.advanced_params = [
-                disable_preview, adm_scaler_positive, adm_scaler_negative, adm_scaler_end, adaptive_cfg, sampler_name, \
-                scheduler_name, generate_image_grid, overwrite_step, overwrite_switch, overwrite_width, overwrite_height, \
-                overwrite_vary_strength, overwrite_upscale_strength, \
-                mixing_image_prompt_and_vary_upscale, mixing_image_prompt_and_inpaint, \
-                debugging_cn_preprocessor, skipping_cn_preprocessor, controlnet_softness, canny_low_threshold, canny_high_threshold, \
-                refiner_swap_method, \
-                freeu_enabled, freeu_b1, freeu_b2, freeu_s1, freeu_s2, \
-                debugging_inpaint_preprocessor, inpaint_disable_initial_latent, inpaint_engine, inpaint_strength, inpaint_respective_field, \
-                inpaint_mask_upload_checkbox, invert_mask_checkbox, inpaint_erode_or_dilate
-            ]
-        else:
-            self.advanced_params = advanced_params
+        if self.advanced_params is None:
+            self.advanced_params = AdvancedParams()

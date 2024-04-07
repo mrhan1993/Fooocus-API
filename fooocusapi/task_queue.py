@@ -81,6 +81,9 @@ class TaskQueue(object):
         if len(self.queue) >= self.queue_size:
             return None
 
+        if isinstance(req_param, dict):
+            req_param = ImageGenerationParams(**req_param)
+
         job_id = str(uuid.uuid4())
         task = QueueTask(job_id=job_id, type=type, req_param=req_param,
                          in_queue_millis=int(round(time.time() * 1000)),

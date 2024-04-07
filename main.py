@@ -330,14 +330,15 @@ def prepare_environments(args) -> bool:
     return True
 
 
-def pre_setup(skip_sync_repo: bool = False,
-              disable_image_log: bool = False,
-              skip_pip=False,
-              load_all_models: bool = False,
-              preload_pipeline: bool = False,
-              always_gpu: bool = False,
-              all_in_fp16: bool = False,
-              preset: str | None = None):
+def pre_setup(
+        skip_sync_repo: bool = False,
+        disable_image_log: bool = False,
+        skip_pip=False,
+        load_all_models: bool = False,
+        preload_pipeline: bool = False,
+        always_gpu: bool = False,
+        all_in_fp16: bool = False,
+        preset: str | None = None):
     class Args(object):
         host = '127.0.0.1'
         port = 8888
@@ -381,14 +382,20 @@ def pre_setup(skip_sync_repo: bool = False,
     import fooocusapi.args as _
     prepare_environments(args)
 
+    # Start task schedule thread
+    from fooocusapi.worker import task_schedule_loop
+    task_schedule_thread = Thread(target=task_schedule_loop, daemon=True)
+    task_schedule_thread.start()
+
     if load_all_models:
-        import modules.config as config
+        from modules import config
         from fooocusapi.parameters import default_inpaint_engine_version
         config.downloading_upscale_model()
         config.downloading_inpaint_models(default_inpaint_engine_version)
         config.downloading_controlnet_canny()
         config.downloading_controlnet_cpds()
-        config.downloading_ip_adapters()
+        config.downloading_ip_adapters('ip')
+        config.downloading_ip_adapters('face')
     print("[Pre Setup] Finished")
 
 
