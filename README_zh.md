@@ -169,6 +169,14 @@ docker run -d --gpus=all \
 
 你还可以添加 `-e PIP_INDEX_URL={pypi-mirror-url}` 选项来更换 pip 源
 
+> 0.4.0.0 版本开始，镜像包含完整运行环境，因此只需要根据需要将 `models` 或者项目根目录进行映射即可
+> 比如：
+> ```
+> docker run -d --gpus all \
+>     -v /Fooocus-API:/app \
+>     -p 8888:8888 konieshadow/fooocus-api
+>```
+
 # 命令行参数
 
 - `-h, --help` 显示本帮助并退出

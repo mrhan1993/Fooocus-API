@@ -1,21 +1,15 @@
-FROM nvidia/cuda:12.2.0-runtime-ubuntu22.04
+FROM pytorch/pytorch:2.1.0-cuda12.1-cudnn8-runtime
 
-ARG DEBIAN_FRONTEND=noninteractive
 ENV TZ=Asia/Shanghai
-
-RUN apt-get update && \
-    apt-get install --no-install-recommends -y python3 python3-pip python3-virtualenv && \
-    apt-get install --no-install-recommends -y libopencv-dev python3-opencv && \
-    rm -rf /var/lib/apt/lists/*
-
-ENV VIRTUAL_ENV=/opt/venv
-RUN virtualenv $VIRTUAL_ENV
-ENV PATH="$VIRTUAL_ENV/bin:$PATH"
-
-RUN pip install packaging
 
 WORKDIR /app
 
-COPY . /app/
+COPY . /app
 
-CMD python3 main.py --host 0.0.0.0 --port 8888
+RUN pip install --no-cache-dir -r requirements.txt
+
+RUN pip install --no-cache-dir opencv-python-headless
+
+EXPOSE 8888
+
+CMD ["python", "main.py", "--host", "0.0.0.0", "--port", "8888", "--skip-pip"]

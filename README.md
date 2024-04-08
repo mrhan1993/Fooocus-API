@@ -171,6 +171,14 @@ It will be persistent the dependent repositories and pip cache.
 
 You can add `-e PIP_INDEX_URL={pypi-mirror-url}` to docker run command to change pip index url.
 
+> From version 0.4.0.0, Full environment include in docker image, mapping `models` or project root if you needed
+> For example:
+> ```
+> docker run -d --gpus all \
+>     -v /Fooocus-API:/app \
+>     -p 8888:8888 konieshadow/fooocus-api
+>```
+
 # cmd flags
 
 - `-h, --help` show this help message and exit
