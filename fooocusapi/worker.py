@@ -464,7 +464,8 @@ def process_generate(async_task: QueueTask):
             pipeline.refresh_everything(
                 refiner_model_name=refiner_model_name,
                 base_model_name=base_model_name,
-                loras=loras, base_model_additional_loras=base_model_additional_loras,
+                loras=loras,
+                base_model_additional_loras=base_model_additional_loras,
                 use_synthetic_refiner=use_synthetic_refiner)
 
             progressbar(async_task, 3, 'Processing prompts ...')

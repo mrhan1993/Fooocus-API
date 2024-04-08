@@ -60,7 +60,7 @@ class Predictor(BasePredictor):
             description="Fooocus styles applied for image generation, separated by comma"),
         performance_selection: str = Input(
             default='Speed', 
-            choices=['Speed', 'Quality', 'Extreme Speed'],
+            choices=['Speed', 'Quality', 'Extreme Speed', 'Lightning'],
             description="Performance selection"),
         aspect_ratios_selection: str = Input(
             default='1152*896',

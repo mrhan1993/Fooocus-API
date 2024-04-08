@@ -19,7 +19,10 @@ class LoraManager:
     Manager loras from url
     """
     def __init__(self):
-        self.cache_dir = "/models/loras/"
+        self.cache_dir = os.path.join(
+            os.path.dirname(os.path.realpath(__file__)),
+            '../../',
+            'repositories/Fooocus/models/loras')
 
     def _download_lora(self, url):
         """

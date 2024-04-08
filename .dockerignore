@@ -20,7 +20,6 @@ user_path_config-deprecated.txt
 build_chb.py
 experiment.py
 /modules/*.png
-/repositories
 /venv
 /tmp
 /ui-config.json
