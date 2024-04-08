@@ -10,6 +10,7 @@ import numpy as np
 
 from PIL import Image
 from cog import BasePredictor, BaseModel, Input, Path
+from fooocusapi.utils.lora_manager import LoraManager
 from fooocusapi.utils.file_utils import output_dir
 from fooocusapi.models.common.task import GenerationFinishReason
 from fooocusapi.parameters import (
@@ -59,7 +60,7 @@ class Predictor(BasePredictor):
             description="Fooocus styles applied for image generation, separated by comma"),
         performance_selection: str = Input(
             default='Speed', 
-            choices=['Speed', 'Quality', 'Extreme Speed'],
+            choices=['Speed', 'Quality', 'Extreme Speed', 'Lightning'],
             description="Performance selection"),
         aspect_ratios_selection: str = Input(
             default='1152*896',
@@ -72,6 +73,12 @@ class Predictor(BasePredictor):
         image_seed: int = Input(
             default=-1,
             description="Seed to generate image, -1 for random"),
+        use_default_loras: bool = Input(
+            default=True,
+            description="Use default LoRAs"),
+        loras_custom_urls: str = Input(
+            default="",
+            description="Custom LoRAs URLs in the format 'url,weight' provide multiple seperated by ; (example 'url1,0.3;url2,0.1')"),
         sharpness: float = Input(
             default=2.0,
             ge=0.0, le=30.0),
@@ -182,7 +189,23 @@ class Predictor(BasePredictor):
 
         base_model_name = default_base_model_name
         refiner_model_name = default_refiner_model_name
-        loras = copy.copy(default_loras)
+
+        lora_manager = LoraManager()
+        
+        # Use default loras if selected
+        loras = copy.copy(default_loras) if use_default_loras else []
+
+        # add custom user loras if provided
+        if loras_custom_urls:
+            urls = [url.strip() for url in loras_custom_urls.split(';')]
+
+            loras_with_weights = [url.split(',') for url in urls]
+
+            custom_lora_paths = lora_manager.check([lw[0] for lw in loras_with_weights])
+            custom_loras = [[path, float(lw[1]) if len(lw) > 1 else 1.0] for path, lw in
+                            zip(custom_lora_paths, loras_with_weights)]
+
+            loras.extend(custom_loras)
 
         style_selections_arr = []
         for s in style_selections.strip().split(','):
