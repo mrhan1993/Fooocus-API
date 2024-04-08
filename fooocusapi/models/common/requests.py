@@ -1,7 +1,10 @@
 """Common model for requests"""
 from typing import List
-from pydantic import BaseModel, Field
-from pydantic import ValidationError
+from pydantic import (
+    BaseModel,
+    Field,
+    ValidationError
+)
 
 from modules.config import (
     default_sampler,
@@ -21,6 +24,7 @@ from fooocusapi.models.common.base import (
     default_loras_model
 )
 
+default_aspect_ratio = default_aspect_ratio.split(" ")[0].replace("×", "*")
 
 class QueryJobRequest(BaseModel):
     """Query job request"""
