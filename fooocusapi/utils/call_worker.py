@@ -77,7 +77,12 @@ def call_worker(req: Text2ImgRequest, accept: str) -> Response | AsyncJobRespons
                 job_progress=0,
                 job_status=None,
                 job_step_preview=None,
-                job_result=failure_results)
+                job_result=[GeneratedImageResult(
+                    base64=None,
+                    url=None,
+                    seed='',
+                    finish_reason=GenerationFinishReason.queue_is_full
+                )])
         return generate_image_result_output(failure_results, False)
 
     if req.async_process:
