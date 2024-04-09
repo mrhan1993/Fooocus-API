@@ -33,7 +33,7 @@ app.include_router(generate_v2)
 
 def start_app(args):
     """Start the FastAPI application"""
-    file_utils.static_serve_base_url = args.base_url + "/files/"
+    file_utils.STATIC_SERVER_BASE = args.base_url + "/files/"
     uvicorn.run(
         app="fooocusapi.api:app",
         host=args.host,
