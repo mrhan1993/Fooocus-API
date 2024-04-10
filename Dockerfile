@@ -8,7 +8,7 @@ COPY . /app
 
 RUN pip install --no-cache-dir -r requirements.txt
 
-RUN pip install --no-cache-dir opencv-python-headless
+RUN pip install --no-cache-dir opencv-python-headless -i https://pypi.org/simple
 
 EXPOSE 8888
 
