@@ -27,7 +27,14 @@ sys.path.append(script_path)
 sys.path.append(module_path)
 
 
-print("[System ARGV] " + str(sys.argv))
+logger.std_info("[System ARGV] " + str(sys.argv))
+
+try:
+    index = sys.argv.index('--gpu-device-id')
+    os.environ["CUDA_VISIBLE_DEVICES"] = str(sys.argv[index+1])
+    logger.std_info(f"[Fooocus] Set device to: {str(sys.argv[index+1])}")
+except ValueError:
+    pass
 
 os.environ["PYTORCH_ENABLE_MPS_FALLBACK"] = "1"
 os.environ["PYTORCH_MPS_HIGH_WATERMARK_RATIO"] = "0.0"
@@ -74,9 +81,6 @@ def prepare_environments(args) -> bool:
     Args:
         args: command line arguments
     """
-    if args.gpu_device_id is not None:
-        os.environ["CUDA_VISIBLE_DEVICES"] = str(args.gpu_device_id)
-        print("Set device to:", args.gpu_device_id)
 
     if args.base_url is None or len(args.base_url.strip()) == 0:
         host = args.host
