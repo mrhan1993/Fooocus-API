@@ -21,6 +21,8 @@
 
 # :warning: Compatibility warning :warning:
 
+When upgrading from version 3.x to version 4.0, please read the following incompatibility notes:
+
 1. If you are using an external Fooocus model (that is, the model is not located in the `repositories` directory), delete the `repositories` directory directly, and then update the `git pull`.
 2. If not, move the `repositories` directory to any directory, delete the `repositories` directory, then update the `git pull`, and move the `models` directory back to its original location when it is finished.
 
