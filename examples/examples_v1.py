@@ -3,7 +3,6 @@ Examples codes for Fooocus API
 """
 import json
 import os
-import base64
 import requests
 
 
@@ -12,7 +11,6 @@ class Config:
     Config
     Attributes:
         fooocus_host (str): Fooocus API host
-        text2img_ip (str): Text to Image with IP
         img_upscale (str): Upscale or Vary
         inpaint_outpaint (str): Inpaint or Outpaint
         img_prompt (str): Image Prompt

@@ -29,8 +29,11 @@ os.makedirs(output_dir, exist_ok=True)
 STATIC_SERVER_BASE = 'http://127.0.0.1:8888/files/'
 
 
-def save_output_file(img: np.ndarray, image_meta: dict = None,
-                     image_name: str = '', extension: str = 'png') -> str:
+def save_output_file(
+        img: np.ndarray,
+        image_meta: dict = None,
+        image_name: str = '',
+        extension: str = 'png') -> str:
     """
     Save np image to file
     Args:

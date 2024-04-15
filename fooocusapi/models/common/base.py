@@ -39,7 +39,10 @@ default_loras_model = []
 for lora in default_loras:
     if lora[0] != 'None':
         default_loras_model.append(
-            Lora(enabled=lora[0], model_name=lora[1], weight=lora[2])
+            Lora(
+                enabled=lora[0],
+                model_name=lora[1],
+                weight=lora[2])
         )
 default_loras_json = LoraList.dump_json(default_loras_model)
 
@@ -143,7 +146,8 @@ def outpaint_selections_parser(outpaint_selections: str) -> List[OutpaintExpansi
                     outpaint_selections_arr.append(expansion)
                 except ValueError:
                     errs = InitErrorDetails(
-                        type='enum', loc=['outpaint_selections'],
+                        type='enum',
+                        loc=tuple('outpaint_selections'),
                         input=outpaint_selections,
                         ctx={
                             'expected': "str, comma separated Left, Right, Top, Bottom"
@@ -166,6 +170,9 @@ def image_prompt_parser(image_prompts_config: List[Tuple]) -> List[ImagePrompt]:
         return []
     for config in image_prompts_config:
         cn_img, cn_stop, cn_weight, cn_type = config
-        image_prompts.append(ImagePrompt(cn_img=cn_img, cn_stop=cn_stop,
-                                         cn_weight=cn_weight, cn_type=cn_type))
+        image_prompts.append(ImagePrompt(
+            cn_img=cn_img,
+            cn_stop=cn_stop,
+            cn_weight=cn_weight,
+            cn_type=cn_type))
     return image_prompts
