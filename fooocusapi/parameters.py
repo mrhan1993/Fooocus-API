@@ -165,6 +165,9 @@ class ImageGenerationParams:
         image_prompts: List[Tuple[np.ndarray, float, float, str]],
         advanced_params: List[any] | None,
         save_extension: str,
+        save_meta: bool,
+        meta_scheme: str,
+        save_name: str,
         require_base64: bool,
     ):
         self.prompt = prompt
@@ -192,6 +195,9 @@ class ImageGenerationParams:
         self.inpaint_additional_prompt = inpaint_additional_prompt
         self.image_prompts = image_prompts
         self.save_extension = save_extension
+        self.save_meta = save_meta
+        self.meta_scheme = meta_scheme
+        self.save_name = save_name
         self.require_base64 = require_base64
         self.advanced_params = advanced_params
 

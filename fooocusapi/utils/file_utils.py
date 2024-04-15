@@ -47,8 +47,6 @@ def save_output_file(
     current_time = datetime.datetime.now()
     date_string = current_time.strftime("%Y-%m-%d")
 
-    image_name = str(uuid.uuid4()) if image_name == '' else image_name
-
     filename = os.path.join(date_string, image_name + '.' + extension)
     file_path = os.path.join(output_dir, filename)
 
@@ -61,7 +59,8 @@ def save_output_file(
     meta = None
     if extension == 'png':
         meta = PngInfo()
-        meta.add_text("params", json.dumps(image_meta))
+        meta.add_text("parameters", json.dumps(image_meta))
+        meta.add_text("fooocus_scheme", image_meta['metadata_scheme'])
 
     os.makedirs(os.path.dirname(file_path), exist_ok=True)
     Image.fromarray(img).save(file_path, format=extension,

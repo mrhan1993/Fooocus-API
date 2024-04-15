@@ -87,6 +87,16 @@ class DescribeImageType(str, Enum):
     anime = 'Anime'
 
 
+class ImageMetaScheme(str, Enum):
+    """Scheme for save image meta
+    Attributes:
+        Fooocus: json format
+        A111: string
+    """
+    Fooocus = 'fooocus'
+    A111 = 'a111'
+
+
 def style_selection_parser(style_selections: str) -> List[str]:
     """
     Parse style selections, Convert to list

@@ -204,6 +204,9 @@ def req_to_params(req: Text2ImgRequest) -> ImageGenerationParams:
         inpaint_additional_prompt=inpaint_additional_prompt,
         image_prompts=image_prompts,
         advanced_params=advanced_params,
+        save_meta=req.save_meta,
+        meta_scheme=req.meta_scheme,
+        save_name=req.save_name,
         save_extension=req.save_extension,
         require_base64=req.require_base64,
     )
