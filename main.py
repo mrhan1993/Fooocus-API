@@ -137,7 +137,13 @@ def prepare_environments(args) -> bool:
 
 
 def pre_setup():
+    """
+    Pre setup, for replicate
+    """
     class Args(object):
+        """
+        Arguments object
+        """
         host = "127.0.0.1"
         port = 8888
         base_url = None
@@ -162,8 +168,6 @@ def pre_setup():
     sys.argv.append("--disable-image-log")
 
     install_dependents(arguments.skip_pip)
-
-    import fooocusapi.args as _
 
     prepare_environments(arguments)
 

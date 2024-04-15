@@ -7,6 +7,7 @@ import logging
 import numpy as np
 import torch
 
+from fooocusapi.models.common.image_meta import image_parse
 from modules.patch import PatchSettings, patch_settings, patch_all
 from modules.sdxl_styles import apply_arrays
 from modules.flags import Performance
@@ -125,9 +126,23 @@ def process_generate(async_task: QueueTask):
 
         results = []
         for i, im in enumerate(imgs):
+            if async_task.req_param.save_name == '':
+                image_name = f"{async_task.job_id}-{str(i)}"
+            else:
+                image_name = f"{async_task.req_param.save_name}-{str(i)}"
             seed = -1 if len(tasks) == 0 else tasks[i]['task_seed']
-            img_filename = save_output_file(img=im, extension=extension)
-            results.append(ImageGenerationResult(im=img_filename, seed=str(seed), finish_reason=GenerationFinishReason.success))
+            img_meta = image_parse(
+                async_tak=async_task,
+                task=tasks[i])
+            img_filename = save_output_file(
+                img=im,
+                image_name=image_name,
+                image_meta=img_meta,
+                extension=extension)
+            results.append(ImageGenerationResult(
+                im=img_filename,
+                seed=str(seed),
+                finish_reason=GenerationFinishReason.success))
         async_task.set_result(results, False)
         worker_queue.finish_task(async_task.job_id)
         logger.std_info(f"[Task Queue] Finish task, job_id={async_task.job_id}")
@@ -160,7 +175,10 @@ def process_generate(async_task: QueueTask):
         performance_selection = Performance(params.performance_selection)
         aspect_ratios_selection = params.aspect_ratios_selection
         image_number = params.image_number
+        save_metadata_to_images = params.save_meta
+        metadata_scheme = params.meta_scheme
         save_extension = params.save_extension
+        save_name = params.save_name
         image_seed = refresh_seed(params.image_seed)
         read_wildcards_in_order = False
         sharpness = params.sharpness
@@ -221,8 +239,6 @@ def process_generate(async_task: QueueTask):
         invert_mask_checkbox = adp.invert_mask_checkbox
         inpaint_erode_or_dilate = adp.inpaint_erode_or_dilate
 
-        save_metadata_to_images = False
-        metadata_scheme = 'fooocus'
 
         cn_tasks = {x: [] for x in flags.ip_list}
         for img_prompt in params.image_prompts:

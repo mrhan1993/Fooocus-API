@@ -37,7 +37,7 @@ build:
     - "colorlog==6.8.2"
     - "rich==13.7.1"
 
-  # commands run after the environment is setup
+  # commands run after the environment is set up
   # run:
   #   - "echo env is ready!"
   #   - "echo another command if needed"

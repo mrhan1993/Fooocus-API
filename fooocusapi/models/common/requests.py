@@ -26,6 +26,7 @@ from fooocusapi.models.common.base import (
 
 default_aspect_ratio = default_aspect_ratio.split(" ")[0].replace("×", "*")
 
+
 class QueryJobRequest(BaseModel):
     """Query job request"""
     job_id: str = Field(description="Job ID to query")
@@ -90,7 +91,10 @@ class CommonRequest(BaseModel):
     refiner_switch: float = Field(default=default_refiner_switch, description="Refiner Switch At", ge=0.1, le=1.0)
     loras: List[Lora] = Field(default=default_loras_model)
     advanced_params: AdvancedParams = AdvancedParams()
+    save_meta: bool = Field(default=True, description="Save meta data")
+    meta_scheme: str = Field(defaut='fooocus', description="Meta data scheme, one of [fooocus, a111]")
     save_extension: str = Field(default='png', description="Save extension, one of [png, jpg, webp]")
+    save_name: str = Field(default='', description="Image name for output image, default is a uuid")
     read_wildcards_in_order: bool = Field(default=False, description="Read wildcards in order")
     require_base64: bool = Field(default=False, description="Return base64 data of generated image")
     async_process: bool = Field(default=False, description="Set to true will run async and return job info for retrieve generation result later")
