@@ -97,7 +97,7 @@ class ImageMetaScheme(str, Enum):
     A111 = 'a111'
 
 
-def style_selection_parser(style_selections: str) -> List[str]:
+def style_selection_parser(style_selections: str | List[str]) -> List[str]:
     """
     Parse style selections, Convert to list
     Args:
@@ -136,7 +136,7 @@ def lora_parser(loras: str) -> List[Lora]:
         raise RequestValidationError from errs
 
 
-def outpaint_selections_parser(outpaint_selections: str) -> List[OutpaintExpansion]:
+def outpaint_selections_parser(outpaint_selections: str | list[str]) -> List[OutpaintExpansion]:
     """
     Parse outpaint selections, Convert to list
     Args:
