@@ -12,7 +12,7 @@ from pydantic import (
 )
 from pydantic_core import InitErrorDetails
 
-from fooocusapi.parameters import default_loras
+from fooocusapi.configs.default import default_loras
 
 
 class PerformanceSelection(str, Enum):

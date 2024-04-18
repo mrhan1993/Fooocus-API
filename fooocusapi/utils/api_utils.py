@@ -40,8 +40,7 @@ from fooocusapi.models.common.task import (
     ImageGenerationResult,
     GenerationFinishReason
 )
-from fooocusapi.parameters import (
-    ImageGenerationParams,
+from fooocusapi.configs.default import (
     default_inpaint_engine_version,
     default_sampler,
     default_scheduler,
@@ -49,6 +48,7 @@ from fooocusapi.parameters import (
     default_refiner_model_name
 )
 
+from fooocusapi.parameters import ImageGenerationParams
 from fooocusapi.task_queue import QueueTask
 
 
