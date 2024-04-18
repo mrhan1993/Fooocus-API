@@ -12,7 +12,6 @@ import base64
 import datetime
 from io import BytesIO
 import os
-import uuid
 import json
 from pathlib import Path
 import numpy as np

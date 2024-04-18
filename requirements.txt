@@ -14,7 +14,7 @@ pygit2==1.12.2
 opencv-contrib-python==4.8.0.74
 onnxruntime==1.16.3
 timm==0.9.2
-fastapi==0.103.1
+fastapi>=0.103.1
 pydantic==2.4.2
 pydantic_core==2.10.1
 python-multipart==0.0.6

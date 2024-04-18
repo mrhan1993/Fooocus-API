@@ -24,7 +24,7 @@ from fooocusapi.models.common.response import (
 )
 from fooocusapi.utils.call_worker import call_worker
 from fooocusapi.utils.img_utils import read_input_image
-from fooocusapi.parameters import img_generate_responses
+from fooocusapi.configs.default import img_generate_responses
 from fooocusapi.worker import process_stop
 
 

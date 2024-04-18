@@ -18,7 +18,7 @@ from fooocusapi.models.common.response import (
 )
 from fooocusapi.utils.call_worker import call_worker
 from fooocusapi.utils.img_utils import base64_to_stream
-from fooocusapi.parameters import img_generate_responses
+from fooocusapi.configs.default import img_generate_responses
 
 
 secure_router = APIRouter(
