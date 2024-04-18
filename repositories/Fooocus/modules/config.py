@@ -124,14 +124,6 @@ def try_get_preset_content(preset):
             print(e)
     return {}
 
-
-try:
-    with open(os.path.abspath(f'./presets/default.json'), "r", encoding="utf-8") as json_file:
-        config_dict.update(json.load(json_file))
-except Exception as e:
-    print(f'Load default preset failed.')
-    print(e)
-
 available_presets = get_presets()
 preset = args_manager.args.preset
 config_dict.update(try_get_preset_content(preset))
@@ -493,6 +485,7 @@ possible_preset_keys = {
     "default_scheduler": "scheduler",
     "default_overwrite_step": "steps",
     "default_performance": "performance",
+    "default_image_number": "image_number",
     "default_prompt": "prompt",
     "default_prompt_negative": "negative_prompt",
     "default_styles": "styles",
@@ -546,6 +539,7 @@ wildcard_filenames = []
 
 sdxl_lcm_lora = 'sdxl_lcm_lora.safetensors'
 sdxl_lightning_lora = 'sdxl_lightning_4step_lora.safetensors'
+loras_metadata_remove = [sdxl_lcm_lora, sdxl_lightning_lora]
 
 
 def get_model_filenames(folder_paths, extensions=None, name_filter=None):
