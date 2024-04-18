@@ -116,14 +116,17 @@ def get_check_image(url: str) -> UploadFile | None:
     """
     if url == '':
         return None
+    headers = {
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.3'
+    }
     try:
-        response = requests.get(url, timeout=10)
+        response = requests.get(url, headers=headers, timeout=10)
         binary_image = response.content
     except Exception:
         return None
     try:
         buffer = BytesIO(binary_image)
-        Image.open(buffer)
+        Image.open(buffer)  # This validates the image
     except Exception:
         return None
     byte_stream = BytesIO()
