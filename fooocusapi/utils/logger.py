@@ -12,7 +12,18 @@ import logging
 import os
 import sys
 
-from colorlog import ColoredFormatter
+try:
+    from colorlog import ColoredFormatter
+except ImportError:
+    from fooocusapi.utils.tools import run_pip
+    run_pip(
+        command="install colorlog",
+        desc="Install colorlog for logger.",
+        live=True
+    )
+finally:
+    from colorlog import ColoredFormatter
+
 
 own_path = os.path.dirname(os.path.abspath(__file__))
 log_dir = "logs"
