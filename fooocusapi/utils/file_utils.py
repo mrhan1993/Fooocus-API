@@ -56,14 +56,17 @@ def save_output_file(
         image_meta = {}
 
     meta = None
-    if extension == 'png':
+    if extension == 'png'and image_meta != {}:
         meta = PngInfo()
         meta.add_text("parameters", json.dumps(image_meta))
         meta.add_text("fooocus_scheme", image_meta['metadata_scheme'])
 
     os.makedirs(os.path.dirname(file_path), exist_ok=True)
-    Image.fromarray(img).save(file_path, format=extension,
-                              pnginfo=meta, optimize=True)
+    Image.fromarray(img).save(
+        file_path,
+        format=extension,
+        pnginfo=meta,
+        optimize=True)
     return Path(filename).as_posix()
 
 

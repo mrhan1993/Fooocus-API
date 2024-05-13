@@ -150,10 +150,14 @@ def process_generate(async_task: QueueTask):
                 image_name = f"{async_task.job_id}-{str(index)}"
             else:
                 image_name = f"{async_task.req_param.save_name}-{str(index)}"
-            img_seed = -1 if len(tasks) == 0 else tasks[index]['task_seed']
-            img_meta = image_parse(
-                async_tak=async_task,
-                task=tasks[index])
+            if len(tasks) == 0:
+                img_seed = -1
+                img_meta = {}
+            else:
+                img_seed = tasks[index]['task_seed']
+                img_meta = image_parse(
+                    async_tak=async_task,
+                    task=tasks[index])
             img_filename = save_output_file(
                 img=im,
                 image_name=image_name,
