@@ -21,7 +21,7 @@
 
 # :warning: 兼容性警告 :warning:
 
-如果从 3.x 版本升级到 4.0 版本，务必阅读下面不兼容说明：
+如果是从 0.3.x 版本升级到 0.4.0 版本，请务必阅读以下兼容性说明：
 
 1. 如果你使用的是外部 Fooocus 模型（即模型不是位于 `repositories/Fooocus/models` 目录下），直接删除 `repositories` 目录，然后执行 `git pull` 更新即可
 2. 如果不是上述方式，将 `repositories/Fooocus/models` 目录移动到任意目录，删除 `repositories` 目录，然后执行 `git pull` 更新，完成后将 `models` 目录移动回原位置
@@ -30,11 +30,11 @@
 
 使用 FastAPI 构建的 [Fooocus](https://github.com/lllyasviel/Fooocus) 的 API。
 
-当前支持的 Fooocus 版本: [2.3.0](https://github.com/lllyasviel/Fooocus/blob/main/update_log.md)。
+当前支持的 Fooocus 版本: [2.3.1](https://github.com/lllyasviel/Fooocus/blob/main/update_log.md)。
 
 ## Fooocus
 
-该部分出自 [Fooocus](https://github.com/lllyasviel/Fooocus) 项目。
+**该章节来自 [Fooocus](https://github.com/lllyasviel/Fooocus) 项目。**
 
 Fooocus 是一个图像生成软件 (基于 [Gradio](https://www.gradio.app/))。
 
@@ -48,11 +48,11 @@ Fooocus 包含了许多内部优化以及质量改进。 忘记那些复杂困�
 
 ## Fooocus-API
 
-可能你已经尝试过使用 [Gradio client](https://www.gradio.app/docs/client) 来调用 Fooocus，对我来说可真是不咋地
+可能您已经尝试过通过 [Gradio 客户端](https://www.gradio.app/docs/client) 来接入 Fooocus，但您可能发现体验并不理想。
 
-Fooocus API 使用 [FastAPI](https://fastapi.tiangolo.com/)  构建了一系列 `REST` API 来使用 Fooocus。现在，你可以用任何你喜欢的编程语言来调用 Fooocus 的强大能力。
+Fooocus API 是基于 [FastAPI](https://fastapi.tiangolo.com/) 构建的一系列 `REST` 接口，它们使得利用 Fooocus 的强大功能变得简单易行。现在，您可以使用任何您喜欢的编程语言来轻松地与 Fooocus 进行交互。
 
-此外，我们还提供了详细的 [文档](/docs/api_doc_zh.md) 和 [示例代码](/examples)
+此外，我们还提供了详尽的 [API 文档](/docs/api_doc_zh.md) 和丰富的 [示例代码](/examples)，以帮助您快速上手和深入了解如何有效地利用 Fooocus。
 
 # 开始
 
@@ -65,7 +65,9 @@ Fooocus API 使用 [FastAPI](https://fastapi.tiangolo.com/)  构建了一系列 
 - [konieshadow/fooocus-api-anime](https://replicate.com/konieshadow/fooocus-api-anime)
 - [konieshadow/fooocus-api-realistic](https://replicate.com/konieshadow/fooocus-api-realistic)
 
-我认为这是更简单的体验 Fooocus's 强大的方法
+我认为这是更简单的方法来体验 Fooocus 的强大
+
+> 出于某些原因，上述 replicate 上的实例版本无法更新，你可以参照 [push-a-model](https://replicate.com/docs/guides/push-a-model) 部署自己专用的实例。
 
 ## 自托管
 
@@ -111,11 +113,13 @@ source venv/bin/activate
 
 首先，安装 requirements： `pip install -r requirements.txt`
 
-然后安装 pytorch+cuda： `pip install torch==2.1.0 torchvision==0.16.0 torchaudio==2.1.0 --index-url https://download.pytorch.org/whl/cu121` 更多安装信息在[这儿](https://pytorch.org/get-started/previous-versions/),
+然后安装 pytorch+cuda： `pip install torch==2.1.0 torchvision==0.16.0 torchaudio==2.1.0 --index-url https://download.pytorch.org/whl/cu121`
+
+更多安装信息在 pytorch 官方的 [previous-versions](https://pytorch.org/get-started/previous-versions/) 页面找到。
 
 > 关于 pytorch 和 cuda 的版本，Fooocus API 使用的是 Fooocus 推荐的版本，目前是 pytorch2.1.0+cuda12.1。如果你是个 "犟种" 非要用其他版本，我测试过也是可以的，不过启动的时候记得加上 `--skip-pip`，否则程序会自动替换为推荐版本。
 
-进入 `repositories` 的目录，下载的模型放到这个目录 `repositories\Fooocus\models`。如果你有一个已经安装完成的 Fooocus，查看[这里](#已经有安装好的-fooocus)
+进入 `repositories` 的目录，下载的模型放到这个目录 `repositories\Fooocus\models`。如果你有一个已经安装完成的 Fooocus，在[这里](#已经有安装好的-fooocus)查看如何复用模型
 
 这里是一个启动必须下载的模型列表 (也可能不一样如果 [启动参数](#命令行参数) 不同的话):
 

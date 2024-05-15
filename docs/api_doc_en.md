@@ -61,6 +61,11 @@ DataType: json
 | loras                   | List[Lora]     | lora list, include conf, lora: [Lora](#lora)                                                    |
 | advanced_params         | AdvancedParams | Advanced params, [AdvancedParams](#advanceparams)                                               |
 | require_base64          | bool           | require base64, default to False                                                                |
+| save_meta               | bool           | save metadata to image, default True                                                            |
+| meta_scheme             | str            | metadata scheme, default 'fooocus', only support 'fooocus' now                                  |
+| save_extension          | str            | extension for saved image, default 'png'                                                        |
+| save_name               | str            | image name saved, default job_id + seq                                                          |
+| read_wildcards_in_order | bool           | read wildcards in order, default False                                                          |
 | async_process           | bool           | is async, default to False                                                                      |
 | webhook_url             | str            | after async task completed, address for callback, default to None, refer to [webhook](#webhook) |
 
@@ -665,6 +670,8 @@ EndPoint: /v1/engines/refresh-models
 Method: Post
 ```
 
+> Removed, use [all-models](#all-models) instead
+
 **requests example**
 ```python
 def refresh() -> dict:
@@ -933,14 +940,18 @@ Submit a task in any way, and after completion, you will see the task completion
 | freeu_s2                             | float | FreeU B4, default to 0.95                                                        |
 | debugging_inpaint_preprocessor       | bool  | Debug Inpaint Preprocessing, default to False                                    |
 | inpaint_disable_initial_latent       | bool  | Disable initial latent in inpaint, default to False                              |
-| inpaint_engine                       | str   | Inpaint Engine, default to `v1`                                                  |
+| inpaint_engine                       | str   | Inpaint Engine, default to `v2.6`                                                |
 | inpaint_strength                     | float | Inpaint Denoising Strength, default to 1.0, range 0.0-1.0                        |
 | inpaint_respective_field             | float | Inpaint Respective Field, default to 1.0, range 0.0-1.0                          |
+| inpaint_mask_upload_checkbox         | bool  | upload mask, default False                                                       |
+| invert_mask_checkbox                 | bool  | revert mask, default False                                                       |
+| inpaint_erode_or_dilate              | int   | Mask Erode or Dilate, default 0, -64-64                                          |
 
 ## lora
 
 | Name       | Type  | Description            |
 |------------|-------|------------------------|
+| enabled    | bool  | enable lora            |
 | model_name | str   | model name             |
 | weight     | float | weight, default to 0.5 |
 
