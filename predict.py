@@ -13,8 +13,7 @@ from cog import BasePredictor, BaseModel, Input, Path
 from fooocusapi.utils.lora_manager import LoraManager
 from fooocusapi.utils.file_utils import output_dir
 from fooocusapi.models.common.task import GenerationFinishReason
-from fooocusapi.parameters import (
-    ImageGenerationParams,
+from fooocusapi.configs.default import (
     available_aspect_ratios,
     uov_methods,
     outpaint_expansions,
@@ -27,6 +26,7 @@ from fooocusapi.parameters import (
     default_prompt_negative
 )
 
+from fooocusapi.parameters import ImageGenerationParams
 from fooocusapi.task_queue import TaskType
 
 
@@ -78,7 +78,7 @@ class Predictor(BasePredictor):
             description="Use default LoRAs"),
         loras_custom_urls: str = Input(
             default="",
-            description="Custom LoRAs URLs in the format 'url,weight' provide multiple seperated by ; (example 'url1,0.3;url2,0.1')"),
+            description="Custom LoRAs URLs in the format 'url,weight' provide multiple separated by ; (example 'url1,0.3;url2,0.1')"),
         sharpness: float = Input(
             default=2.0,
             ge=0.0, le=30.0),
@@ -282,7 +282,10 @@ class Predictor(BasePredictor):
             outpaint_distance_top=outpaint_distance_top,
             outpaint_distance_right=outpaint_distance_right,
             outpaint_distance_bottom=outpaint_distance_bottom,
+            save_meta=True,
+            meta_scheme='fooocus',
             save_extension='png',
+            save_name='',
             require_base64=False,
         )
 

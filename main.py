@@ -98,22 +98,22 @@ def prepare_environments(args) -> bool:
     shutil.copytree(origin_preset_folder, preset_folder)
 
     from modules import config
-    from fooocusapi import parameters
+    from fooocusapi.configs import default
     from fooocusapi.utils.model_loader import download_models
 
-    parameters.default_inpaint_engine_version = config.default_inpaint_engine_version
-    parameters.default_styles = config.default_styles
-    parameters.default_base_model_name = config.default_base_model_name
-    parameters.default_refiner_model_name = config.default_refiner_model_name
-    parameters.default_refiner_switch = config.default_refiner_switch
-    parameters.default_loras = config.default_loras
-    parameters.default_cfg_scale = config.default_cfg_scale
-    parameters.default_prompt_negative = config.default_prompt_negative
-    parameters.default_aspect_ratio = parameters.get_aspect_ratio_value(
+    default.default_inpaint_engine_version = config.default_inpaint_engine_version
+    default.default_styles = config.default_styles
+    default.default_base_model_name = config.default_base_model_name
+    default.default_refiner_model_name = config.default_refiner_model_name
+    default.default_refiner_switch = config.default_refiner_switch
+    default.default_loras = config.default_loras
+    default.default_cfg_scale = config.default_cfg_scale
+    default.default_prompt_negative = config.default_prompt_negative
+    default.default_aspect_ratio = default.get_aspect_ratio_value(
         config.default_aspect_ratio
     )
-    parameters.available_aspect_ratios = [
-        parameters.get_aspect_ratio_value(a) for a in config.available_aspect_ratios
+    default.available_aspect_ratios = [
+        default.get_aspect_ratio_value(a) for a in config.available_aspect_ratios
     ]
 
     download_models()

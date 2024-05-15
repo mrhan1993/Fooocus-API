@@ -20,7 +20,7 @@ class ImagePromptJson(BaseModel):
 
 class ImgInpaintOrOutpaintRequestJson(CommonRequest):
     """image inpaint or outpaint request"""
-    input_image: str = Field(description="Init image for inpaint or outpaint as base64")
+    input_image: str = Field('', description="Init image for inpaint or outpaint as base64")
     input_mask: str | None = Field('', description="Inpaint or outpaint mask as base64")
     inpaint_additional_prompt: str | None = Field('', description="Describe what you want to inpaint")
     outpaint_selections: List[OutpaintExpansion] = []

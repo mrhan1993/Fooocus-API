@@ -1,3 +1,6 @@
+"""
+Worker, modify from https://github.com/lllyasviel/Fooocus/blob/main/modules/async_worker.py
+"""
 import copy
 import os
 import random
@@ -26,11 +29,12 @@ from fooocusapi.task_queue import (
 
 patch_all()
 
-worker_queue: TaskQueue = None
+worker_queue: TaskQueue | None = None
 last_model_name = None
 
 
 def process_stop():
+    """Stop process"""
     import ldm_patched.modules.model_management
     ldm_patched.modules.model_management.interrupt_current_processing()
 
@@ -38,6 +42,7 @@ def process_stop():
 @torch.no_grad()
 @torch.inference_mode()
 def task_schedule_loop():
+    """Task schedule loop"""
     while True:
         if len(worker_queue.queue) == 0:
             time.sleep(0.05)
@@ -51,6 +56,11 @@ def task_schedule_loop():
 @torch.no_grad()
 @torch.inference_mode()
 def blocking_get_task_result(job_id: str) -> List[ImageGenerationResult]:
+    """
+    Get task result, when async_task is false
+    :param job_id:
+    :return:
+    """
     waiting_sleep_steps: int = 0
     waiting_start_time = time.perf_counter()
     while not worker_queue.is_task_finished(job_id):
@@ -70,6 +80,7 @@ def blocking_get_task_result(job_id: str) -> List[ImageGenerationResult]:
 @torch.no_grad()
 @torch.inference_mode()
 def process_generate(async_task: QueueTask):
+    """Generate image"""
     try:
         import modules.default_pipeline as pipeline
     except Exception as e:
@@ -117,23 +128,36 @@ def process_generate(async_task: QueueTask):
         return random.randint(constants.MIN_SEED, constants.MAX_SEED)
 
     def progressbar(_, number, text):
+        """progress bar"""
         logger.std_info(f'[Fooocus] {text}')
         outputs.append(['preview', (number, text, None)])
 
-    def yield_result(_, imgs, tasks, extension='png'):
-        if not isinstance(imgs, list):
-            imgs = [imgs]
+    def yield_result(_, images, tasks, extension='png'):
+        """
+        Yield result
+        :param _: async task object
+        :param images: list for generated image
+        :param tasks: the image was generated one by one, when image number is not one, it will be a task list
+        :param extension: extension for saved image
+        :return:
+        """
+        if not isinstance(images, list):
+            images = [images]
 
         results = []
-        for i, im in enumerate(imgs):
+        for index, im in enumerate(images):
             if async_task.req_param.save_name == '':
-                image_name = f"{async_task.job_id}-{str(i)}"
+                image_name = f"{async_task.job_id}-{str(index)}"
             else:
-                image_name = f"{async_task.req_param.save_name}-{str(i)}"
-            seed = -1 if len(tasks) == 0 else tasks[i]['task_seed']
-            img_meta = image_parse(
-                async_tak=async_task,
-                task=tasks[i])
+                image_name = f"{async_task.req_param.save_name}-{str(index)}"
+            if len(tasks) == 0:
+                img_seed = -1
+                img_meta = {}
+            else:
+                img_seed = tasks[index]['task_seed']
+                img_meta = image_parse(
+                    async_tak=async_task,
+                    task=tasks[index])
             img_filename = save_output_file(
                 img=im,
                 image_name=image_name,
@@ -141,13 +165,13 @@ def process_generate(async_task: QueueTask):
                 extension=extension)
             results.append(ImageGenerationResult(
                 im=img_filename,
-                seed=str(seed),
+                seed=str(img_seed),
                 finish_reason=GenerationFinishReason.success))
         async_task.set_result(results, False)
         worker_queue.finish_task(async_task.job_id)
         logger.std_info(f"[Task Queue] Finish task, job_id={async_task.job_id}")
 
-        outputs.append(['results', imgs])
+        outputs.append(['results', images])
         pipeline.prepare_text_encoder(async_call=True)
 
     try:
@@ -238,7 +262,6 @@ def process_generate(async_task: QueueTask):
         inpaint_mask_upload_checkbox = adp.inpaint_mask_upload_checkbox
         invert_mask_checkbox = adp.invert_mask_checkbox
         inpaint_erode_or_dilate = adp.inpaint_erode_or_dilate
-
 
         cn_tasks = {x: [] for x in flags.ip_list}
         for img_prompt in params.image_prompts:
@@ -390,7 +413,7 @@ def process_generate(async_task: QueueTask):
                             inpaint_mask_image_upload = resample_image(inpaint_mask_image_upload, width=W, height=H)
                             inpaint_mask_image_upload = np.mean(inpaint_mask_image_upload, axis=2)
                             inpaint_mask_image_upload = (inpaint_mask_image_upload > 127).astype(np.uint8) * 255
-                            inpaint_mask = np.maximum(inpaint_mask, inpaint_mask_image_upload)
+                            inpaint_mask = np.maximum(np.zeros(shape=(H, W), dtype=np.uint8), inpaint_mask_image_upload)
 
                 if int(inpaint_erode_or_dilate) != 0:
                     inpaint_mask = erode_or_dilate(inpaint_mask, inpaint_erode_or_dilate)
@@ -864,6 +887,7 @@ def process_generate(async_task: QueueTask):
         outputs.append(['preview', (13, 'Moving model to GPU ...', None)])
 
         def callback(step, x0, x, total_steps, y):
+            """callback, used for progress and preview"""
             done_steps = current_task_id * steps + step
             outputs.append(['preview', (
                 int(15.0 + 85.0 * float(done_steps) / float(all_steps)),
