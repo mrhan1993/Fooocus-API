@@ -44,7 +44,7 @@ class Text2ImgRequestWithPrompt(CommonRequest):
 
 class ImgUpscaleOrVaryRequestJson(CommonRequest):
     """img upscale or vary request json"""
-    uov_method: UpscaleOrVaryMethod = "Upscale (2x)"
+    uov_method: UpscaleOrVaryMethod = UpscaleOrVaryMethod.upscale_2
     upscale_value: float | None = Field(1.0, ge=1.0, le=5.0, description="Upscale custom value, 1.0 for default value")
     input_image: str = Field(description="Init image for upscale or outpaint as base64")
     image_prompts: List[ImagePromptJson | ImagePrompt] = []
