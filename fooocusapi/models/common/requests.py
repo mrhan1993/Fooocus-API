@@ -9,13 +9,19 @@ from pydantic import (
 from modules.config import (
     default_sampler,
     default_scheduler,
+    default_prompt,
     default_prompt_negative,
     default_aspect_ratio,
     default_base_model_name,
     default_refiner_model_name,
     default_refiner_switch,
     default_cfg_scale,
-    default_styles
+    default_styles,
+    default_overwrite_step,
+    default_inpaint_engine_version,
+    default_overwrite_switch,
+    default_cfg_tsnr,
+    default_sample_sharpness
 )
 
 from fooocusapi.models.common.base import (
@@ -43,11 +49,11 @@ class AdvancedParams(BaseModel):
     adm_scaler_positive: float = Field(1.5, description="Positive ADM Guidance Scaler", ge=0.1, le=3.0)
     adm_scaler_negative: float = Field(0.8, description="Negative ADM Guidance Scaler", ge=0.1, le=3.0)
     adm_scaler_end: float = Field(0.3, description="ADM Guidance End At Step", ge=0.0, le=1.0)
-    adaptive_cfg: float = Field(7.0, description="CFG Mimicking from TSNR", ge=1.0, le=30.0)
+    adaptive_cfg: float = Field(default_cfg_tsnr, description="CFG Mimicking from TSNR", ge=1.0, le=30.0)
     sampler_name: str = Field(default_sampler, description="Sampler")
     scheduler_name: str = Field(default_scheduler, description="Scheduler")
-    overwrite_step: int = Field(-1, description="Forced Overwrite of Sampling Step", ge=-1, le=200)
-    overwrite_switch: float = Field(-1, description="Forced Overwrite of Refiner Switch Step", ge=-1, le=1)
+    overwrite_step: int = Field(default_overwrite_step, description="Forced Overwrite of Sampling Step", ge=-1, le=200)
+    overwrite_switch: float = Field(default_overwrite_switch, description="Forced Overwrite of Refiner Switch Step", ge=-1, le=1)
     overwrite_width: int = Field(-1, description="Forced Overwrite of Generating Width", ge=-1, le=2048)
     overwrite_height: int = Field(-1, description="Forced Overwrite of Generating Height", ge=-1, le=2048)
     overwrite_vary_strength: float = Field(-1, description='Forced Overwrite of Denoising Strength of "Vary"', ge=-1, le=1.0)
@@ -67,7 +73,7 @@ class AdvancedParams(BaseModel):
     freeu_s2: float = Field(0.95, description="FreeU B4")
     debugging_inpaint_preprocessor: bool = Field(False, description="Debug Inpaint Preprocessing")
     inpaint_disable_initial_latent: bool = Field(False, description="Disable initial latent in inpaint")
-    inpaint_engine: str = Field('v2.6', description="Inpaint Engine")
+    inpaint_engine: str = Field(default_inpaint_engine_version, description="Inpaint Engine")
     inpaint_strength: float = Field(1.0, description="Inpaint Denoising Strength", ge=0.0, le=1.0)
     inpaint_respective_field: float = Field(1.0, description="Inpaint Respective Field", ge=0.0, le=1.0)
     inpaint_mask_upload_checkbox: bool = Field(False, description="Upload Mask")
@@ -77,14 +83,14 @@ class AdvancedParams(BaseModel):
 
 class CommonRequest(BaseModel):
     """All generate request based on this model"""
-    prompt: str = ''
+    prompt: str = default_prompt
     negative_prompt: str = default_prompt_negative
     style_selections: List[str] = default_styles
     performance_selection: PerformanceSelection = PerformanceSelection.speed
     aspect_ratios_selection: str = default_aspect_ratio
     image_number: int = Field(default=1, description="Image number", ge=1, le=32)
     image_seed: int = Field(default=-1, description="Seed to generate image, -1 for random")
-    sharpness: float = Field(default=2.0, ge=0.0, le=30.0)
+    sharpness: float = Field(default=default_sample_sharpness, ge=0.0, le=30.0)
     guidance_scale: float = Field(default=default_cfg_scale, ge=1.0, le=30.0)
     base_model_name: str = default_base_model_name
     refiner_model_name: str = default_refiner_model_name
