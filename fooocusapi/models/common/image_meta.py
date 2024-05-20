@@ -39,8 +39,8 @@ class ImageMeta(BaseModel):
     scheduler: str = "karras"
     seed: str
     adm_guidance: str
-    guidance_scale: int
-    sharpness: int
+    guidance_scale: float
+    sharpness: float
     steps: int
 
     version: str = version
