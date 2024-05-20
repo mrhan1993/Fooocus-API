@@ -44,25 +44,30 @@ DataType: json
 ```
 **请求参数：**
 
-| Name                    | Type           | Description                                                    |
-|-------------------------|----------------|----------------------------------------------------------------|
-| prompt                  | string         | 描述词, 默认为空字符串                                                   |
-| negative_prompt         | string         | 描述词, 反向描述词                                                     |
-| style_selections        | List[str]      | 风格列表, 需要是受支持的风格, 可以通过 [样式接口](#样式--styles) 获取所有支持的样式            |
-| performance_selection   | Enum           | 性能选择, `Speed`, `Quality`, `Extreme Speed` 中的一个, 默认 `Speed`     |
-| aspect_ratios_selection | str            | 分辨率, 默认 '1152*896'                                             |
-| image_number            | int            | 生成图片数量, 默认 1 , 最大32, 注: 非并行接口                                  |
-| image_seed              | int            | 图片种子, 默认 -1, 即随机生成                                             |
-| sharpness               | float          | 锐度, 默认 2.0 , 0-30                                              |
-| guidance_scale          | float          | 引导比例, 默认 4.0 , 1-30                                            |
-| base_model_name         | str            | 基础模型, 默认 `juggernautXL_version6Rundiffusion.safetensors`       |
-| refiner_model_name      | str            | 优化模型, 默认 `None`                                                |
-| refiner_switch          | float          | 优化模型切换时机, 默认 0.5                                               |
-| loras                   | List[Lora]     | lora 模型列表, 包含配置, lora 结构: [Lora](#lora)                        |
-| advanced_params         | AdvancedParams | 高级参数, AdvancedParams 结构 [AdvancedParams](#高级参数--advanceparams) |
-| require_base64          | bool           | 是否返回base64编码, 默认 False                                         |
-| async_process           | bool           | 是否异步处理, 默认 False                                               |
-| webhook_url             | str            | 异步处理完成后, 触发的 webhook 地址, 参考[webhook](#webhook)                 |
+| Name                    | Type           | Description                                                             |
+|-------------------------|----------------|-------------------------------------------------------------------------|
+| prompt                  | string         | 描述词, 默认为空字符串                                                            |
+| negative_prompt         | string         | 描述词, 反向描述词                                                              |
+| style_selections        | List[str]      | 风格列表, 需要是受支持的风格, 可以通过 [样式接口](#样式--styles) 获取所有支持的样式                     |
+| performance_selection   | Enum           | 性能选择, `Speed`, `Quality`, `Extreme Speed`, `Lightning` 中的一个, 默认 `Speed` |
+| aspect_ratios_selection | str            | 分辨率, 默认 '1152*896'                                                      |
+| image_number            | int            | 生成图片数量, 默认 1 , 最大32, 注: 非并行接口                                           |
+| image_seed              | int            | 图片种子, 默认 -1, 即随机生成                                                      |
+| sharpness               | float          | 锐度, 默认 2.0 , 0-30                                                       |
+| guidance_scale          | float          | 引导比例, 默认 4.0 , 1-30                                                     |
+| base_model_name         | str            | 基础模型, 默认 `juggernautXL_version6Rundiffusion.safetensors`                |
+| refiner_model_name      | str            | 优化模型, 默认 `None`                                                         |
+| refiner_switch          | float          | 优化模型切换时机, 默认 0.5                                                        |
+| loras                   | List[Lora]     | lora 模型列表, 包含配置, lora 结构: [Lora](#lora)                                 |
+| advanced_params         | AdvancedParams | 高级参数, AdvancedParams 结构 [AdvancedParams](#高级参数--advanceparams)          |
+| save_meta               | bool           | 是否保存元数据, 默认 True                                                        |
+| meta_scheme             | str            | 元数据方案, 默认 'fooocus', 目前只支持 'fooocus'                                    |
+| save_extension          | str            | 保存文件扩展名, 默认 'png'                                                       |
+| save_name               | str            | 保存文件名, 默认 job_id + 序号                                                   |
+| read_wildcards_in_order | bool           | 是否按照顺序读取通配符, 默认 False                                                   |
+| require_base64          | bool           | 是否返回base64编码, 默认 False                                                  |
+| async_process           | bool           | 是否异步处理, 默认 False                                                        |
+| webhook_url             | str            | 异步处理完成后, 触发的 webhook 地址, 参考[webhook](#webhook)                          |
 
 **响应参数：**
 
@@ -662,6 +667,8 @@ def all_models() -> dict:
 
 **基础信息：**
 
+> 该接口已移除，功能合并到 [列出模型](#列出模型--all-models)
+
 ```yaml
 EndPoint: /v1/engines/refresh-models
 Method: Post
@@ -908,6 +915,8 @@ uvicorn.run(app, host="0.0.0.0", port=8000)
 | Name                                 | Type  | Description                                                           |
 |--------------------------------------|-------|-----------------------------------------------------------------------|
 | disable_preview                      | bool  | 是否禁用预览, 默认 False                                                      |
+| disable_intermediate_results         | bool  | 是否禁用中间结果, 默认 False                                                    |
+| disable_seed_increment               | bool  | 是否禁用种子递增, 默认 False                                                    |
 | adm_scaler_positive                  | float | 正 ADM Guidance Scaler, 默认 1.5, 范围 0.1-3.0                             |
 | adm_scaler_negative                  | float | 负 ADM Guidance Scaler, 默认 0.8, 范围 0.1-3.0                             |
 | adm_scaler_end                       | float | ADM Guidance Scaler 结束值, 默认 0.5, 范围 0.0-1.0                           |
@@ -935,14 +944,18 @@ uvicorn.run(app, host="0.0.0.0", port=8000)
 | freeu_s2                             | float | FreeU B4, 默认 0.95                                                     |
 | debugging_inpaint_preprocessor       | bool  | Debug Inpaint Preprocessing, 默认 False                                 |
 | inpaint_disable_initial_latent       | bool  | Disable initial latent in inpaint, 默认 False                           |
-| inpaint_engine                       | str   | Inpaint Engine, 默认 `v1`                                               |
+| inpaint_engine                       | str   | Inpaint Engine, 默认 `v2.6`                                             |
 | inpaint_strength                     | float | Inpaint Denoising Strength, 默认 1.0, 范围 0.0-1.0                        |
 | inpaint_respective_field             | float | Inpaint Respective Field, 默认 1.0, 范围 0.0-1.0                          |
+| inpaint_mask_upload_checkbox         | bool  | 是否上传掩码图片, 默认 False                                                    |
+| invert_mask_checkbox                 | bool  | 是否反转掩码, 默认 False                                                      |
+| inpaint_erode_or_dilate              | int   | Mask Erode or Dilate, 默认 0, 范围 -64-64                                 |
 
 ## lora
 
 | Name       | Type  | Description |
 |------------|-------|-------------|
+| enabled    | bool  | 是否启用lora    |
 | model_name | str   | 模型名称        |
 | weight     | float | 权重, 默认 0.5  |
 
