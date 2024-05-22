@@ -13,7 +13,7 @@ from cog import BasePredictor, BaseModel, Input, Path
 from fooocusapi.utils.lora_manager import LoraManager
 from fooocusapi.utils.file_utils import output_dir
 from fooocusapi.models.common.task import GenerationFinishReason
-from fooocusapi.configs.default import (
+from fooocusapi.configs.config import (
     available_aspect_ratios,
     uov_methods,
     outpaint_expansions,

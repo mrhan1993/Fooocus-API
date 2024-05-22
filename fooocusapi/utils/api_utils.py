@@ -40,7 +40,7 @@ from fooocusapi.models.common.task import (
     ImageGenerationResult,
     GenerationFinishReason
 )
-from fooocusapi.configs.default import (
+from fooocusapi.configs.config import (
     default_inpaint_engine_version,
     default_sampler,
     default_scheduler,

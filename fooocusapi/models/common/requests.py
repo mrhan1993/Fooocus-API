@@ -6,7 +6,7 @@ from pydantic import (
     ValidationError
 )
 
-from modules.config import (
+from fooocusapi.configs.config import (
     default_sampler,
     default_scheduler,
     default_prompt,

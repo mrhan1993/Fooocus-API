@@ -27,7 +27,7 @@ from fooocusapi.models.common.base import (
     default_loras_json
 )
 
-from fooocusapi.configs.default import (
+from fooocusapi.configs.config import (
     default_prompt_negative,
     default_aspect_ratio,
     default_base_model_name,

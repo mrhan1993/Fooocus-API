@@ -93,28 +93,23 @@ def prepare_environments(args) -> bool:
     # Remove and copy preset folder
     origin_preset_folder = os.path.abspath(os.path.join(module_path, "presets"))
     preset_folder = os.path.abspath(os.path.join(script_path, "presets"))
-    if os.path.exists(preset_folder):
-        shutil.rmtree(preset_folder)
-    shutil.copytree(origin_preset_folder, preset_folder)
+    if not os.path.exists(preset_folder):
+        shutil.copytree(origin_preset_folder, preset_folder)
 
     from modules import config
-    from fooocusapi.configs import default
+    from fooocusapi.configs import config
     from fooocusapi.utils.model_loader import download_models
 
-    default.default_inpaint_engine_version = config.default_inpaint_engine_version
-    default.default_styles = config.default_styles
-    default.default_base_model_name = config.default_base_model_name
-    default.default_refiner_model_name = config.default_refiner_model_name
-    default.default_refiner_switch = config.default_refiner_switch
-    default.default_loras = config.default_loras
-    default.default_cfg_scale = config.default_cfg_scale
-    default.default_prompt_negative = config.default_prompt_negative
-    default.default_aspect_ratio = default.get_aspect_ratio_value(
-        config.default_aspect_ratio
-    )
-    default.available_aspect_ratios = [
-        default.get_aspect_ratio_value(a) for a in config.available_aspect_ratios
-    ]
+    config.default_inpaint_engine_version = config.default_inpaint_engine_version
+    config.default_styles = config.default_styles
+    config.default_base_model_name = config.default_base_model_name
+    config.default_refiner_model_name = config.default_refiner_model_name
+    config.default_refiner_switch = config.default_refiner_switch
+    config.default_loras = config.default_loras
+    config.default_cfg_scale = config.default_cfg_scale
+    config.default_prompt_negative = config.default_prompt_negative
+    config.default_aspect_ratio = config.default_aspect_ratio
+    config.available_aspect_ratios = config.available_aspect_ratios
 
     download_models()
 
