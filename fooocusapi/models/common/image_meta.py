@@ -106,11 +106,11 @@ def image_parse(
     if meta.metadata_scheme not in ["fooocus", "a111"]:
         meta.metadata_scheme = "fooocus"
     if meta.metadata_scheme == "fooocus":
-        meta_dict = meta.model_dump()
+        meta_dict = dict(meta)
         for i, lora in enumerate(meta.loras):
             attr_name = f"lora_combined_{i+1}"
             lr = [str(x) for x in lora]
             meta_dict[attr_name] = f"{lr[0]} : {lr[1]}"
     else:
-        meta_dict = meta.model_dump()
+        meta_dict = dict(meta)
     return meta_dict

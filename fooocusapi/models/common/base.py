@@ -7,7 +7,7 @@ from pydantic import (
     ValidationError,
     ConfigDict,
     BaseModel,
-    TypeAdapter,
+    # TypeAdapter,
     Field
 )
 from pydantic_core import InitErrorDetails
@@ -33,8 +33,9 @@ class Lora(BaseModel):
         protected_namespaces=('protect_me_', 'also_protect_')
     )
 
+class LoraList(BaseModel):
+    loras: List[Lora]
 
-LoraList = TypeAdapter(List[Lora])
 default_loras_model = []
 for lora in default_loras:
     if lora[0] != 'None':
@@ -44,7 +45,7 @@ for lora in default_loras:
                 model_name=lora[1],
                 weight=lora[2])
         )
-default_loras_json = LoraList.dump_json(default_loras_model)
+default_loras_json = LoraList(loras = default_loras_model)
 
 
 class UpscaleOrVaryMethod(str, Enum):

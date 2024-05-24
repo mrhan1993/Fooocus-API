@@ -3,19 +3,20 @@ Get config from config.txt
 Copy from https://github.com/lllyasviel/Fooocus/blob/main/modules/config.py
 """
 import os
+import sys
 import json
 import numbers
 import tempfile
-import modules.flags
-import modules.sdxl_styles
-
-from modules.flags import OutputFormat, Performance, MetadataScheme
-
 
 ABS_PATH = os.path.dirname(os.path.realpath(__file__))
-SCRIPT_PATH = os.path.join(ABS_PATH, "../../repositories/Fooocus/")
 ROOT_PATH = os.path.join(ABS_PATH, "../../")
+SCRIPT_PATH = os.path.join(ROOT_PATH, "repositories/Fooocus/")
+STYLE_PATH = os.path.join(SCRIPT_PATH, "sdxl_styles")
+sys.path.append(SCRIPT_PATH)
+sys.path.append(ROOT_PATH)
 
+import modules.flags
+from modules.flags import OutputFormat, Performance, MetadataScheme
 
 img_generate_responses = {
     "200": {
@@ -300,6 +301,25 @@ path_fooocus_expansion = get_dir_or_set_default('path_fooocus_expansion', f'{SCR
 path_wildcards = get_dir_or_set_default('path_wildcards', f'{SCRIPT_PATH}/wildcards/')
 
 
+def get_legal_style_names() -> list:
+    """
+    Get legal style names.
+    :return: The legal style names.
+    """
+    style_files = get_files_from_folder(
+        folder_path=STYLE_PATH,
+        extensions=['.json']
+    )
+    legal_style_names = []
+    for file in style_files:
+        abs_path = os.path.join(STYLE_PATH, file)
+        with open(abs_path, 'r') as f:
+            data = json.load(f)
+        for style in data:
+            legal_style_names.append(str(style['name']))
+    return legal_style_names + ["Fooocus V2"]
+
+
 def get_config_item_or_set_default(key, default_value, validator, disable_empty_as_none=False):
     """
     Get config item or set default value.
@@ -439,7 +459,7 @@ default_styles = get_config_item_or_set_default(
         "Fooocus Enhance",
         "Fooocus Sharp"
     ],
-    validator=lambda x: isinstance(x, list) and all(y in modules.sdxl_styles.legal_style_names for y in x)
+    validator=lambda x: isinstance(x, list) and all(y in get_legal_style_names() for y in x)
 )
 default_prompt_negative = get_config_item_or_set_default(
     key='default_prompt_negative',

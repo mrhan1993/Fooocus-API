@@ -195,6 +195,8 @@ class Predictor(BasePredictor):
         # Use default loras if selected
         loras = copy.copy(default_loras) if use_default_loras else []
 
+        loras = [[lora[1], lora[2]] for lora in loras if lora[1] != 'None']
+
         # add custom user loras if provided
         if loras_custom_urls:
             urls = [url.strip() for url in loras_custom_urls.split(';')]
