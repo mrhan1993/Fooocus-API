@@ -21,7 +21,8 @@ from modules.config import (
     default_inpaint_engine_version,
     default_overwrite_switch,
     default_cfg_tsnr,
-    default_sample_sharpness
+    default_sample_sharpness,
+    default_vae
 )
 
 from fooocusapi.models.common.base import (
@@ -79,6 +80,8 @@ class AdvancedParams(BaseModel):
     inpaint_mask_upload_checkbox: bool = Field(False, description="Upload Mask")
     invert_mask_checkbox: bool = Field(False, description="Invert Mask")
     inpaint_erode_or_dilate: int = Field(0, description="Mask Erode or Dilate", ge=-64, le=64)
+    black_out_nsfw: bool = Field(False, description="Block out NSFW")
+    vae_name: str = Field(default_vae, description="VAE name")
 
 
 class CommonRequest(BaseModel):
