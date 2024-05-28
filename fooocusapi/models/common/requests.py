@@ -21,8 +21,12 @@ from modules.config import (
     default_inpaint_engine_version,
     default_overwrite_switch,
     default_cfg_tsnr,
-    default_sample_sharpness
+    default_sample_sharpness,
+    default_vae,
+    default_clip_skip
 )
+
+from modules.flags import clip_skip_max
 
 from fooocusapi.models.common.base import (
     PerformanceSelection,
@@ -50,6 +54,7 @@ class AdvancedParams(BaseModel):
     adm_scaler_negative: float = Field(0.8, description="Negative ADM Guidance Scaler", ge=0.1, le=3.0)
     adm_scaler_end: float = Field(0.3, description="ADM Guidance End At Step", ge=0.0, le=1.0)
     adaptive_cfg: float = Field(default_cfg_tsnr, description="CFG Mimicking from TSNR", ge=1.0, le=30.0)
+    clip_skip: int = Field(default_clip_skip, description="Clip Skip", ge=1, le=clip_skip_max)
     sampler_name: str = Field(default_sampler, description="Sampler")
     scheduler_name: str = Field(default_scheduler, description="Scheduler")
     overwrite_step: int = Field(default_overwrite_step, description="Forced Overwrite of Sampling Step", ge=-1, le=200)
@@ -79,6 +84,8 @@ class AdvancedParams(BaseModel):
     inpaint_mask_upload_checkbox: bool = Field(False, description="Upload Mask")
     invert_mask_checkbox: bool = Field(False, description="Invert Mask")
     inpaint_erode_or_dilate: int = Field(0, description="Mask Erode or Dilate", ge=-64, le=64)
+    black_out_nsfw: bool = Field(False, description="Block out NSFW")
+    vae_name: str = Field(default_vae, description="VAE name")
 
 
 class CommonRequest(BaseModel):

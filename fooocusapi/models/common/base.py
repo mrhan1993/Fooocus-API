@@ -21,6 +21,7 @@ class PerformanceSelection(str, Enum):
     quality = 'Quality'
     extreme_speed = 'Extreme Speed'
     lightning = 'Lightning'
+    hyper_sd = 'Hyper-SD'
 
 
 class Lora(BaseModel):

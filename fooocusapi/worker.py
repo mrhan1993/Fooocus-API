@@ -12,7 +12,6 @@ import torch
 
 from fooocusapi.models.common.image_meta import image_parse
 from modules.patch import PatchSettings, patch_settings, patch_all
-from modules.sdxl_styles import apply_arrays
 from modules.flags import Performance
 
 from fooocusapi.utils.file_utils import save_output_file
@@ -100,10 +99,20 @@ def process_generate(async_task: QueueTask):
     import extras.ip_adapter as ip_adapter
     import extras.face_crop as face_crop
     import ldm_patched.modules.model_management as model_management
-    from modules.util import remove_empty_str, resize_image, HWC3, set_image_shape_ceil, get_image_shape_ceil, get_shape_ceil, resample_image, erode_or_dilate
+    from modules.util import (
+        remove_empty_str, HWC3, resize_image,
+        get_image_shape_ceil, set_image_shape_ceil,
+        get_shape_ceil, resample_image, erode_or_dilate,
+        get_enabled_loras, parse_lora_references_from_prompt, apply_wildcards
+    )
+
     from modules.upscaler import perform_upscale
     from extras.expansion import safe_str
-    from modules.sdxl_styles import apply_style, fooocus_expansion, apply_wildcards
+    from extras.censor import default_censor
+    from modules.sdxl_styles import (
+        apply_style, get_random_style,
+        fooocus_expansion, apply_arrays, random_style_name
+    )
 
     pid = os.getpid()
 
@@ -132,17 +141,23 @@ def process_generate(async_task: QueueTask):
         logger.std_info(f'[Fooocus] {text}')
         outputs.append(['preview', (number, text, None)])
 
-    def yield_result(_, images, tasks, extension='png'):
+    def yield_result(_, images, tasks, extension='png',
+                     blockout_nsfw=False, censor=True):
         """
         Yield result
         :param _: async task object
         :param images: list for generated image
         :param tasks: the image was generated one by one, when image number is not one, it will be a task list
         :param extension: extension for saved image
+        :param blockout_nsfw: blockout nsfw image
+        :param censor: censor image
         :return:
         """
         if not isinstance(images, list):
             images = [images]
+
+        if censor and (config.default_black_out_nsfw or black_out_nsfw):
+            images = default_censor(images)
 
         results = []
         for index, im in enumerate(images):
@@ -262,6 +277,9 @@ def process_generate(async_task: QueueTask):
         inpaint_mask_upload_checkbox = adp.inpaint_mask_upload_checkbox
         invert_mask_checkbox = adp.invert_mask_checkbox
         inpaint_erode_or_dilate = adp.inpaint_erode_or_dilate
+        black_out_nsfw = adp.black_out_nsfw
+        vae_name = adp.vae_name
+        clip_skip = adp.clip_skip
 
         cn_tasks = {x: [] for x in flags.ip_list}
         for img_prompt in params.image_prompts:
@@ -299,10 +317,12 @@ def process_generate(async_task: QueueTask):
 
         steps = performance_selection.steps()
 
+        performance_loras = []
+
         if performance_selection == Performance.EXTREME_SPEED:
             logger.std_warn('[Fooocus] Enter LCM mode.')
             progressbar(async_task, 1, 'Downloading LCM components ...')
-            loras += [(config.downloading_sdxl_lcm_lora(), 1.0)]
+            performance_loras += [(config.downloading_sdxl_lcm_lora(), 1.0)]
 
             if refiner_model_name != 'None':
                 logger.std_info('[Fooocus] Refiner disabled in LCM mode.')
@@ -321,7 +341,7 @@ def process_generate(async_task: QueueTask):
         elif performance_selection == Performance.LIGHTNING:
             logger.std_info('[Fooocus] Enter Lightning mode.')
             progressbar(async_task, 1, 'Downloading Lightning components ...')
-            loras += [(config.downloading_sdxl_lightning_lora(), 1.0)]
+            performance_loras += [(config.downloading_sdxl_lightning_lora(), 1.0)]
 
             if refiner_model_name != 'None':
                 logger.std_info('[Fooocus] Refiner disabled in Lightning mode.')
@@ -337,7 +357,27 @@ def process_generate(async_task: QueueTask):
             adm_scaler_negative = 1.0
             adm_scaler_end = 0.0
 
+        elif performance_selection == Performance.HYPER_SD:
+            print('Enter Hyper-SD mode.')
+            progressbar(async_task, 1, 'Downloading Hyper-SD components ...')
+            performance_loras += [(config.downloading_sdxl_hyper_sd_lora(), 0.8)]
+
+            if refiner_model_name != 'None':
+                logger.std_info('[Fooocus] Refiner disabled in Hyper-SD mode.')
+
+            refiner_model_name = 'None'
+            sampler_name = 'dpmpp_sde_gpu'
+            scheduler_name = 'karras'
+            sharpness = 0.0
+            guidance_scale = 1.0
+            adaptive_cfg = 1.0
+            refiner_switch = 1.0
+            adm_scaler_positive = 1.0
+            adm_scaler_negative = 1.0
+            adm_scaler_end = 0.0
+
         logger.std_info(f'[Parameters] Adaptive CFG = {adaptive_cfg}')
+        logger.std_info(f'[Parameters] CLIP Skip = {clip_skip}')
         logger.std_info(f'[Parameters] Sharpness = {sharpness}')
         logger.std_info(f'[Parameters] ControlNet Softness = {controlnet_softness}')
         logger.std_info(f'[Parameters] ADM Scale = '
@@ -500,12 +540,16 @@ def process_generate(async_task: QueueTask):
             extra_negative_prompts = negative_prompts[1:] if len(negative_prompts) > 1 else []
 
             progressbar(async_task, 3, 'Loading models ...')
+            loras, prompt = parse_lora_references_from_prompt(prompt, loras, config.default_max_lora_number)
+            loras += performance_loras
             pipeline.refresh_everything(
                 refiner_model_name=refiner_model_name,
                 base_model_name=base_model_name,
                 loras=loras,
                 base_model_additional_loras=base_model_additional_loras,
                 use_synthetic_refiner=use_synthetic_refiner)
+
+            pipeline.set_clip_skip(clip_skip)
 
             progressbar(async_task, 3, 'Processing prompts ...')
             tasks = []
@@ -520,15 +564,21 @@ def process_generate(async_task: QueueTask):
                 task_prompt = apply_wildcards(prompt, task_rng, i, read_wildcards_in_order)
                 task_prompt = apply_arrays(task_prompt, i)
                 task_negative_prompt = apply_wildcards(negative_prompt, task_rng, i, read_wildcards_in_order)
-                task_extra_positive_prompts = [apply_wildcards(pmt, task_rng, i, read_wildcards_in_order) for pmt in extra_positive_prompts]
-                task_extra_negative_prompts = [apply_wildcards(pmt, task_rng, i, read_wildcards_in_order) for pmt in extra_negative_prompts]
+                task_extra_positive_prompts = [apply_wildcards(pmt, task_rng, i, read_wildcards_in_order) for pmt in
+                                               extra_positive_prompts]
+                task_extra_negative_prompts = [apply_wildcards(pmt, task_rng, i, read_wildcards_in_order) for pmt in
+                                               extra_negative_prompts]
 
                 positive_basic_workloads = []
                 negative_basic_workloads = []
 
+                task_styles = style_selections.copy()
                 if use_style:
-                    for s in style_selections:
-                        p, n = apply_style(s, positive=task_prompt)
+                    for index, style in enumerate(task_styles):
+                        if style == random_style_name:
+                            style = get_random_style(task_rng)
+                            task_styles[index] = style
+                        p, n = apply_style(style, positive=task_prompt)
                         positive_basic_workloads = positive_basic_workloads + p
                         negative_basic_workloads = negative_basic_workloads + n
                 else:
@@ -555,29 +605,30 @@ def process_generate(async_task: QueueTask):
                     negative_top_k=len(negative_basic_workloads),
                     log_positive_prompt='\n'.join([task_prompt] + task_extra_positive_prompts),
                     log_negative_prompt='\n'.join([task_negative_prompt] + task_extra_negative_prompts),
+                    styles=task_styles
                 ))
 
             if use_expansion:
                 for i, t in enumerate(tasks):
-                    progressbar(async_task, 5, f'Preparing Fooocus text #{i + 1} ...')
+                    progressbar(async_task, 4, f'Preparing Fooocus text #{i + 1} ...')
                     expansion = pipeline.final_expansion(t['task_prompt'], t['task_seed'])
                     logger.std_info(f'[Prompt Expansion] {expansion}')
                     t['expansion'] = expansion
                     t['positive'] = copy.deepcopy(t['positive']) + [expansion]  # Deep copy.
 
             for i, t in enumerate(tasks):
-                progressbar(async_task, 7, f'Encoding positive #{i + 1} ...')
+                progressbar(async_task, 5, f'Encoding positive #{i + 1} ...')
                 t['c'] = pipeline.clip_encode(texts=t['positive'], pool_top_k=t['positive_top_k'])
 
             for i, t in enumerate(tasks):
                 if abs(float(cfg_scale) - 1.0) < 1e-4:
                     t['uc'] = pipeline.clone_cond(t['c'])
                 else:
-                    progressbar(async_task, 10, f'Encoding negative #{i + 1} ...')
+                    progressbar(async_task, 6, f'Encoding negative #{i + 1} ...')
                     t['uc'] = pipeline.clip_encode(texts=t['negative'], pool_top_k=t['negative_top_k'])
 
         if len(goals) > 0:
-            progressbar(async_task, 13, 'Image processing ...')
+            progressbar(async_task, 7, 'Image processing ...')
 
         if 'vary' in goals:
             if 'subtle' in uov_method:
@@ -598,7 +649,7 @@ def process_generate(async_task: QueueTask):
             uov_input_image = set_image_shape_ceil(uov_input_image, shape_ceil)
 
             initial_pixels = core.numpy_to_pytorch(uov_input_image)
-            progressbar(async_task, 13, 'VAE encoding ...')
+            progressbar(async_task, 8, 'VAE encoding ...')
 
             candidate_vae, _ = pipeline.get_candidate_vae(
                 steps=steps,
@@ -615,7 +666,7 @@ def process_generate(async_task: QueueTask):
 
         if 'upscale' in goals:
             H, W, C = uov_input_image.shape
-            progressbar(async_task, 13, f'Upscaling image from {str((H, W))} ...')
+            progressbar(async_task, 9, f'Upscaling image from {str((H, W))} ...')
             uov_input_image = perform_upscale(uov_input_image)
             logger.std_info('[Upscale] Image upscale.')
 
@@ -653,7 +704,9 @@ def process_generate(async_task: QueueTask):
             if direct_return:
                 # d = [('Upscale (Fast)', '2x')]
                 # log(uov_input_image, d, output_format=save_extension)
-                yield_result(async_task, uov_input_image, tasks, save_extension)
+                if config.default_black_out_nsfw or black_out_nsfw:
+                    uov_input_image = default_censor(uov_input_image)
+                yield_result(async_task, uov_input_image, tasks, save_extension, False, False)
                 return
 
             tiled = True
@@ -663,7 +716,7 @@ def process_generate(async_task: QueueTask):
                 denoising_strength = overwrite_upscale_strength
 
             initial_pixels = core.numpy_to_pytorch(uov_input_image)
-            progressbar(async_task, 13, 'VAE encoding ...')
+            progressbar(async_task, 10, 'VAE encoding ...')
 
             candidate_vae, _ = pipeline.get_candidate_vae(
                 steps=steps,
@@ -735,10 +788,11 @@ def process_generate(async_task: QueueTask):
             )
 
             if debugging_inpaint_preprocessor:
-                yield_result(async_task, inpaint_worker.current_task.visualize_mask_processing(), tasks)
+                yield_result(async_task, inpaint_worker.current_task.visualize_mask_processing(), tasks,
+                             black_out_nsfw)
                 return
 
-            progressbar(async_task, 13, 'VAE Inpaint encoding ...')
+            progressbar(async_task, 11, 'VAE Inpaint encoding ...')
 
             inpaint_pixel_fill = core.numpy_to_pytorch(inpaint_worker.current_task.interested_fill)
             inpaint_pixel_image = core.numpy_to_pytorch(inpaint_worker.current_task.interested_image)
@@ -758,7 +812,7 @@ def process_generate(async_task: QueueTask):
 
             latent_swap = None
             if candidate_vae_swap is not None:
-                progressbar(async_task, 13, 'VAE SD15 encoding ...')
+                progressbar(async_task, 12, 'VAE SD15 encoding ...')
                 latent_swap = core.encode_vae(
                     vae=candidate_vae_swap,
                     pixels=inpaint_pixel_fill)['samples']
@@ -798,7 +852,7 @@ def process_generate(async_task: QueueTask):
                 cn_img = HWC3(cn_img)
                 task[0] = core.numpy_to_pytorch(cn_img)
                 if debugging_cn_preprocessor:
-                    yield_result(async_task, cn_img, tasks, save_extension)
+                    yield_result(async_task, cn_img, tasks, save_extension, black_out_nsfw)
                     return
             for task in cn_tasks[flags.cn_cpds]:
                 cn_img, cn_stop, cn_weight = task
@@ -810,7 +864,7 @@ def process_generate(async_task: QueueTask):
                 cn_img = HWC3(cn_img)
                 task[0] = core.numpy_to_pytorch(cn_img)
                 if debugging_cn_preprocessor:
-                    yield_result(async_task, cn_img, tasks, save_extension)
+                    yield_result(async_task, cn_img, tasks, save_extension, black_out_nsfw)
                     return
             for task in cn_tasks[flags.cn_ip]:
                 cn_img, cn_stop, cn_weight = task
@@ -821,7 +875,7 @@ def process_generate(async_task: QueueTask):
 
                 task[0] = ip_adapter.preprocess(cn_img, ip_adapter_path=ip_adapter_path)
                 if debugging_cn_preprocessor:
-                    yield_result(async_task, cn_img, tasks, save_extension)
+                    yield_result(async_task, cn_img, tasks, save_extension, black_out_nsfw)
                     return
             for task in cn_tasks[flags.cn_ip_face]:
                 cn_img, cn_stop, cn_weight = task
@@ -835,7 +889,7 @@ def process_generate(async_task: QueueTask):
 
                 task[0] = ip_adapter.preprocess(cn_img, ip_adapter_path=ip_adapter_face_path)
                 if debugging_cn_preprocessor:
-                    yield_result(async_task, cn_img, tasks, save_extension)
+                    yield_result(async_task, cn_img, tasks, save_extension, black_out_nsfw)
                     return
 
             all_ip_tasks = cn_tasks[flags.cn_ip] + cn_tasks[flags.cn_ip_face]
@@ -870,19 +924,19 @@ def process_generate(async_task: QueueTask):
         final_sampler_name = sampler_name
         final_scheduler_name = scheduler_name
 
-        if scheduler_name == 'lcm':
+        if scheduler_name in ['lcm', 'tcd']:
             final_scheduler_name = 'sgm_uniform'
             if pipeline.final_unet is not None:
                 pipeline.final_unet = core.opModelSamplingDiscrete.patch(
                     pipeline.final_unet,
-                    sampling='lcm',
+                    sampling=scheduler_name,
                     zsnr=False)[0]
             if pipeline.final_refiner_unet is not None:
                 pipeline.final_refiner_unet = core.opModelSamplingDiscrete.patch(
                     pipeline.final_refiner_unet,
-                    sampling='lcm',
+                    sampling=scheduler_name,
                     zsnr=False)[0]
-            logger.std_info('[Fooocus] Using lcm scheduler.')
+            logger.std_info(f'[Fooocus] Using {scheduler_name} scheduler.')
 
         outputs.append(['preview', (13, 'Moving model to GPU ...', None)])
 
@@ -957,7 +1011,7 @@ def process_generate(async_task: QueueTask):
         if async_task.finish_with_error:
             worker_queue.finish_task(async_task.job_id)
             return async_task.task_result
-        yield_result(None, results, tasks, save_extension)
+        yield_result(None, results, tasks, save_extension, black_out_nsfw)
         return
     except Exception as e:
         logger.std_error(f'[Fooocus] Worker error: {e}')
