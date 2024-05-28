@@ -279,6 +279,7 @@ def process_generate(async_task: QueueTask):
         inpaint_erode_or_dilate = adp.inpaint_erode_or_dilate
         black_out_nsfw = adp.black_out_nsfw
         vae_name = adp.vae_name
+        clip_skip = adp.clip_skip
 
         cn_tasks = {x: [] for x in flags.ip_list}
         for img_prompt in params.image_prompts:
@@ -376,6 +377,7 @@ def process_generate(async_task: QueueTask):
             adm_scaler_end = 0.0
 
         logger.std_info(f'[Parameters] Adaptive CFG = {adaptive_cfg}')
+        logger.std_info(f'[Parameters] CLIP Skip = {clip_skip}')
         logger.std_info(f'[Parameters] Sharpness = {sharpness}')
         logger.std_info(f'[Parameters] ControlNet Softness = {controlnet_softness}')
         logger.std_info(f'[Parameters] ADM Scale = '
@@ -546,6 +548,8 @@ def process_generate(async_task: QueueTask):
                 loras=loras,
                 base_model_additional_loras=base_model_additional_loras,
                 use_synthetic_refiner=use_synthetic_refiner)
+
+            pipeline.set_clip_skip(clip_skip)
 
             progressbar(async_task, 3, 'Processing prompts ...')
             tasks = []
