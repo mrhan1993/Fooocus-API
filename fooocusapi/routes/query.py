@@ -1,3 +1,4 @@
+
 """Query API"""
 from typing import List
 from fastapi import Depends, Response, APIRouter
@@ -62,6 +63,15 @@ def query_job(req: QueryJobRequest = Depends()):
         content = result.model_dump_json()
         return Response(content=content, media_type='application/json', status_code=404)
     return generate_async_output(queue_task, req.require_step_preview)
+
+@secure_router.delete(
+        path="/v1/generation/query-job",
+        description="Delete async generation job",
+        tags=['Query'])
+def delete_job(req: QueryJobRequest = Depends()):
+    """Delete job by id"""
+    worker_queue.delete_task(req.job_id)
+    return Response(content="Job deleted", media_type='text/plain')
 
 
 @secure_router.get(
