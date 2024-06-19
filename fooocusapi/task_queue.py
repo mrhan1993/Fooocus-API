@@ -195,6 +195,15 @@ class TaskQueue:
                     return task
 
         return None
+    
+    def delete_task(self, job_id: str):
+        """
+        Delete task by job_id
+        :param job_id: job id
+        """
+        task = self.get_task(job_id)
+        if task is not None:
+            self.queue.remove(task)
 
     def is_task_ready_to_start(self, job_id: str) -> bool:
         """
