@@ -103,7 +103,8 @@ def process_generate(async_task: QueueTask):
         remove_empty_str, HWC3, resize_image,
         get_image_shape_ceil, set_image_shape_ceil,
         get_shape_ceil, resample_image, erode_or_dilate,
-        get_enabled_loras, parse_lora_references_from_prompt, apply_wildcards
+        get_enabled_loras, parse_lora_references_from_prompt, apply_wildcards,
+        remove_performance_lora
     )
 
     from modules.upscaler import perform_upscale
@@ -540,8 +541,10 @@ def process_generate(async_task: QueueTask):
             extra_negative_prompts = negative_prompts[1:] if len(negative_prompts) > 1 else []
 
             progressbar(async_task, 3, 'Loading models ...')
-            loras, prompt = parse_lora_references_from_prompt(prompt, loras, config.default_max_lora_number)
+            lora_filenames = remove_performance_lora(config.lora_filenames, performance_selection)
+            loras, prompt = parse_lora_references_from_prompt(prompt, loras, config.default_max_lora_number, lora_filenames=lora_filenames)
             loras += performance_loras
+
             pipeline.refresh_everything(
                 refiner_model_name=refiner_model_name,
                 base_model_name=base_model_name,
@@ -926,16 +929,33 @@ def process_generate(async_task: QueueTask):
 
         if scheduler_name in ['lcm', 'tcd']:
             final_scheduler_name = 'sgm_uniform'
-            if pipeline.final_unet is not None:
-                pipeline.final_unet = core.opModelSamplingDiscrete.patch(
+
+            def patch_discrete(unet):
+                return core.opModelSamplingDiscrete.patch(
                     pipeline.final_unet,
                     sampling=scheduler_name,
                     zsnr=False)[0]
+
+            if pipeline.final_unet is not None:
+                pipeline.final_unet = patch_discrete(pipeline.final_unet)
             if pipeline.final_refiner_unet is not None:
-                pipeline.final_refiner_unet = core.opModelSamplingDiscrete.patch(
-                    pipeline.final_refiner_unet,
+                pipeline.final_refiner_unet = patch_discrete(pipeline.final_refiner_unet)
+            logger.std_info(f'[Fooocus] Using {scheduler_name} scheduler.')
+        elif scheduler_name == 'edm_playground_v2.5':
+            final_scheduler_name = 'karras'
+
+            def patch_edm(unet):
+                return core.opModelSamplingContinuousEDM.patch(
+                    unet,
                     sampling=scheduler_name,
-                    zsnr=False)[0]
+                    sigma_max=120.0,
+                    sigma_min=0.002)[0]
+
+            if pipeline.final_unet is not None:
+                pipeline.final_unet = patch_edm(pipeline.final_unet)
+            if pipeline.final_refiner_unet is not None:
+                pipeline.final_refiner_unet = patch_edm(pipeline.final_refiner_unet)
+
             logger.std_info(f'[Fooocus] Using {scheduler_name} scheduler.')
 
         outputs.append(['preview', (13, 'Moving model to GPU ...', None)])
