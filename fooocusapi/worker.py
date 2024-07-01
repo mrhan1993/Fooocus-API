@@ -1013,6 +1013,7 @@ def process_generate(async_task: QueueTask):
                 results += imgs
             except model_management.InterruptProcessingException as e:
                 logger.std_warn("[Fooocus] User stopped")
+                results = []
                 results.append(ImageGenerationResult(
                     im=None, seed=task['task_seed'], finish_reason=GenerationFinishReason.user_cancel))
                 async_task.set_result(results, True, str(e))
@@ -1020,6 +1021,7 @@ def process_generate(async_task: QueueTask):
             except Exception as e:
                 logger.std_error(f'[Fooocus] Process error: {e}')
                 logging.exception(e)
+                results = []
                 results.append(ImageGenerationResult(
                     im=None, seed=task['task_seed'], finish_reason=GenerationFinishReason.error))
                 async_task.set_result(results, True, str(e))
