@@ -19,6 +19,8 @@
 - [License](#license)
 - [Thanks :purple\_heart:](#thanks-purple_heart)
 
+Prefer to use the new project [FooocusAPI](https://github.com/mrhan1993/FooocusAPI)
+
 # :warning: Compatibility warning :warning:
 
 When upgrading from version 3.x to version 4.0, please read the following incompatibility notes:
