@@ -19,7 +19,7 @@
 - [License](#license)
 - [感谢 :purple\_heart:](#感谢-purple_heart)
 
-推荐使用重写后的新项目 [FooocusAPI](https://github.com/mrhan1993/FooocusAPI)
+如果是第一次使用，推荐使用重写后的新项目 [FooocusAPI](https://github.com/mrhan1993/FooocusAPI)
 
 # :warning: 兼容性警告 :warning:
 

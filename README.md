@@ -19,7 +19,7 @@
 - [License](#license)
 - [Thanks :purple\_heart:](#thanks-purple_heart)
 
-Prefer to use the new project [FooocusAPI](https://github.com/mrhan1993/FooocusAPI)
+If this is the first time to use it, it is recommended to use a rewritten new project [FooocusAPI](https://github.com/mrhan1993/FooocusAPI)
 
 # :warning: Compatibility warning :warning:
 
