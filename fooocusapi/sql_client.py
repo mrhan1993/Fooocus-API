@@ -240,6 +240,9 @@ def add_history(
     del params["inpaint_input_image"]
     del params["uov_input_image"]
     del params["save_extension"]
+    del params["save_meta"]
+    del params["save_name"]
+    del params["meta_scheme"]
 
     db.store_history(params)
 
