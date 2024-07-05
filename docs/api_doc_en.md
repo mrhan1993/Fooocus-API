@@ -457,8 +457,8 @@ print(json.dumps(result, indent=4, ensure_ascii=False))
 | prompt                    | str                      | Prompt for image generation                                                  |
 | negative_prompt           | str                      | Negative prompt for image generation                                         |
 | style_selections          | List[str]                | Selections for styles                                                       |
-| performance_selection     | str                      | Selection for performance                                                   |
-| aspect_ratios_selection   | str                      | Selection for aspect ratios                                                 |
+| performance_selection   | Enum                       | performance_selection, must be one of `Speed`, `Quality`, `Extreme Speed` default to `Speed`                                       |
+| aspect_ratios_selection   | str                      | Selection for aspect ratios e.g. '1024*576'                                             |
 | image_number              | int                      | Number of images to generate                                                |
 | image_seed                | int                      | Seed to generate image, -1 for random
 | sharpness                 | float                    | Sharpness parameter for image generation                                     |
