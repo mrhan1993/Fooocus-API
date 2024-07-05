@@ -445,15 +445,35 @@ print(json.dumps(result, indent=4, ensure_ascii=False))
 
 | Name                      | Type              | Description                                                                 |
 |---------------------------|-------------------|-----------------------------------------------------------------------------|
-| input_image               | str               | base64 image, or a URL, use for inpaint                                     |
-| input_mask                | str               | base64 image mask, or a URL, use for inpaint                                |
-| inpaint_additional_prompt | str               | inpaint additional prompt                                                   |
-| outpaint_selections       | List[]            | Image extension direction , 'Left', 'Right', 'Top', 'Bottom' seg with comma |
-| outpaint_distance_left    | int               | Image extension distance, default to 0                                      |
-| outpaint_distance_right   | int               | Image extension distance, default to 0                                      |
-| outpaint_distance_top     | int               | Image extension distance, default to 0                                      |
-| outpaint_distance_bottom  | int               | Image extension distance, default to 0                                      |
-| image_prompts             | List[ImagePrompt] | image list, include config, ImagePrompt struct：                             |
+| input_image               | str                      | base64 image, or a URL, use for inpaint                                     |
+| input_mask                | str                      | base64 image mask, or a URL, use for inpaint                                |
+| inpaint_additional_prompt | str                      | inpaint additional prompt                                                   |
+| outpaint_selections       | List[]                   | Image extension direction , 'Left', 'Right', 'Top', 'Bottom' seg with comma |
+| outpaint_distance_left    | int                      | Image extension distance, default to 0                                      |
+| outpaint_distance_right   | int                      | Image extension distance, default to 0                                      |
+| outpaint_distance_top     | int                      | Image extension distance, default to 0                                      |
+| outpaint_distance_bottom  | int                      | Image extension distance, default to 0                                      |
+| image_prompts             | List[ImagePrompt]        | image list, include config, ImagePrompt struct：                             |
+| prompt                    | str                      | Prompt for image generation                                                  |
+| negative_prompt           | str                      | Negative prompt for image generation                                         |
+| style_selections          | List[str]                | Selections for styles                                                       |
+| performance_selection     | str                      | Selection for performance                                                   |
+| aspect_ratios_selection   | str                      | Selection for aspect ratios                                                 |
+| image_number              | int                      | Number of images to generate                                                |
+| image_seed                | int                      | Seed to generate image, -1 for random
+| sharpness                 | float                    | Sharpness parameter for image generation                                     |
+| guidance_scale            | float                    | Guidance scale for image generation                                         |
+| base_model_name           | str                      | Name of the base model                                                      |
+| refiner_model_name        | str                      | Name of the refiner model                                                   |
+| refiner_switch            | float                    | Refiner switch parameter                                                    |
+| loras                     | List[Tuple[str, float]]  | List of tuples with string and float values  e.g. ['sd_xl_offset_example-lora_1.0.safetensors', 0.1] |
+| uov_input_image           | Path                     | Input image for upscale or variation, keep None for not upscale or variation
+| uov_method                | str                      | 'Disabled', 'Vary (Subtle)', 'Vary (Strong)', 'Upscale (1.5x)', 'Upscale (2x)', 'Upscale (Fast 2x)', 'Upscale (Custom)' |
+| upscale_value             | float \| None            | default=0, description="Only when Upscale (Custom)"                          |
+| advanced_params           | List[any] \| None        | Advanced parameters list, can be None                                        |
+| save_extension            | str                      | Extension for saving                                                         |
+| require_base64            | bool                     | Flag indicating if base64 is required                                       |
+
 
 **ImagePrompt**
 
