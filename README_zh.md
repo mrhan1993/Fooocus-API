@@ -21,7 +21,7 @@
 
 如果是第一次使用，推荐使用重写后的新项目 [FooocusAPI](https://github.com/mrhan1993/FooocusAPI)
 
-我还准备了一个[迁移指南](./docs/MigrationGuide.md)
+我还准备了一个[迁移指南](./docs/migrate_zh.md)
 
 # :warning: 兼容性警告 :warning:
 
