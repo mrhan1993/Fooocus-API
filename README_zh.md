@@ -215,25 +215,7 @@ python main.py --all-in-fp16 --always-gpu
 
 # 更新日志
 
-**[24/01/31] v0.3.30** : 增加接口认证功能, 可以通过启动参数 `--apikey APIKEY` 来设置 apikey
-
-**[24/01/26] v0.3.30** : 优化任务执行底层逻辑。调整默认队列大小为100
-
-**[24/01/10] v0.3.29** : 支持将历史生成数据持久化到数据库，并且支持从数据库中读取历史数据
-
-**[24/01/09] v0.3.29** : Image Prompt Mixing requirements implemented, With this implementation, you can send image prompts, and perform inpainting or upscale with a single request.
-
-**[24/01/04] v0.3.29** : 合并了 Fooocus v2.1.860
-
-**[24/01/03] v0.3.28** : 增加 text-to-image-with-ip 接口
-
-**[23/12/29] v0.3.27** : 增加 describe 接口，现在你可以使用图像反推提示词了
-
-**[23/12/29] v0.3.27** : 增加查询历史 API。增加 webhook_url 对所有请求的支持
-
-**[23/12/28] v0.3.26** : **重大变更**: 添加 webhook 选项以支持生成完毕后的事件通知。将 async 的任务 ID 由数字改为 UUID 来避免应用重启后造成的混乱
-
-**[23/12/22] v0.3.25** : 增加对 Fooocus 命令行选项的支持 **重大变更**: 移除 `disable-private-log` 选项，你可以使用 Fooocus 原生的 `--disable-image-log` 来达到同样的效果
+[CHANGELOG](./docs/change_logs_zh.md)
 
 更早的日志可以在 [release page](https://github.com/konieshadow/Fooocus-API/releases) 找到
 

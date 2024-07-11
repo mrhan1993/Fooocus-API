@@ -213,25 +213,7 @@ For Fooocus CMD flags, see [here](https://github.com/lllyasviel/Fooocus?tab=read
 
 # Change log
 
-**[24/01/31] v0.3.30** : Add secure API future, use `--apikey APIKEY` to set apikey at startup
-
-**[24/01/26] v0.3.30** : Optimize the underlying logic of task execution, default queue size to 100
-
-**[24/01/10] v0.3.29** : support for store history to db
-
-**[24/01/09] v0.3.29** : Image Prompt Mixing requirements implemented, With this implementation, you can send image prompts, and perform inpainting or upscale with a single request.
-
-**[24/01/04] v0.3.29** : Merged Fooocus v2.1.860
-
-**[24/01/03] v0.3.28** : add text-to-image-with-ip interface
-
-**[23/12/29] v0.3.27** : Add describe interface，now you can get prompt from image
-
-**[23/12/29] v0.3.27** : Add query job history api. Add webhook_url support for each generation request.
-
-**[23/12/28] v0.3.26** : **Break Change**: Add web-hook cmd flag for notify generation result. Change async job id to uuid to avoid conflict between each startup.
-
-**[23/12/22] v0.3.25** : Add CMD flags support of Fooocus. **Break Change**: Removed cli argument `disable-private-log`. You can use Fooocus's `--disable-image-log` for the same purpose.
+[CHANGELOG](./docs/change_logs.md)
 
 older change history you can find in [release page](https://github.com/konieshadow/Fooocus-API/releases)
 
