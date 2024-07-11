@@ -83,8 +83,10 @@ def delete_output_file(filename: str):
     try:
         os.remove(file_path)
         logger.std_info(f'[Fooocus API] Delete output file: {filename}')
+        return True
     except OSError:
         logger.std_error(f'[Fooocus API] Delete output file failed: {filename}')
+        return False
 
 
 def output_file_to_base64img(filename: str | None) -> str | None:

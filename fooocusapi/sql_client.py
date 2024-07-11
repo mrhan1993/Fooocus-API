@@ -156,7 +156,7 @@ class MySQLAlchemy:
 
     def get_history(
         self,
-        task_id: str = None,
+        task_id: str | None = None,
         page: int = 0,
         page_size: int = 20,
         order_by: str = "date_time",
@@ -189,6 +189,15 @@ class MySQLAlchemy:
         if len(res) == 0:
             return []
         return convert_to_dict_list(res)
+
+    def delete(self, task_id: str) -> None:
+        """
+        Delete item from database
+        :param task_id:
+        :return:
+        """
+        self.session.query(GenerateRecord).filter(GenerateRecord.task_id == task_id).delete()
+        self.session.commit()
 
 
 db = MySQLAlchemy(uri=connection_uri)
@@ -267,3 +276,13 @@ def query_history(
     return db.get_history(
         task_id=task_id, page=page, page_size=page_size, order_by=order_by
     )
+
+
+def delete_item(item_id: str) -> None:
+    """
+    Delete item from database
+    Args:
+        item_id:
+    Returns:
+    """
+    db.delete(item_id)
