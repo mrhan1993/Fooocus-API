@@ -100,12 +100,15 @@ def output_file_to_base64img(filename: str | None) -> str | None:
     if not os.path.exists(file_path) or not os.path.isfile(file_path):
         return None
 
+    ext = filename.split('.')[-1]
+    if ext.lower() not in ['png', 'jpg', 'webp', 'jpeg']:
+        ext = 'png'
     img = Image.open(file_path)
     output_buffer = BytesIO()
-    img.save(output_buffer, format='PNG')
+    img.save(output_buffer, format=ext.upper())
     byte_data = output_buffer.getvalue()
     base64_str = base64.b64encode(byte_data).decode('utf-8')
-    return base64_str
+    return f"data:image/{ext};base64," + base64_str
 
 
 def output_file_to_bytesimg(filename: str | None) -> bytes | None:
