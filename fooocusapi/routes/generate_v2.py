@@ -4,6 +4,7 @@
 from typing import List
 from fastapi import APIRouter, Depends, Header, Query
 
+from fooocusapi.models.common.base import GenerateMaskRequest
 from fooocusapi.utils.api_utils import api_key_auth
 from fooocusapi.models.requests_v1 import ImagePrompt
 from fooocusapi.models.requests_v2 import (
@@ -16,7 +17,10 @@ from fooocusapi.models.common.response import (
     AsyncJobResponse,
     GeneratedImageResult
 )
-from fooocusapi.utils.call_worker import call_worker
+from fooocusapi.utils.call_worker import (
+    call_worker,
+    generate_mask as gm
+)
 from fooocusapi.utils.img_utils import base64_to_stream
 from fooocusapi.configs.default import img_generate_responses
 
@@ -197,3 +201,14 @@ def img_prompt(
     req.image_prompts = image_prompts_files
 
     return call_worker(req, accept)
+
+
+@secure_router.post(
+    path="/v1/tools/generate_mask",
+    summary="Generate mask endpoint",
+    tags=["GenerateV1"])
+async def generate_mask(mask_options: GenerateMaskRequest) -> str:
+    """
+    Generate mask endpoint
+    """
+    return await gm(request=mask_options)
