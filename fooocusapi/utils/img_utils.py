@@ -94,14 +94,30 @@ def read_input_image(input_image: UploadFile | str | None) -> np.ndarray | None:
     Returns:
         numpy array of image
     """
-    if input_image is None or input_image == '':
-        return None
+    headers = {
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:128.0) Gecko/20100101 Firefox/128.0'
+    }
     if isinstance(input_image, str):
-        input_image_bytes = base64.b64decode(input_image)
-    else:
+        if input_image is None or input_image in ('', 'None', 'null', 'string', 'none'):
+            return None
+        if input_image.startswith("http"):
+            try:
+                response = requests.get(input_image, headers=headers, timeout=20)
+                input_image_bytes = response.content
+            except Exception:
+                return None
+        else:
+            if input_image.startswith('data:image'):
+                input_image = input_image.split(sep=',', maxsplit=1)[1]
+            input_image_bytes = base64.b64decode(input_image)
+
+    if isinstance(input_image, UploadFile):
         input_image_bytes = input_image.file.read()
+
     pil_image = Image.open(BytesIO(input_image_bytes))
     image = np.array(pil_image)
+    if image.ndim == 2:
+        image = np.stack((image, image, image), axis=-1)
     return image
 
 
