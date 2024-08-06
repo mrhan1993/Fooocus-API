@@ -151,6 +151,11 @@ class MySQLAlchemy:
         :param record:
         :return:
         """
+        serialized_image_prompts = [
+            (cn_stop, cn_wight, cn_type)
+            for arr, cn_stop, cn_wight, cn_type in record['image_prompts']
+        ]
+        record['image_prompts'] = serialized_image_prompts
         self.session.add_all([GenerateRecord(**record)])
         self.session.commit()
 
