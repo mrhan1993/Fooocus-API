@@ -4,6 +4,7 @@ Entry for startup fastapi server
 from fastapi import FastAPI
 from fastapi.staticfiles import StaticFiles
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.middleware.gzip import GZipMiddleware
 
 import uvicorn
 
@@ -15,6 +16,7 @@ from fooocusapi.routes.query import secure_router as query
 
 app = FastAPI()
 
+app.add_middleware(GZipMiddleware, minimum_size=1000)
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],  # Allow access from all sources
