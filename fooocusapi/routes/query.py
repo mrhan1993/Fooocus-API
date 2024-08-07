@@ -89,15 +89,21 @@ def get_history(job_id: str = None, page: int = 0, page_size: int = 20):
     queue = [
         JobHistoryInfo(
             job_id=item.job_id,
-            is_finished=item.is_finished
-        ) for item in worker_queue.queue
+            is_finished=item.is_finished,
+            in_queue_mills=item.in_queue_mills,
+            start_mills=item.start_mills,
+            finish_mills=item.finish_mills,
+        ) for item in worker_queue.queue if not job_id or item.job_id == job_id
     ]
     if not args.persistent:
         history = [
             JobHistoryInfo(
                 job_id=item.job_id,
-                is_finished=item.is_finished
-            ) for item in worker_queue.history
+                is_finished=item.is_finished,
+                in_queue_mills=item.in_queue_mills,
+                start_mills=item.start_mills,
+                finish_mills=item.finish_mills,
+            ) for item in worker_queue.history if not job_id or item.job_id == job_id
         ]
         return JobHistoryResponse(history=history, queue=queue)
 

@@ -1,6 +1,7 @@
 """
 SQLite client for Fooocus API
 """
+import logging
 import os
 import time
 import platform
@@ -8,7 +9,7 @@ from datetime import datetime
 from typing import Optional
 import copy
 
-from sqlalchemy import Integer, Float, VARCHAR, Boolean, JSON, Text, create_engine
+from sqlalchemy import Integer, Float, VARCHAR, Boolean, JSON, Text, create_engine, text
 from sqlalchemy.orm import declarative_base, Session, Mapped, mapped_column
 
 
@@ -38,6 +39,9 @@ class GenerateRecord(Base):
 
     task_id: Mapped[str] = mapped_column(VARCHAR(255), nullable=False, primary_key=True)
     task_type: Mapped[str] = mapped_column(Text, nullable=False)
+    task_in_queue_mills: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
+    task_start_mills: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
+    task_finish_mills: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
     result_url: Mapped[str] = mapped_column(Text, nullable=True)
     finish_reason: Mapped[str] = mapped_column(Text, nullable=True)
     date_time: Mapped[int] = mapped_column(Integer, nullable=False)
@@ -75,7 +79,8 @@ class GenerateRecord(Base):
 
     def __repr__(self) -> str:
         return f"GenerateRecord(task_id={self.task_id!r}, task_type={self.task_type!r}, \
-                result_url={self.result_url!r}, finish_reason={self.finish_reason!r}, date_time={self.date_time!r}, \
+                task_in_queue_mills={self.task_in_queue_mills!r}, task_start_mills={self.task_start_mills!r}, \
+                result_url={self.result_url!r}, finish_reason={self.finish_reason!r}, date_time={self.date_time!r}, task_finish_mills={self.task_finish_mills!r}, \
                 prompt={self.prompt!r}, negative_prompt={self.negative_prompt!r}, style_selections={self.style_selections!r}, performance_selection={self.performance_selection!r}, \
                 aspect_ratios_selection={self.aspect_ratios_selection!r}, base_model_name={self.base_model_name!r}, \
                 refiner_model_name={self.refiner_model_name!r}, refiner_switch={self.refiner_switch!r}, loras={self.loras!r}, \
@@ -118,6 +123,9 @@ def convert_to_dict_list(obj_list: list[object]) -> list[dict]:
         task_info = {
             "task_id": obj.task_id,
             "task_type": obj.task_type,
+            "task_in_queue_mills": obj.task_in_queue_mills,
+            "task_start_mills": obj.task_start_mills,
+            "task_finish_mills": obj.task_finish_mills,
             "result_url": obj.result_url,
             "finish_reason": obj.finish_reason,
             "date_time": datetime.fromtimestamp(obj.date_time).strftime(
@@ -126,6 +134,9 @@ def convert_to_dict_list(obj_list: list[object]) -> list[dict]:
         }
         del dict_obj["task_id"]
         del dict_obj["task_type"]
+        del dict_obj['task_in_queue_mills']
+        del dict_obj['task_start_mills']
+        del dict_obj['task_finish_mills']
         del dict_obj["result_url"]
         del dict_obj["finish_reason"]
         del dict_obj["date_time"]
@@ -144,6 +155,30 @@ class MySQLAlchemy:
         # 'mysql+pymysql://{username}:{password}@{host}:{port}/{database}'
         self.engine = create_engine(uri)
         self.session = Session(self.engine)
+        self.add_columns_if_not_exists()
+
+    def add_columns_if_not_exists(self):
+        """
+        Add new columns but keep old data. This function runs automatically.
+        """
+        table_name = GenerateRecord.__tablename__
+        # Check if the table exists
+        result = self.session.execute(
+            text(f"SELECT name FROM sqlite_master WHERE type='table' AND name='{table_name}';"))
+        if not result.fetchone():
+            return
+
+        result = self.session.execute(text(f"PRAGMA table_info({table_name});"))
+        columns = [row[1] for row in result.fetchall()]
+        try:
+            if 'task_in_queue_mills' not in columns:
+                self.session.execute(text(f"ALTER TABLE {table_name} ADD COLUMN task_in_queue_mills INTEGER DEFAULT 0;"))
+            if 'task_start_mills' not in columns:
+                self.session.execute(text(f"ALTER TABLE {table_name} ADD COLUMN task_start_mills INTEGER DEFAULT 0;"))
+            if 'task_finish_mills' not in columns:
+                self.session.execute(text(f"ALTER TABLE {table_name} ADD COLUMN task_finish_mills INTEGER DEFAULT 0;"))
+        except Exception as e:
+            logging.error(f"add new columns failed {e}")
 
     def store_history(self, record: dict) -> None:
         """
@@ -220,14 +255,13 @@ def req_to_dict(req: dict) -> dict:
 
 
 def add_history(
-    params: dict, task_type: str, task_id: str, result_url: str, finish_reason: str
+    params: dict, task_info: dict, result_url: str, finish_reason: str
 ) -> None:
     """
     Store history to database
     Args:
         params:
-        task_type:
-        task_id:
+        task_info:
         result_url:
         finish_reason:
 
@@ -237,8 +271,8 @@ def add_history(
     adv = copy.deepcopy(params["advanced_params"])
     params["advanced_params"] = adv.__dict__
     params["date_time"] = int(time.time())
-    params["task_type"] = task_type
-    params["task_id"] = task_id
+    for k, v in task_info.items():
+        params[k] = v
     params["result_url"] = result_url
     params["finish_reason"] = finish_reason
 
