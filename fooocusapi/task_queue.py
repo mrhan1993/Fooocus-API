@@ -270,8 +270,6 @@ class TaskQueue:
                 from fooocusapi.sql_client import add_history
                 add_history(
                     params=task.req_param.to_dict(),
-                    task_type=task.task_type.value,
-                    task_id=task.job_id,
                     task_info=dict(
                         task_type=task.task_type.value,
                         task_id=task.job_id,
