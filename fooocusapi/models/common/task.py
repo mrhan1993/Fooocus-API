@@ -16,6 +16,7 @@ class TaskType(str, Enum):
     img_uov = 'Image Upscale or Variation'
     img_inpaint_outpaint = 'Image Inpaint or Outpaint'
     img_prompt = 'Image Prompt'
+    img_enhance = 'Image Enhancement'
     not_found = 'Not Found'
 
 

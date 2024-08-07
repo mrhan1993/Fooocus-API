@@ -55,6 +55,22 @@ from fooocusapi.task_queue import QueueTask
 api_key_header = APIKeyHeader(name="X-API-KEY", auto_error=False)
 
 
+def check_models_exist(file_name: str, model_type: str) -> str:
+    """
+    Check if all models exist
+    """
+    config.update_files()
+
+    if file_name not in (config.model_filenames, config.lora_filenames):
+        logger.std_warn(f"[Warning] Wrong {model_type} model input: {file_name}, using default")
+        if model_type == 'base':
+            return default_base_model_name
+        if model_type == 'refiner':
+            return default_refiner_model_name
+        return 'None'
+    return file_name
+
+
 def api_key_auth(apikey: str = Security(api_key_header)):
     """
     Check if the API key is valid, API key is not required if no API key is set
@@ -77,22 +93,6 @@ def req_to_params(req: Text2ImgRequest) -> ImageGenerationParams:
     returns:
         ImageGenerationParams
     """
-    config.update_files()
-    if req.base_model_name is not None:
-        if req.base_model_name not in config.model_filenames:
-            logger.std_warn(f"[Warning] Wrong base_model_name input: {req.base_model_name}, using default")
-            req.base_model_name = default_base_model_name
-
-    if req.refiner_model_name is not None and req.refiner_model_name != 'None':
-        if req.refiner_model_name not in config.model_filenames:
-            logger.std_warn(f"[Warning] Wrong refiner_model_name input: {req.refiner_model_name}, using default")
-            req.refiner_model_name = default_refiner_model_name
-
-    for lora in req.loras:
-        if lora.model_name != 'None' and lora.model_name not in config.lora_filenames:
-            logger.std_warn(f"[Warning] Wrong lora model_name input: {lora.model_name}, using 'None'")
-            lora.model_name = 'None'
-
     prompt = req.prompt
     negative_prompt = req.negative_prompt
     style_selections = [
@@ -103,10 +103,10 @@ def req_to_params(req: Text2ImgRequest) -> ImageGenerationParams:
     image_seed = None if req.image_seed == -1 else req.image_seed
     sharpness = req.sharpness
     guidance_scale = req.guidance_scale
-    base_model_name = req.base_model_name
-    refiner_model_name = req.refiner_model_name
+    base_model_name = check_models_exist(req.base_model_name, 'base')
+    refiner_model_name = check_models_exist(req.refiner_model_name, 'refiner')
     refiner_switch = req.refiner_switch
-    loras = [(lora.model_name, lora.weight) for lora in req.loras]
+    loras = [(lora.enabled, check_models_exist(lora.model_name, 'lora'), lora.weight) for lora in req.loras]
     uov_input_image = None
     if not isinstance(req, Text2ImgRequestWithPrompt):
         if isinstance(req, (ImgUpscaleOrVaryRequest, ImgUpscaleOrVaryRequestJson)):
@@ -202,6 +202,8 @@ def req_to_params(req: Text2ImgRequest) -> ImageGenerationParams:
         outpaint_distance_bottom=outpaint_distance_bottom,
         inpaint_input_image=inpaint_input_image,
         inpaint_additional_prompt=inpaint_additional_prompt,
+        enhance_ctrlnets=req.enhance_ctrlnets,
+        read_wildcards_in_order=req.read_wildcards_in_order,
         image_prompts=image_prompts,
         advanced_params=advanced_params,
         save_meta=req.save_meta,

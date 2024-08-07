@@ -23,12 +23,12 @@ from fooocusapi.utils.api_utils import (
     generate_image_result_output
 )
 from fooocusapi.models.requests_v1 import (
-    ImgUpscaleOrVaryRequest,
+    ImageEnhanceRequest, ImgUpscaleOrVaryRequest,
     ImgPromptRequest,
     ImgInpaintOrOutpaintRequest
 )
 from fooocusapi.models.requests_v2 import (
-    ImgInpaintOrOutpaintRequestJson,
+    ImageEnhanceRequestJson, ImgInpaintOrOutpaintRequestJson,
     ImgPromptRequestJson,
     ImgUpscaleOrVaryRequestJson
 )
@@ -46,6 +46,8 @@ def get_task_type(req: Text2ImgRequest) -> TaskType:
         return TaskType.img_prompt
     if isinstance(req, (ImgInpaintOrOutpaintRequest, ImgInpaintOrOutpaintRequestJson)):
         return TaskType.img_inpaint_outpaint
+    if isinstance(req, (ImageEnhanceRequestJson, ImageEnhanceRequest)):
+        return TaskType.img_enhance
     return TaskType.text_2_img
 
 

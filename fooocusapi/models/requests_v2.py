@@ -4,7 +4,7 @@ from pydantic import BaseModel, Field
 from fooocusapi.models.common.requests import CommonRequest
 from fooocusapi.models.common.base import (
     ControlNetType,
-    OutpaintExpansion,
+    EnhanceCtrlNets, OutpaintExpansion,
     ImagePrompt,
     UpscaleOrVaryMethod
 )
@@ -48,3 +48,15 @@ class ImgUpscaleOrVaryRequestJson(CommonRequest):
     upscale_value: float | None = Field(1.0, ge=1.0, le=5.0, description="Upscale custom value, 1.0 for default value")
     input_image: str = Field(description="Init image for upscale or outpaint as base64")
     image_prompts: List[ImagePromptJson | ImagePrompt] = []
+
+
+class ImageEnhanceRequestJson(CommonRequest):
+    """
+    Image Enhance Request
+    """
+    enhance_input_image: str = Field(default='', description="Input image for enhance")
+    enhance_checkbox: bool = Field(default=True, description="Enhance checkbox")
+    enhance_uov_method: UpscaleOrVaryMethod = Field(default=UpscaleOrVaryMethod.strong_variation, description="Upscale or vary method")
+    enhance_uov_processing_order: str = Field(default="Before First Enhancement", description="Upscale or vary processing order")
+    enhance_uov_prompt_type: str = Field(default="Original Prompts", description="Upscale or vary prompt type")
+    enhance_ctrlnets: List[EnhanceCtrlNets]
