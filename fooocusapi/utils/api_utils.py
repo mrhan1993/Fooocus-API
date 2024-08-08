@@ -5,6 +5,7 @@ from fastapi import Response
 from fastapi.security import APIKeyHeader
 from fastapi import HTTPException, Security
 
+from fooocusapi.models.common.base import EnhanceCtrlNets
 from modules import flags
 from modules import config
 from modules.sdxl_styles import legal_style_names
@@ -26,12 +27,12 @@ from fooocusapi.models.common.response import (
     GeneratedImageResult
 )
 from fooocusapi.models.requests_v1 import (
-    ImgInpaintOrOutpaintRequest,
+    ImageEnhanceRequest, ImgInpaintOrOutpaintRequest,
     ImgPromptRequest,
     ImgUpscaleOrVaryRequest
 )
 from fooocusapi.models.requests_v2 import (
-    Text2ImgRequestWithPrompt,
+    ImageEnhanceRequestJson, Text2ImgRequestWithPrompt,
     ImgInpaintOrOutpaintRequestJson,
     ImgUpscaleOrVaryRequestJson,
     ImgPromptRequestJson
@@ -155,6 +156,17 @@ def req_to_params(req: Text2ImgRequest) -> ImageGenerationParams:
                     img_prompt.cn_weight = flags.default_parameters[img_prompt.cn_type.value][1]
                 image_prompts.append(
                     (cn_img, img_prompt.cn_stop, img_prompt.cn_weight, img_prompt.cn_type.value))
+    # 'enhance_input_image'
+    # 'enhance_checkbox'
+    # 'enhance_uov_method'
+    # 'enhance_uov_processing_order'
+    # 'enhance_uov_prompt_type'
+    enhance_input_image = None if not isinstance(req, (ImageEnhanceRequest, ImageEnhanceRequestJson)) else req.enhance_input_image
+    enhance_checkbox = True
+    enhance_uov_method = flags.disabled if not isinstance(req, (ImageEnhanceRequest, ImageEnhanceRequestJson)) else req.enhance_uov_method
+    enhance_uov_processing_order = flags.disabled if not isinstance(req, (ImageEnhanceRequest, ImageEnhanceRequestJson)) else req.enhance_uov_processing_order
+    enhance_uov_prompt_type = flags.disabled if not isinstance(req, (ImageEnhanceRequest, ImageEnhanceRequestJson)) else req.enhance_uov_prompt_type
+    enhance_ctrlnets = EnhanceCtrlNets() if not isinstance(req, (ImageEnhanceRequest, ImageEnhanceRequestJson)) else req.enhance_ctrlnets
 
     advanced_params = None
     if req.advanced_params is not None:
@@ -202,7 +214,12 @@ def req_to_params(req: Text2ImgRequest) -> ImageGenerationParams:
         outpaint_distance_bottom=outpaint_distance_bottom,
         inpaint_input_image=inpaint_input_image,
         inpaint_additional_prompt=inpaint_additional_prompt,
-        enhance_ctrlnets=req.enhance_ctrlnets,
+        enhance_input_image=enhance_input_image,
+        enhance_checkbox=enhance_checkbox,
+        enhance_uov_method=enhance_uov_method,
+        enhance_uov_processing_order=enhance_uov_processing_order,
+        enhance_uov_prompt_type=enhance_uov_prompt_type,
+        enhance_ctrlnets=enhance_ctrlnets,
         read_wildcards_in_order=req.read_wildcards_in_order,
         image_prompts=image_prompts,
         advanced_params=advanced_params,

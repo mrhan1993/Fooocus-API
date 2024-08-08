@@ -1,6 +1,9 @@
 """
 Worker, modify from https://github.com/lllyasviel/Fooocus/blob/main/modules/async_worker.py
 """
+import re
+import threading
+import uuid
 import logging
 import time
 from typing import List
@@ -11,32 +14,29 @@ import ldm_patched.modules.model_management
 import modules.patch
 import modules.config
 from extras.inpaint_mask import SAMOptions, generate_mask_from_image
+from fooocusapi.models.common.image_meta import image_parse
 from fooocusapi.models.common.task import (
-    GenerationFinishReason, ImageGenerationResult
+    GenerationFinishReason,
+    ImageGenerationResult
 )
 from fooocusapi.parameters import ImageGenerationParams
 from fooocusapi.task_queue import (
     QueueTask,
-    TaskOutputs, TaskQueue
+    TaskOutputs,
+    TaskQueue
 )
+from fooocusapi.utils.file_utils import save_output_file
 from fooocusapi.utils.logger import logger
 
 from modules.flags import Performance
-from modules.patch import patch_all
+from modules.patch import PatchSettings, patch_all, patch_settings
 from modules.private_logger import log
 from modules.sdxl_styles import fooocus_expansion
 from modules.util import erode_or_dilate
 import fooocus_version
 
 
-class EarlyReturnException(BaseException):
-    pass
-
-
 patch_all()
-
-worker_queue: TaskQueue | None = None
-last_model_name = None
 
 
 class AsyncTask:
@@ -197,14 +197,23 @@ class AsyncTask:
             self.outpaint_distance = [0, 0, 0, 0]
 
 
+async_tasks = []
+
+
+class EarlyReturnException(BaseException):
+    pass
+
+
+worker_queue: TaskQueue | None = None
+last_model_name = None
+
+
 def process_stop():
     """Stop process"""
     import ldm_patched.modules.model_management
     ldm_patched.modules.model_management.interrupt_current_processing()
 
 
-@torch.no_grad()
-@torch.inference_mode()
 def task_schedule_loop():
     """Task schedule loop"""
     while True:
@@ -217,8 +226,6 @@ def task_schedule_loop():
             process_generate(current_task)
 
 
-@torch.no_grad()
-@torch.inference_mode()
 def blocking_get_task_result(job_id: str) -> List[ImageGenerationResult]:
     """
     Get task result, when async_task is false
@@ -241,65 +248,60 @@ def blocking_get_task_result(job_id: str) -> List[ImageGenerationResult]:
     return task.task_result
 
 
-global async_tasks
-
-
 @torch.no_grad()
 @torch.inference_mode()
-def process_generate(task: QueueTask):
+def process_generate(async_job: QueueTask):
     """Generate image"""
-    import copy
+    try:
+        import modules.default_pipeline as pipeline
+    except Exception as e:
+        logger.std_error(f'[Task Queue] Import default pipeline error: {e}')
+        if not async_job.is_finished:
+            worker_queue.finish_task(async_job.job_id)
+            async_job.set_result(task_result=[], finish_with_error=True, error_message=str(e))
+            logger.std_error(f"[Task Queue] Finish task with error, seq={async_job.job_id}")
+        return []
+
+    async_task = AsyncTask(async_job.req_param)
+    global async_tasks
+
     import os
-    import random
-    import re
-    import time
+    import traceback
+    import math
     import numpy as np
-    import extras.face_crop
-    from extras import (
-        ip_adapter,
-        preprocessors
-    )
-    from extras.censor import default_censor
-    from extras.expansion import safe_str
-
+    import torch
+    import time
+    import random
+    import copy
+    import modules.core as core
+    import modules.flags as flags
+    import modules.patch
     import ldm_patched.modules.model_management
-    import modules.config
-    from modules import (
-        constants,
-        core,
-        flags,
-        patch,
-        inpaint_worker,
-        default_pipeline as pipeline
-    )
-    from modules.sdxl_styles import (
-        apply_arrays,
-        apply_style,
-        fooocus_expansion,
-        get_random_style,
-        random_style_name
-    )
-    from modules.util import (
-        HWC3, apply_wildcards,
-        erode_or_dilate,
-        get_image_shape_ceil,
-        get_shape_ceil,
-        parse_lora_references_from_prompt,
-        remove_empty_str, resample_image,
-        resize_image, set_image_shape_ceil
-    )
+    import extras.preprocessors as preprocessors
+    import modules.inpaint_worker as inpaint_worker
+    import modules.constants as constants
+    import extras.ip_adapter as ip_adapter
+    import extras.face_crop
+    import fooocus_version
 
-    from modules.meta_parser import get_metadata_parser
-    from modules.patch import PatchSettings, patch_settings
+    from extras.censor import default_censor
+    from modules.sdxl_styles import apply_style, get_random_style, fooocus_expansion, apply_arrays, random_style_name
     from modules.private_logger import log
+    from extras.expansion import safe_str
+    from modules.util import (remove_empty_str, HWC3, resize_image, get_image_shape_ceil, set_image_shape_ceil,
+                              get_shape_ceil, resample_image, erode_or_dilate, parse_lora_references_from_prompt,
+                              apply_wildcards)
     from modules.upscaler import perform_upscale
+    from modules.flags import Performance
+    from modules.meta_parser import get_metadata_parser
 
     pid = os.getpid()
+    logger.std_info(f"[Task Queue] Start task, job_id={async_job.job_id}, pid={pid}")
 
-    outputs = TaskOutputs(task)
+    outputs = TaskOutputs(async_job)
     results = []
 
-    async_task = AsyncTask(task.req_param)
+    async_task = AsyncTask(async_job.req_param)
 
     def progressbar(_, number, text):
         """progress bar"""
@@ -307,14 +309,14 @@ def process_generate(task: QueueTask):
         outputs.append(['preview', (number, text, None)])
 
     def yield_result(_, images, tasks, extension='png',
-                     blockout_nsfw=False, censor=True):
+                     black_out_nsfw=False, censor=True):
         """
         Yield result
         :param _: async task object
         :param images: list for generated image
         :param tasks: the image was generated one by one, when image number is not one, it will be a task list
         :param extension: extension for saved image
-        :param blockout_nsfw: blockout nsfw image
+        :param black_out_nsfw: blockout nsfw image
         :param censor: censor image
         :return:
         """
@@ -325,19 +327,19 @@ def process_generate(task: QueueTask):
             images = default_censor(images)
 
         for ind, im in enumerate(images):
-            if task.req_param.save_name == '':
-                image_name = f"{task.job_id}-{str(index)}"
+            if async_job.req_param.save_name == '':
+                image_name = f"{async_job.job_id}-{str(index)}"
             else:
-                image_name = f"{task.req_param.save_name}-{str(index)}"
+                image_name = f"{async_job.req_param.save_name}-{str(index)}"
             if len(tasks) == 0:
                 img_seed = -1
                 img_meta = {}
             else:
                 img_seed = tasks[index]['task_seed']
-                img_meta = task.image_parse(
+                img_meta = image_parse(
                     async_tak=async_task,
                     task=tasks[index])
-            img_filename = task.save_output_file(
+            img_filename = save_output_file(
                 img=im,
                 image_name=image_name,
                 image_meta=img_meta,
@@ -346,9 +348,9 @@ def process_generate(task: QueueTask):
                 im=img_filename,
                 seed=str(img_seed),
                 finish_reason=GenerationFinishReason.success))
-        task.set_result(results, False)
-        worker_queue.finish_task(task.job_id)
-        logger.std_info(f"[Task Queue] Finish task, job_id={task.job_id}")
+        async_job.set_result(results, False)
+        worker_queue.finish_task(async_job.job_id)
+        logger.std_info(f"[Task Queue] Finish task, job_id={async_job.job_id}")
 
         outputs.append(['results', images])
         pipeline.prepare_text_encoder(async_call=True)
@@ -359,6 +361,7 @@ def process_generate(task: QueueTask):
                      total_count, show_intermediate_results, persist_image=True):
         if async_task.last_stop is not False:
             ldm_patched.modules.model_management.interrupt_current_processing()
+
         if 'cn' in goals:
             for cn_flag, cn_path in [
                 (flags.cn_canny, controlnet_canny_path),
@@ -395,8 +398,7 @@ def process_generate(task: QueueTask):
             imgs = default_censor(imgs)
         progressbar(async_task, current_progress, f'Saving image {current_task_id + 1}/{total_count} to system ...')
         img_paths = save_and_log(async_task, height, imgs, task, use_expansion, width, loras, persist_image)
-        yield_result(async_task, img_paths, current_progress, async_task.black_out_nsfw, False,
-                     do_not_show_finished_images=not show_intermediate_results or async_task.disable_intermediate_results)
+        yield_result(async_task, img_paths, tasks, async_task.output_format, async_task.black_out_nsfw, False)
 
         return imgs, img_paths, current_progress
 
@@ -481,7 +483,7 @@ def process_generate(task: QueueTask):
             cn_img = HWC3(cn_img)
             task[0] = core.numpy_to_pytorch(cn_img)
             if async_task.debugging_cn_preprocessor:
-                yield_result(async_task, cn_img, current_progress, async_task.black_out_nsfw, do_not_show_finished_images=True)
+                yield_result(async_task, cn_img, tasks, async_task.output_format, async_task.black_out_nsfw)
         for task in async_task.cn_tasks[flags.cn_cpds]:
             cn_img, cn_stop, cn_weight = task
             cn_img = resize_image(HWC3(cn_img), width=width, height=height)
@@ -492,7 +494,7 @@ def process_generate(task: QueueTask):
             cn_img = HWC3(cn_img)
             task[0] = core.numpy_to_pytorch(cn_img)
             if async_task.debugging_cn_preprocessor:
-                yield_result(async_task, cn_img, current_progress, async_task.black_out_nsfw, do_not_show_finished_images=True)
+                yield_result(async_task, cn_img, tasks, async_task.output_format, async_task.black_out_nsfw)
         for task in async_task.cn_tasks[flags.cn_ip]:
             cn_img, cn_stop, cn_weight = task
             cn_img = HWC3(cn_img)
@@ -502,7 +504,7 @@ def process_generate(task: QueueTask):
 
             task[0] = ip_adapter.preprocess(cn_img, ip_adapter_path=ip_adapter_path)
             if async_task.debugging_cn_preprocessor:
-                yield_result(async_task, cn_img, current_progress, async_task.black_out_nsfw, do_not_show_finished_images=True)
+                yield_result(async_task, cn_img, tasks, async_task.output_format, async_task.black_out_nsfw)
         for task in async_task.cn_tasks[flags.cn_ip_face]:
             cn_img, cn_stop, cn_weight = task
             cn_img = HWC3(cn_img)
@@ -515,7 +517,7 @@ def process_generate(task: QueueTask):
 
             task[0] = ip_adapter.preprocess(cn_img, ip_adapter_path=ip_adapter_face_path)
             if async_task.debugging_cn_preprocessor:
-                yield_result(async_task, cn_img, current_progress, async_task.black_out_nsfw, do_not_show_finished_images=True)
+                yield_result(async_task, cn_img, tasks, async_task.output_format, async_task.black_out_nsfw)
         all_ip_tasks = async_task.cn_tasks[flags.cn_ip] + async_task.cn_tasks[flags.cn_ip_face]
         if len(all_ip_tasks) > 0:
             pipeline.final_unet = ip_adapter.patch_model(pipeline.final_unet, all_ip_tasks)
@@ -566,8 +568,8 @@ def process_generate(task: QueueTask):
             k=inpaint_respective_field
         )
         if async_task.debugging_inpaint_preprocessor:
-            yield_result(async_task, inpaint_worker.current_task.visualize_mask_processing(), 100,
-                         async_task.black_out_nsfw, do_not_show_finished_images=True)
+            yield_result(async_task, inpaint_worker.current_task.visualize_mask_processing(), tasks,
+                         async_task.output_format, async_task.black_out_nsfw)
             raise EarlyReturnException
 
         if advance_progress:
@@ -1094,8 +1096,7 @@ def process_generate(task: QueueTask):
                     img = default_censor(img)
                 progressbar(async_task, current_progress, f'Saving image {current_task_id + 1}/{total_count} to system ...')
                 uov_image_path = log(img, d, output_format=async_task.output_format, persist_image=persist_image)
-                yield_result(async_task, uov_image_path, current_progress, async_task.black_out_nsfw, False,
-                             do_not_show_finished_images=not show_intermediate_results or async_task.disable_intermediate_results)
+                yield_result(async_task, uov_image_path, tasks, async_task.output_format, async_task.black_out_nsfw, False)
                 return current_progress, img, prompt, negative_prompt
 
         if 'inpaint' in goals and inpaint_parameterized:
@@ -1170,16 +1171,6 @@ def process_generate(task: QueueTask):
             finally:
                 done_steps_upscaling += steps
         return current_task_id, done_steps_inpainting, done_steps_upscaling, img, exception_result
-
-    try:
-        import modules.default_pipeline as pipeline
-    except Exception as e:
-        logger.std_error(f'[Task Queue] Import default pipeline error: {e}')
-        if not task.is_finished:
-            worker_queue.finish_task(task.job_id)
-            task.set_result([], True, str(e))
-            logger.std_error(f"[Task Queue] Finish task with error, seq={task.job_id}")
-        return []
 
     try:
         preparation_start_time = time.perf_counter()
@@ -1297,8 +1288,7 @@ def process_generate(task: QueueTask):
                     async_task.uov_input_image = default_censor(async_task.uov_input_image)
                 progressbar(async_task, 100, 'Saving image to system ...')
                 uov_input_image_path = log(async_task.uov_input_image, d, output_format=async_task.output_format)
-                yield_result(async_task, uov_input_image_path, 100, async_task.black_out_nsfw, False,
-                             do_not_show_finished_images=True)
+                yield_result(async_task, uov_input_image_path, tasks, async_task.output_format, async_task.black_out_nsfw, False)
                 return
 
         if 'inpaint' in goals:
@@ -1407,14 +1397,27 @@ def process_generate(task: QueueTask):
                 current_progress = int(preparation_steps + (100 - preparation_steps) / float(all_steps) * async_task.steps * (current_task_id + 1))
                 images_to_enhance += imgs
 
-            except ldm_patched.modules.model_management.InterruptProcessingException:
-                if async_task.last_stop == 'skip':
-                    print('User skipped')
-                    async_task.last_stop = False
-                    continue
-                else:
-                    print('User stopped')
-                    break
+            except ldm_patched.modules.model_management.InterruptProcessingException as e:
+                logger.std_warn("[Fooocus] User stopped")
+                results.append(ImageGenerationResult(
+                    im=None, seed=task['task_seed'], finish_reason=GenerationFinishReason.user_cancel))
+                async_job.set_result([], True, str(e))
+                break
+                # break
+                # if async_task.last_stop == 'skip':
+                #     print('User skipped')
+                #     async_task.last_stop = False
+                #     continue
+                # else:
+                #     print('User stopped')
+                #     break
+            except Exception as e:
+                logger.std_error(f'[Fooocus] Process error: {e}')
+                logging.exception(e)
+                results.append(ImageGenerationResult(
+                    im=None, seed=task['task_seed'], finish_reason=GenerationFinishReason.error))
+                async_job.set_result([], True, str(e))
+                break
 
             del task['c'], task['uc']  # Save memory
             execution_time = time.perf_counter() - execution_start_time
@@ -1502,8 +1505,7 @@ def process_generate(task: QueueTask):
 
                 if async_task.debugging_enhance_masks_checkbox:
                     outputs.append(['preview', (current_progress, 'Loading ...', mask)])
-                    yield_result(async_task, mask, current_progress, async_task.black_out_nsfw, False,
-                                 async_task.disable_intermediate_results)
+                    yield_result(async_task, mask, tasks, async_task.output_format, async_task.black_out_nsfw, False)
                     async_task.enhance_stats[index] += 1
 
                 print(f'[Enhance] {dino_detection_count} boxes detected')
@@ -1573,15 +1575,15 @@ def process_generate(task: QueueTask):
 
         stop_processing(async_task, processing_start_time)
 
-        if task.finish_with_error:
-            worker_queue.finish_task(task.job_id)
-            return task.task_result
+        if async_job.finish_with_error:
+            worker_queue.finish_task(async_job.job_id)
+            return async_job.task_result
         yield_result(None, results, tasks, async_task.output_format, async_task.black_out_nsfw)
         return
     except Exception as e:
         logger.std_error(f'[Fooocus] Worker error: {e}')
 
-        if not task.is_finished:
-            task.set_result([], True, str(e))
-            worker_queue.finish_task(task.job_id)
-            logger.std_info(f"[Task Queue] Finish task with error, job_id={task.job_id}")
+        if not async_job.is_finished:
+            async_job.set_result([], True, str(e))
+            worker_queue.finish_task(async_job.job_id)
+            logger.std_info(f"[Task Queue] Finish task with error, job_id={async_job.job_id}")
