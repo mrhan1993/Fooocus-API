@@ -124,8 +124,8 @@ class ControlNetType(str, Enum):
 class ImagePrompt(BaseModel):
     """Common params object ImagePrompt"""
     cn_img: UploadFile | None = Field(default=None)
-    cn_stop: float | None = Field(default=None, ge=0, le=1)
-    cn_weight: float | None = Field(default=None, ge=0, le=2, description="None for default value")
+    cn_stop: float | None = Field(default=0.5, ge=0, le=1)
+    cn_weight: float | None = Field(default=0.6, ge=0, le=2, description="None for default value")
     cn_type: ControlNetType = Field(default=ControlNetType.cn_ip)
 
 

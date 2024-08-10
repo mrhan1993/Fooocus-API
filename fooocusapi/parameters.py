@@ -31,7 +31,7 @@ class ImageGenerationParams:
         outpaint_distance_right: int,
         outpaint_distance_top: int,
         outpaint_distance_bottom: int,
-        inpaint_input_image: Dict[str, np.ndarray] | None,
+        inpaint_input_image: Dict[str, np.ndarray | None],
         inpaint_additional_prompt: str | None,
         enhance_input_image: np.ndarray | None,
         enhance_checkbox: bool,
@@ -87,13 +87,14 @@ class ImageGenerationParams:
         self.require_base64 = require_base64
         self.advanced_params = advanced_params
 
+        self.current_tab = 'uov'
         if self.enhance_input_image is not None:
             self.current_tab = 'enhance'
         elif self.image_prompts[0][0] is not None:
             self.current_tab = 'ip'
         elif self.uov_input_image is not None:
             self.current_tab = 'uov'
-        elif self.inpaint_input_image is not None:
+        elif self.inpaint_input_image["image"] is not None:
             self.current_tab = 'inpaint'
 
         if self.advanced_params is None:

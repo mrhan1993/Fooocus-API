@@ -90,7 +90,7 @@ class AsyncTask:
         self.black_out_nsfw = adp.black_out_nsfw
         self.adm_scaler_positive = adp.adm_scaler_positive
         self.adm_scaler_negative = adp.adm_scaler_negative
-        self.adm_scaler_end = adp.scaler_end
+        self.adm_scaler_end = adp.adm_scaler_end
         self.adaptive_cfg = adp.adaptive_cfg
         self.clip_skip = adp.clip_skip
         self.sampler_name = adp.sampler_name
@@ -328,17 +328,17 @@ def process_generate(async_job: QueueTask):
 
         for ind, im in enumerate(images):
             if async_job.req_param.save_name == '':
-                image_name = f"{async_job.job_id}-{str(index)}"
+                image_name = f"{async_job.job_id}-{str(ind)}"
             else:
-                image_name = f"{async_job.req_param.save_name}-{str(index)}"
+                image_name = f"{async_job.req_param.save_name}-{str(ind)}"
             if len(tasks) == 0:
                 img_seed = -1
                 img_meta = {}
             else:
-                img_seed = tasks[index]['task_seed']
+                img_seed = tasks[ind]['task_seed']
                 img_meta = image_parse(
                     async_tak=async_task,
-                    task=tasks[index])
+                    task=tasks[ind])
             img_filename = save_output_file(
                 img=im,
                 image_name=image_name,
@@ -1219,7 +1219,7 @@ def process_generate(async_job: QueueTask):
         denoising_strength = 1.0
         tiled = False
 
-        width, height = async_task.aspect_ratios_selection.replace('×', ' ').split(' ')[:2]
+        width, height = async_task.aspect_ratios_selection.split('*')[:2]
         width, height = int(width), int(height)
 
         skip_prompt_processing = False
@@ -1581,8 +1581,8 @@ def process_generate(async_job: QueueTask):
         yield_result(None, results, tasks, async_task.output_format, async_task.black_out_nsfw)
         return
     except Exception as e:
-        logger.std_error(f'[Fooocus] Worker error: {e}')
-
+        # logger.std_error(f'[Fooocus] Worker error: {e}')
+        raise Exception(e)
         if not async_job.is_finished:
             async_job.set_result([], True, str(e))
             worker_queue.finish_task(async_job.job_id)

@@ -1,12 +1,14 @@
 """some utils for api"""
+import random
 from typing import List
 
+import numpy
 from fastapi import Response
 from fastapi.security import APIKeyHeader
 from fastapi import HTTPException, Security
 
-from fooocusapi.models.common.base import EnhanceCtrlNets
-from modules import flags
+from fooocusapi.models.common.base import EnhanceCtrlNets, ImagePrompt
+from modules import constants, flags
 from modules import config
 from modules.sdxl_styles import legal_style_names
 
@@ -51,18 +53,38 @@ from fooocusapi.configs.default import (
 
 from fooocusapi.parameters import ImageGenerationParams
 from fooocusapi.task_queue import QueueTask
-
+from modules.util import HWC3
 
 api_key_header = APIKeyHeader(name="X-API-KEY", auto_error=False)
+
+
+def refresh_seed(seed_string: int | str | None) -> int:
+    """
+    Refresh and check seed number.
+    :params seed_string: seed, str or int. None means random
+    :return: seed number
+    """
+    RANDOM_SEED = random.randint(constants.MIN_SEED, constants.MAX_SEED)
+    try:
+        seed_value = int(seed_string)
+    except ValueError:
+        return RANDOM_SEED
+
+    if seed_value < constants.MIN_SEED or seed_value > constants.MAX_SEED or seed_string == -1:
+        return RANDOM_SEED
+
+    return seed_value
 
 
 def check_models_exist(file_name: str, model_type: str) -> str:
     """
     Check if all models exist
     """
-    config.update_files()
+    if file_name in (None, 'None'):
+        return 'None'
 
-    if file_name not in (config.model_filenames, config.lora_filenames):
+    config.update_files()
+    if file_name not in (config.model_filenames + config.lora_filenames):
         logger.std_warn(f"[Warning] Wrong {model_type} model input: {file_name}, using default")
         if model_type == 'base':
             return default_base_model_name
@@ -101,7 +123,7 @@ def req_to_params(req: Text2ImgRequest) -> ImageGenerationParams:
     performance_selection = req.performance_selection.value
     aspect_ratios_selection = req.aspect_ratios_selection
     image_number = req.image_number
-    image_seed = None if req.image_seed == -1 else req.image_seed
+    image_seed = refresh_seed(req.image_seed)
     sharpness = req.sharpness
     guidance_scale = req.guidance_scale
     base_model_name = check_models_exist(req.base_model_name, 'base')
@@ -116,22 +138,25 @@ def req_to_params(req: Text2ImgRequest) -> ImageGenerationParams:
     upscale_value = None if not isinstance(req, (ImgUpscaleOrVaryRequest, ImgUpscaleOrVaryRequestJson)) else req.upscale_value
     outpaint_selections = [] if not isinstance(req, (ImgInpaintOrOutpaintRequest, ImgInpaintOrOutpaintRequestJson)) else [
         s.value for s in req.outpaint_selections]
-    outpaint_distance_left = None if not isinstance(req, (ImgInpaintOrOutpaintRequest, ImgInpaintOrOutpaintRequestJson)) else req.outpaint_distance_left
-    outpaint_distance_right = None if not isinstance(req, (ImgInpaintOrOutpaintRequest, ImgInpaintOrOutpaintRequestJson)) else req.outpaint_distance_right
-    outpaint_distance_top = None if not isinstance(req, (ImgInpaintOrOutpaintRequest, ImgInpaintOrOutpaintRequestJson)) else req.outpaint_distance_top
-    outpaint_distance_bottom = None if not isinstance(req, (ImgInpaintOrOutpaintRequest, ImgInpaintOrOutpaintRequestJson)) else req.outpaint_distance_bottom
+    outpaint_distance_left = 0 if not isinstance(req, (ImgInpaintOrOutpaintRequest, ImgInpaintOrOutpaintRequestJson)) else req.outpaint_distance_left
+    outpaint_distance_right = 0 if not isinstance(req, (ImgInpaintOrOutpaintRequest, ImgInpaintOrOutpaintRequestJson)) else req.outpaint_distance_right
+    outpaint_distance_top = 0 if not isinstance(req, (ImgInpaintOrOutpaintRequest, ImgInpaintOrOutpaintRequestJson)) else req.outpaint_distance_top
+    outpaint_distance_bottom = 0 if not isinstance(req, (ImgInpaintOrOutpaintRequest, ImgInpaintOrOutpaintRequestJson)) else req.outpaint_distance_bottom
 
     if refiner_model_name == '':
         refiner_model_name = 'None'
 
-    inpaint_input_image = None
+    inpaint_input_image = dict(image=None, mask=None)
     inpaint_additional_prompt = None
     if isinstance(req, (ImgInpaintOrOutpaintRequest, ImgInpaintOrOutpaintRequestJson)) and req.input_image is not None:
         inpaint_additional_prompt = req.inpaint_additional_prompt
         input_image = read_input_image(req.input_image)
-        input_mask = None
+
+        inpaint_image_size = input_image.shape[:2]
+        input_mask = numpy.zeros(inpaint_image_size, dtype=numpy.uint8)
         if req.input_mask is not None:
-            input_mask = read_input_image(req.input_mask)
+            input_mask = HWC3(read_input_image(req.input_mask))
+
         inpaint_input_image = {
             'image': input_image,
             'mask': input_mask
@@ -156,17 +181,20 @@ def req_to_params(req: Text2ImgRequest) -> ImageGenerationParams:
                     img_prompt.cn_weight = flags.default_parameters[img_prompt.cn_type.value][1]
                 image_prompts.append(
                     (cn_img, img_prompt.cn_stop, img_prompt.cn_weight, img_prompt.cn_type.value))
-    # 'enhance_input_image'
-    # 'enhance_checkbox'
-    # 'enhance_uov_method'
-    # 'enhance_uov_processing_order'
-    # 'enhance_uov_prompt_type'
+
+    if len(image_prompts) < config.default_controlnet_image_count:
+        dp = (None, 0.5, 0.6, 'ImagePrompt')
+        image_prompts += [dp] * (config.default_controlnet_image_count - len(image_prompts))
+
     enhance_input_image = None if not isinstance(req, (ImageEnhanceRequest, ImageEnhanceRequestJson)) else req.enhance_input_image
     enhance_checkbox = True
     enhance_uov_method = flags.disabled if not isinstance(req, (ImageEnhanceRequest, ImageEnhanceRequestJson)) else req.enhance_uov_method
-    enhance_uov_processing_order = flags.disabled if not isinstance(req, (ImageEnhanceRequest, ImageEnhanceRequestJson)) else req.enhance_uov_processing_order
-    enhance_uov_prompt_type = flags.disabled if not isinstance(req, (ImageEnhanceRequest, ImageEnhanceRequestJson)) else req.enhance_uov_prompt_type
-    enhance_ctrlnets = EnhanceCtrlNets() if not isinstance(req, (ImageEnhanceRequest, ImageEnhanceRequestJson)) else req.enhance_ctrlnets
+    enhance_uov_processing_order = "Before First Enhancement" if not isinstance(req, (ImageEnhanceRequest, ImageEnhanceRequestJson)) else req.enhance_uov_processing_order
+    enhance_uov_prompt_type = "Original Prompts" if not isinstance(req, (ImageEnhanceRequest, ImageEnhanceRequestJson)) else req.enhance_uov_prompt_type
+    if not isinstance(req, (ImageEnhanceRequest, ImageEnhanceRequestJson)):
+        enhance_ctrlnets = [EnhanceCtrlNets()] * config.default_enhance_tabs
+    else:
+        enhance_ctrlnets = req.enhance_ctrlnets
 
     advanced_params = None
     if req.advanced_params is not None:

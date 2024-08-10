@@ -231,7 +231,7 @@ def img_enhance(
 
     if len(req.enhance_ctrlnets) < 3:
         default_enhance_ctrlnet = [EnhanceCtrlNets()]
-        req.enhance_ctrlnets.extend(default_enhance_ctrlnet * (4 - len(req.enhance_ctrlnets)))
+        req.enhance_ctrlnets + (default_enhance_ctrlnet * (4 - len(req.enhance_ctrlnets)))
 
     return call_worker(req, accept)
 
