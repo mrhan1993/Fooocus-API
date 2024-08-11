@@ -10,6 +10,7 @@ Use for managing generated files
 """
 import base64
 import datetime
+import shutil
 from io import BytesIO
 import os
 import json
@@ -29,7 +30,7 @@ STATIC_SERVER_BASE = 'http://127.0.0.1:8888/files/'
 
 
 def save_output_file(
-        img: np.ndarray,
+        img: np.ndarray | str,
         image_meta: dict = None,
         image_name: str = '',
         extension: str = 'png') -> str:
@@ -48,6 +49,14 @@ def save_output_file(
 
     filename = os.path.join(date_string, image_name + '.' + extension)
     file_path = os.path.join(output_dir, filename)
+    os.makedirs(os.path.dirname(file_path), exist_ok=True)
+
+    try:
+        if isinstance(img, str):
+            shutil.move(img, file_path)
+        return Path(file_path).as_posix()
+    except Exception:
+        raise Exception
 
     if extension not in ['png', 'jpg', 'webp']:
         extension = 'png'
@@ -57,12 +66,11 @@ def save_output_file(
         image_meta = {}
 
     meta = None
-    if extension == 'png'and image_meta != {}:
+    if extension == 'png' and image_meta != {}:
         meta = PngInfo()
         meta.add_text("parameters", json.dumps(image_meta))
         meta.add_text("fooocus_scheme", image_meta['metadata_scheme'])
 
-    os.makedirs(os.path.dirname(file_path), exist_ok=True)
     Image.fromarray(img).save(
         file_path,
         format=image_format,
@@ -142,4 +150,4 @@ def get_file_serve_url(filename: str | None) -> str | None:
     """
     if filename is None:
         return None
-    return STATIC_SERVER_BASE + filename.replace('\\', '/')
+    return STATIC_SERVER_BASE + '/'.join(filename.split('/')[-2:])
