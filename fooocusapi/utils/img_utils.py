@@ -9,7 +9,7 @@ import base64
 from io import BytesIO
 from fastapi import UploadFile
 from PIL import Image
-
+import starlette
 import requests
 import numpy as np
 
@@ -111,7 +111,7 @@ def read_input_image(input_image: UploadFile | str | None) -> np.ndarray | None:
                 input_image = input_image.split(sep=',', maxsplit=1)[1]
             input_image_bytes = base64.b64decode(input_image)
 
-    if isinstance(input_image, UploadFile):
+    if isinstance(input_image, (UploadFile, starlette.datastructures.UploadFile)):
         input_image_bytes = input_image.file.read()
 
     pil_image = Image.open(BytesIO(input_image_bytes))

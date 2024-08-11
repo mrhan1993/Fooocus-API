@@ -153,7 +153,7 @@ def req_to_params(req: Text2ImgRequest) -> ImageGenerationParams:
         input_image = read_input_image(req.input_image)
 
         inpaint_image_size = input_image.shape[:2]
-        input_mask = numpy.zeros(inpaint_image_size, dtype=numpy.uint8)
+        input_mask = HWC3(numpy.zeros(inpaint_image_size, dtype=numpy.uint8))
         if req.input_mask is not None:
             input_mask = HWC3(read_input_image(req.input_mask))
 

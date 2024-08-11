@@ -342,7 +342,6 @@ def process_generate(async_job: QueueTask):
             img_filename = save_output_file(
                 img=im,
                 image_name=image_name,
-                image_meta={},
                 extension=extension)
             results.append(ImageGenerationResult(
                 im=img_filename,
@@ -1574,8 +1573,8 @@ def process_generate(async_job: QueueTask):
         return_result(async_task, tasks)
         return
     except Exception as e:
-        # logger.std_error(f'[Fooocus] Worker error: {e}')
+        raise e
         if not async_job.is_finished:
             async_job.set_result([], True, str(e))
             worker_queue.finish_task(async_job.job_id)
-            logger.std_info(f"[Task Queue] Finish task with error, job_id={async_job.job_id}")
+            logger.std_error(f"[Task Queue] Finish task with error: {e}, job_id={async_job.job_id}")

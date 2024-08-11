@@ -13,11 +13,9 @@ import datetime
 import shutil
 from io import BytesIO
 import os
-import json
 from pathlib import Path
 import numpy as np
 from PIL import Image
-from PIL.PngImagePlugin import PngInfo
 
 from fooocusapi.utils.logger import logger
 
@@ -31,14 +29,12 @@ STATIC_SERVER_BASE = 'http://127.0.0.1:8888/files/'
 
 def save_output_file(
         img: np.ndarray | str,
-        image_meta: dict = None,
         image_name: str = '',
         extension: str = 'png') -> str:
     """
     Save np image to file
     Args:
         img: np.ndarray image to save
-        image_meta: dict of image metadata
         image_name: str of image name
         extension: str of image extension
     Returns:
@@ -57,26 +53,6 @@ def save_output_file(
         return Path(file_path).as_posix()
     except Exception:
         raise Exception
-
-    if extension not in ['png', 'jpg', 'webp']:
-        extension = 'png'
-    image_format = Image.registered_extensions()['.'+extension]
-
-    if image_meta is None:
-        image_meta = {}
-
-    meta = None
-    if extension == 'png' and image_meta != {}:
-        meta = PngInfo()
-        meta.add_text("parameters", json.dumps(image_meta))
-        meta.add_text("fooocus_scheme", image_meta['metadata_scheme'])
-
-    Image.fromarray(img).save(
-        file_path,
-        format=image_format,
-        pnginfo=meta,
-        optimize=True)
-    return Path(filename).as_posix()
 
 
 def delete_output_file(filename: str):

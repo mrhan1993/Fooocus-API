@@ -175,7 +175,7 @@ class ImgPromptRequest(ImgInpaintOrOutpaintRequest):
             cls,
             input_image: UploadFile = Form(File(None), description="Init image for inpaint or outpaint"),
             input_mask: UploadFile = Form(File(None), description="Inpaint or outpaint mask"),
-            inpaint_additional_prompt: str | None = Form(None, description="Describe what you want to inpaint"),
+            inpaint_additional_prompt: str | None = Form(default='', description="Describe what you want to inpaint"),
             outpaint_selections: List[str] = Form([], description="Outpaint expansion selections, literal 'Left', 'Right', 'Top', 'Bottom' separated by comma"),
             outpaint_distance_left: int = Form(default=0, description="Set outpaint left distance, 0 for default"),
             outpaint_distance_right: int = Form(default=0, description="Set outpaint right distance, 0 for default"),
