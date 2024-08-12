@@ -17,7 +17,7 @@ from extras.inpaint_mask import SAMOptions, generate_mask_from_image
 from fooocusapi.models.common.image_meta import image_parse
 from fooocusapi.models.common.task import (
     GenerationFinishReason,
-    ImageGenerationResult
+    ImageGenerationResult, TaskType
 )
 from fooocusapi.parameters import ImageGenerationParams
 from fooocusapi.task_queue import (
@@ -332,12 +332,17 @@ def process_generate(async_job: QueueTask):
         """
         extension = async_job.req_param.save_extension
         for ind, im in enumerate(async_task.results):
+            if modules.config.temp_path in im:
+                continue
             if async_job.req_param.save_name == '':
                 image_name = f"{async_job.job_id}-{str(ind)}"
             else:
                 image_name = f"{async_job.req_param.save_name}-{str(ind)}"
 
-            img_seed = tasks[ind]['task_seed']
+            try:
+                img_seed = tasks[ind]['task_seed']
+            except Exception:
+                img_seed = async_task.seed
 
             img_filename = save_output_file(
                 img=im,
@@ -1113,6 +1118,7 @@ def process_generate(async_job: QueueTask):
         tasks_enhance, use_expansion, loras, current_progress = process_prompt(
             async_task, prompt, negative_prompt, base_model_additional_loras, 1, True,
             use_expansion, use_style, use_synthetic_refiner, current_progress)
+        tasks.extend(tasks_enhance)
         task_enhance = tasks_enhance[0]
         # TODO could support vary, upscale and CN in the future
         # if 'cn' in goals:
@@ -1570,7 +1576,6 @@ def process_generate(async_job: QueueTask):
         if async_job.finish_with_error:
             worker_queue.finish_task(async_job.job_id)
             return async_job.task_result
-        return_result(async_task, tasks)
         return
     except Exception as e:
         raise e

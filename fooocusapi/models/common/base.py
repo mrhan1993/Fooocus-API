@@ -62,7 +62,7 @@ class MaskModel(str, Enum):
 
 class EnhanceCtrlNets(BaseModel):
     enhance_enabled: bool = Field(default=False, description="Enable enhance control nets")
-    enhance_mask_dino_prompt: str = Field(default="", description="Mask dino prompt")
+    enhance_mask_dino_prompt: str = Field(default="face", description="Mask dino prompt, this is necessary, error if no value. usual values: face, eye, mouth, hair, hand, body")
     enhance_prompt: str = Field(default="", description="Prompt")
     enhance_negative_prompt: str = Field(default="", description="Negative prompt")
     enhance_mask_model: MaskModel = Field(default=MaskModel.sam, description="Mask model")
@@ -97,6 +97,7 @@ class GenerateMaskRequest(BaseModel):
 
 class UpscaleOrVaryMethod(str, Enum):
     """Upscale or Vary method"""
+    disabled = 'Disabled'
     subtle_variation = 'Vary (Subtle)'
     strong_variation = 'Vary (Strong)'
     upscale_15 = 'Upscale (1.5x)'

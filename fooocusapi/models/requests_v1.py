@@ -293,7 +293,7 @@ class ImageEnhanceRequest(CommonRequest):
             enhance_uov_processing_order: str = Form(default="Before First Enhancement", description="Upscale or vary processing order"),
             enhance_uov_prompt_type: str = Form(default="Original Prompts", description="Upscale or vary prompt type"),
 
-            enhance_enabled_1: bool = Form(default=True, description="Enhance checkbox 1"),
+            enhance_enabled_1: bool = Form(default=False, description="Enhance checkbox 1"),
             enhance_mask_dino_prompt_1: str = Form(default="", description="Mask dino prompt"),
             enhance_prompt_1: str = Form(default="", description="Prompt"),
             enhance_negative_prompt_1: str = Form(default="", description="Negative prompt"),
@@ -310,7 +310,7 @@ class ImageEnhanceRequest(CommonRequest):
             enhance_inpaint_erode_or_dilate_1: float = Form(default=0, ge=-64, le=64, description="Inpaint erode or dilate"),
             enhance_mask_invert_1: bool = Form(default=False, description="Inpaint mask invert"),
 
-            enhance_enabled_2: bool = Form(default=True, description="Enhance checkbox 1"),
+            enhance_enabled_2: bool = Form(default=False, description="Enhance checkbox 2"),
             enhance_mask_dino_prompt_2: str = Form(default="", description="Mask dino prompt"),
             enhance_prompt_2: str = Form(default="", description="Prompt"),
             enhance_negative_prompt_2: str = Form(default="", description="Negative prompt"),
@@ -327,7 +327,7 @@ class ImageEnhanceRequest(CommonRequest):
             enhance_inpaint_erode_or_dilate_2: float = Form(default=0, ge=-64, le=64, description="Inpaint erode or dilate"),
             enhance_mask_invert_2: bool = Form(default=False, description="Inpaint mask invert"),
 
-            enhance_enabled_3: bool = Form(default=True, description="Enhance checkbox 1"),
+            enhance_enabled_3: bool = Form(default=False, description="Enhance checkbox 3"),
             enhance_mask_dino_prompt_3: str = Form(default="", description="Mask dino prompt"),
             enhance_prompt_3: str = Form(default="", description="Prompt"),
             enhance_negative_prompt_3: str = Form(default="", description="Negative prompt"),

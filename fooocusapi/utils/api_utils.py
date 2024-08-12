@@ -186,7 +186,7 @@ def req_to_params(req: Text2ImgRequest) -> ImageGenerationParams:
         dp = (None, 0.5, 0.6, 'ImagePrompt')
         image_prompts += [dp] * (config.default_controlnet_image_count - len(image_prompts))
 
-    enhance_input_image = None if not isinstance(req, (ImageEnhanceRequest, ImageEnhanceRequestJson)) else req.enhance_input_image
+    enhance_input_image = None if not isinstance(req, (ImageEnhanceRequest, ImageEnhanceRequestJson)) else read_input_image(req.enhance_input_image)
     enhance_checkbox = True
     enhance_uov_method = flags.disabled if not isinstance(req, (ImageEnhanceRequest, ImageEnhanceRequestJson)) else req.enhance_uov_method
     enhance_uov_processing_order = "Before First Enhancement" if not isinstance(req, (ImageEnhanceRequest, ImageEnhanceRequestJson)) else req.enhance_uov_processing_order
