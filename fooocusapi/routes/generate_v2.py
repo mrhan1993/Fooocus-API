@@ -4,10 +4,11 @@
 from typing import List
 from fastapi import APIRouter, Depends, Header, Query
 
+from fooocusapi.models.common.base import EnhanceCtrlNets, GenerateMaskRequest
 from fooocusapi.utils.api_utils import api_key_auth
 from fooocusapi.models.requests_v1 import ImagePrompt
 from fooocusapi.models.requests_v2 import (
-    ImgInpaintOrOutpaintRequestJson,
+    ImageEnhanceRequestJson, ImgInpaintOrOutpaintRequestJson,
     ImgPromptRequestJson,
     Text2ImgRequestWithPrompt,
     ImgUpscaleOrVaryRequestJson
@@ -16,7 +17,10 @@ from fooocusapi.models.common.response import (
     AsyncJobResponse,
     GeneratedImageResult
 )
-from fooocusapi.utils.call_worker import call_worker
+from fooocusapi.utils.call_worker import (
+    call_worker,
+    generate_mask as gm
+)
 from fooocusapi.utils.img_utils import base64_to_stream
 from fooocusapi.configs.default import img_generate_responses
 
@@ -197,3 +201,47 @@ def img_prompt(
     req.image_prompts = image_prompts_files
 
     return call_worker(req, accept)
+
+
+@secure_router.post(
+        path="/v2/generation/image-enhance",
+        response_model=List[GeneratedImageResult] | AsyncJobResponse,
+        responses=img_generate_responses,
+        tags=["GenerateV2"])
+def img_enhance(
+    req: ImageEnhanceRequestJson,
+    accept: str = Header(None),
+    accept_query: str | None = Query(
+        None, alias='accept',
+        description="Parameter to override 'Accept' header, 'image/png' for output bytes")):
+    """\nImage prompt\n
+    Image prompt generation
+    Arguments:
+        req {ImageEnhanceRequestJson} -- Request body
+        accept {str} -- Accept header
+        accept_query {str} -- Parameter to override 'Accept' header, 'image/png' for output bytes
+    Returns:
+        Response -- img_generate_responses
+    """
+    if accept_query is not None and len(accept_query) > 0:
+        accept = accept_query
+
+    if req.enhance_input_image is not None:
+        req.enhance_input_image = base64_to_stream(req.enhance_input_image)
+
+    if len(req.enhance_ctrlnets) < 3:
+        default_enhance_ctrlnet = [EnhanceCtrlNets()]
+        req.enhance_ctrlnets + (default_enhance_ctrlnet * (4 - len(req.enhance_ctrlnets)))
+
+    return call_worker(req, accept)
+
+
+@secure_router.post(
+    path="/v1/tools/generate_mask",
+    summary="Generate mask endpoint",
+    tags=["GenerateV1"])
+async def generate_mask(mask_options: GenerateMaskRequest) -> str:
+    """
+    Generate mask endpoint
+    """
+    return await gm(request=mask_options)

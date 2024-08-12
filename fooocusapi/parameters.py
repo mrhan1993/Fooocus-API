@@ -2,7 +2,9 @@ from typing import Dict, List, Tuple
 import numpy as np
 import copy
 
+from fooocusapi.models.common.base import EnhanceCtrlNets
 from fooocusapi.models.common.requests import AdvancedParams
+from modules import config
 
 
 class ImageGenerationParams:
@@ -20,7 +22,7 @@ class ImageGenerationParams:
         base_model_name: str,
         refiner_model_name: str,
         refiner_switch: float,
-        loras: List[Tuple[str, float]],
+        loras: List[Tuple[bool, str, float]],
         uov_input_image: np.ndarray | None,
         uov_method: str,
         upscale_value: float | None,
@@ -29,10 +31,17 @@ class ImageGenerationParams:
         outpaint_distance_right: int,
         outpaint_distance_top: int,
         outpaint_distance_bottom: int,
-        inpaint_input_image: Dict[str, np.ndarray] | None,
+        inpaint_input_image: Dict[str, np.ndarray | None],
         inpaint_additional_prompt: str | None,
+        enhance_input_image: np.ndarray | None,
+        enhance_checkbox: bool,
+        enhance_uov_method: str,
+        enhance_uov_processing_order,
+        enhance_uov_prompt_type,
+        enhance_ctrlnets: List[EnhanceCtrlNets],
         image_prompts: List[Tuple[np.ndarray, float, float, str]],
-        advanced_params: List[any] | None,
+        read_wildcards_in_order: bool,
+        advanced_params: AdvancedParams | None,
         save_extension: str,
         save_meta: bool,
         meta_scheme: str,
@@ -51,7 +60,7 @@ class ImageGenerationParams:
         self.base_model_name = base_model_name
         self.refiner_model_name = refiner_model_name
         self.refiner_switch = refiner_switch
-        self.loras = loras
+        self.loras = loras[:config.default_max_lora_number] if len(loras) > config.default_max_lora_number else loras
         self.uov_input_image = uov_input_image
         self.uov_method = uov_method
         self.upscale_value = upscale_value
@@ -62,13 +71,31 @@ class ImageGenerationParams:
         self.outpaint_distance_bottom = outpaint_distance_bottom
         self.inpaint_input_image = inpaint_input_image
         self.inpaint_additional_prompt = inpaint_additional_prompt
-        self.image_prompts = image_prompts
+        self.image_prompts = image_prompts[:config.default_controlnet_image_count] if len(image_prompts) > config.default_controlnet_image_count else image_prompts
+        self.enhance_input_image = enhance_input_image
+        self.enhance_checkbox = enhance_checkbox
+        self.enhance_uov_method = enhance_uov_method
+        self.enhance_uov_processing_order = enhance_uov_processing_order
+        self.enhance_uov_prompt_type = enhance_uov_prompt_type
+        self.enhance_ctrlnets = enhance_ctrlnets[:config.default_enhance_tabs] if len(enhance_ctrlnets) > config.default_enhance_tabs else enhance_ctrlnets
+        self.current_tab = None
+        self.read_wildcards_in_order = read_wildcards_in_order
         self.save_extension = save_extension
         self.save_meta = save_meta
         self.meta_scheme = meta_scheme
         self.save_name = save_name
         self.require_base64 = require_base64
         self.advanced_params = advanced_params
+
+        self.current_tab = 'uov'
+        if self.enhance_input_image is not None:
+            self.current_tab = 'enhance'
+        elif self.image_prompts[0][0] is not None:
+            self.current_tab = 'ip'
+        elif self.uov_input_image is not None:
+            self.current_tab = 'uov'
+        elif self.inpaint_input_image["image"] is not None:
+            self.current_tab = 'inpaint'
 
         if self.advanced_params is None:
             self.advanced_params = AdvancedParams()
