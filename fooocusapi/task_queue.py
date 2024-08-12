@@ -268,11 +268,15 @@ class TaskQueue:
             # save history to database
             if self.persistent:
                 from fooocusapi.sql_client import add_history
-
                 add_history(
                     params=task.req_param.to_dict(),
-                    task_type=task.task_type.value,
-                    task_id=task.job_id,
+                    task_info=dict(
+                        task_type=task.task_type.value,
+                        task_id=task.job_id,
+                        task_in_queue_mills=task.in_queue_mills,
+                        task_start_mills=task.start_mills,
+                        task_finish_mills=task.finish_mills,
+                    ),
                     result_url=",".join([job["url"] for job in data["job_result"]]),
                     finish_reason=task.task_result[0].finish_reason.value,
                 )

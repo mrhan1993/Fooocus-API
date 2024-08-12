@@ -61,6 +61,9 @@ class JobHistoryInfo(BaseModel):
     job history info
     """
     job_id: str
+    in_queue_mills: int
+    start_mills: int
+    finish_mills: int
     is_finished: bool = False
 
 

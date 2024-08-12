@@ -93,7 +93,7 @@ def base64_to_stream(image: str) -> UploadFile | None:
     Returns:
         UploadFile or None
     """
-    if image == '':
+    if image in ['', None, 'None', 'none', 'string', 'null']:
         return None
     if image.startswith('http'):
         return get_check_image(url=image)
