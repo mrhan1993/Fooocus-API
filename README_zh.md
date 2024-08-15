@@ -19,22 +19,11 @@
 - [License](#license)
 - [感谢 :purple\_heart:](#感谢-purple_heart)
 
-如果是第一次使用，推荐使用重写后的新项目 [FooocusAPI](https://github.com/mrhan1993/FooocusAPI)
-
-我还准备了一个[迁移指南](./docs/migrate_zh.md)
-
-# :warning: 兼容性警告 :warning:
-
-如果是从 0.3.x 版本升级到 0.4.0 版本，请务必阅读以下兼容性说明：
-
-1. 如果你使用的是外部 Fooocus 模型（即模型不是位于 `repositories/Fooocus/models` 目录下），直接删除 `repositories` 目录，然后执行 `git pull` 更新即可
-2. 如果不是上述方式，将 `repositories/Fooocus/models` 目录移动到任意目录，删除 `repositories` 目录，然后执行 `git pull` 更新，完成后将 `models` 目录移动回原位置
-
 # 简介
 
 使用 FastAPI 构建的 [Fooocus](https://github.com/lllyasviel/Fooocus) 的 API。
 
-当前支持的 Fooocus 版本: [2.3.1](https://github.com/lllyasviel/Fooocus/blob/main/update_log.md)。
+当前支持的 Fooocus 版本: [2.5.3](https://github.com/lllyasviel/Fooocus/blob/main/update_log.md)。
 
 ## Fooocus
 

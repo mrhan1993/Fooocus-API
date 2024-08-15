@@ -285,12 +285,21 @@ def add_history(
     params["result_url"] = result_url
     params["finish_reason"] = finish_reason
 
+    del params["enhance_input_image"]
+    del params["enhance_checkbox"]
+    del params["enhance_uov_method"]
+    del params["enhance_uov_processing_order"]
+    del params["enhance_uov_prompt_type"]
+    del params["save_final_enhanced_image_only"]
+    del params["enhance_ctrlnets"]
     del params["inpaint_input_image"]
     del params["uov_input_image"]
     del params["save_extension"]
     del params["save_meta"]
     del params["save_name"]
     del params["meta_scheme"]
+    del params["read_wildcards_in_order"]
+    del params["current_tab"]
 
     db.store_history(params)
 

@@ -19,17 +19,6 @@
 - [License](#license)
 - [Thanks :purple\_heart:](#thanks-purple_heart)
 
-If this is the first time to use it, it is recommended to use a rewritten new project [FooocusAPI](https://github.com/mrhan1993/FooocusAPI)
-
-A migration guide is provided [here](./docs/migrate.md).
-
-# :warning: Compatibility warning :warning:
-
-When upgrading from version 3.x to version 4.0, please read the following incompatibility notes:
-
-1. If you are using an external Fooocus model (that is, the model is not located in the `repositories` directory), delete the `repositories` directory directly, and then update the `git pull`.
-2. If not, move the `repositories` directory to any directory, delete the `repositories` directory, then update the `git pull`, and move the `models` directory back to its original location when it is finished.
-
 # Introduction
 
 FastAPI powered API for [Fooocus](https://github.com/lllyasviel/Fooocus).

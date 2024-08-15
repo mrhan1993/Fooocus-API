@@ -38,6 +38,7 @@ class ImageGenerationParams:
         enhance_uov_method: str,
         enhance_uov_processing_order,
         enhance_uov_prompt_type,
+        save_final_enhanced_image_only,
         enhance_ctrlnets: List[EnhanceCtrlNets],
         image_prompts: List[Tuple[np.ndarray, float, float, str]],
         read_wildcards_in_order: bool,
@@ -77,6 +78,7 @@ class ImageGenerationParams:
         self.enhance_uov_method = enhance_uov_method
         self.enhance_uov_processing_order = enhance_uov_processing_order
         self.enhance_uov_prompt_type = enhance_uov_prompt_type
+        self.save_final_enhanced_image_only = save_final_enhanced_image_only
         self.enhance_ctrlnets = enhance_ctrlnets[:config.default_enhance_tabs] if len(enhance_ctrlnets) > config.default_enhance_tabs else enhance_ctrlnets
         self.current_tab = None
         self.read_wildcards_in_order = read_wildcards_in_order

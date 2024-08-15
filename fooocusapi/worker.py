@@ -124,7 +124,7 @@ class AsyncTask:
         self.inpaint_advanced_masking_checkbox = adp.inpaint_advanced_masking_checkbox
         self.invert_mask_checkbox = adp.invert_mask_checkbox
         self.inpaint_erode_or_dilate = adp.inpaint_erode_or_dilate
-        self.save_final_enhanced_image_only = adp.save_final_enhanced_image_only if not args_manager.args.disable_image_log else False
+        self.save_final_enhanced_image_only = args.save_final_enhanced_image_only if not args_manager.args.disable_image_log else False
         self.save_metadata_to_images = args.save_meta
         self.metadata_scheme = MetadataScheme(
             args.meta_scheme) if not args_manager.args.disable_metadata else MetadataScheme.FOOOCUS

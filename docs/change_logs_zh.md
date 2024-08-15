@@ -1,7 +1,11 @@
 # ChangeLog for Fooocus-API
 
-## [UNRELEASE]
+## [v0.5.0.1]
 ### Changed
+- 合并到 Fooocus 2.5.3
+- 增加图像增强接口
+- 增加遮罩生成接口
+- 受 Fooocus 影响，重构了 worker.py
 - 更新文档
 - 返回数据中的 base64 字符串现在包含图像标识符，比如 `data:image/jpeg;base64,`
 

@@ -186,11 +186,21 @@ def req_to_params(req: Text2ImgRequest) -> ImageGenerationParams:
         dp = (None, 0.5, 0.6, 'ImagePrompt')
         image_prompts += [dp] * (config.default_controlnet_image_count - len(image_prompts))
 
-    enhance_input_image = None if not isinstance(req, (ImageEnhanceRequest, ImageEnhanceRequestJson)) else read_input_image(req.enhance_input_image)
-    enhance_checkbox = True
-    enhance_uov_method = flags.disabled if not isinstance(req, (ImageEnhanceRequest, ImageEnhanceRequestJson)) else req.enhance_uov_method
-    enhance_uov_processing_order = "Before First Enhancement" if not isinstance(req, (ImageEnhanceRequest, ImageEnhanceRequestJson)) else req.enhance_uov_processing_order
-    enhance_uov_prompt_type = "Original Prompts" if not isinstance(req, (ImageEnhanceRequest, ImageEnhanceRequestJson)) else req.enhance_uov_prompt_type
+    if isinstance(req, (ImageEnhanceRequest, ImageEnhanceRequestJson)):
+        enhance_checkbox = True
+        enhance_input_image = read_input_image(req.enhance_input_image)
+        enhance_uov_method = req.enhance_uov_method
+        enhance_uov_processing_order = req.enhance_uov_processing_order
+        enhance_uov_prompt_type = req.enhance_uov_prompt_type
+        save_final_enhanced_image_only = True
+    else:
+        enhance_checkbox = False
+        enhance_input_image = None
+        enhance_uov_method = flags.disabled
+        enhance_uov_processing_order = "Before First Enhancement"
+        enhance_uov_prompt_type = "Original Prompts"
+        save_final_enhanced_image_only = False
+
     if not isinstance(req, (ImageEnhanceRequest, ImageEnhanceRequestJson)):
         enhance_ctrlnets = [EnhanceCtrlNets()] * config.default_enhance_tabs
     else:
@@ -247,6 +257,7 @@ def req_to_params(req: Text2ImgRequest) -> ImageGenerationParams:
         enhance_uov_method=enhance_uov_method,
         enhance_uov_processing_order=enhance_uov_processing_order,
         enhance_uov_prompt_type=enhance_uov_prompt_type,
+        save_final_enhanced_image_only=save_final_enhanced_image_only,
         enhance_ctrlnets=enhance_ctrlnets,
         read_wildcards_in_order=req.read_wildcards_in_order,
         image_prompts=image_prompts,
