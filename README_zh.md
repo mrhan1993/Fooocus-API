@@ -19,6 +19,63 @@
 - [License](#license)
 - [感谢 :purple\_heart:](#感谢-purple_heart)
 
+
+> 注意：
+>
+> Fooocus 2.5 包含大量更新，其中多数依赖进行了升级，因此，更新后请不要使用 `--skip-pip`. 除非你已经进行过手动更新
+>
+> 此外, `groundingdino-py` 可能会遇到安装错误, 特别是在中文 windows 环境中, 解决办法参考: [issues](https://github.com/IDEA-Research/GroundingDINO/issues/206)
+
+# ImageEnhance 接口的使用说明
+
+以下面的参数为例，它包含了 ImageEnhance 所需要的主要参数，V1 接口采用和 ImagePrompt 类似的方式将 enhance 控制器拆分成表单形式：
+
+```python
+{
+  "enhance_input_image": "",
+  "enhance_checkbox": true,
+  "enhance_uov_method": "Vary (Strong)",
+  "enhance_uov_processing_order": "Before First Enhancement",
+  "enhance_uov_prompt_type": "Original Prompts",
+  "save_final_enhanced_image_only": true,
+  "enhance_ctrlnets": [
+    {
+      "enhance_enabled": false,
+      "enhance_mask_dino_prompt": "face",
+      "enhance_prompt": "",
+      "enhance_negative_prompt": "",
+      "enhance_mask_model": "sam",
+      "enhance_mask_cloth_category": "full",
+      "enhance_mask_sam_model": "vit_b",
+      "enhance_mask_text_threshold": 0.25,
+      "enhance_mask_box_threshold": 0.3,
+      "enhance_mask_sam_max_detections": 0,
+      "enhance_inpaint_disable_initial_latent": false,
+      "enhance_inpaint_engine": "v2.6",
+      "enhance_inpaint_strength": 1,
+      "enhance_inpaint_respective_field": 0.618,
+      "enhance_inpaint_erode_or_dilate": 0,
+      "enhance_mask_invert": false
+    }
+  ]
+}
+```
+
+- enhance_input_image：需要增强的图像，如果是 v2 接口，可以提供一个图像 url，必选
+- enhance_checkbox：总开关，使用 enhance image 必须设置为 true
+- save_final_enhanced_image_only：图像增强是一个管道作业，因此会产生多个结果图像，使用该参数仅返回最终图像
+
+有三个和 UpscaleVary 相关的参数，其作用是执行增强之前或完成增强之后执行 Upscale 或 Vary
+
+- enhance_uov_method：和 UpscaleOrVary 接口一样，Disabled 是关闭
+- enhance_uov_processing_order：在增强之前处理还是处理增强后的图像
+- enhance_uov_prompt_type：我也不知道具体作用，对着 WebUI 研究研究🧐
+
+`enhance_ctrlnets` 元素为 ImageEnhance 控制器对象列表，该列表最多包含 3 个元素，多余会被丢弃。参数和 WebUI 基本一一对应，需要注意的参数是：
+
+- enhance_enabled：参数控制该 enhance 控制器是否工作，如果没有开启的 enhance 控制器，任务会被跳过
+- enhance_mask_dino_prompt：该参数必选，表示需要增强的部位，如果该参数为空，即便 enhance 控制器处于开启状态，也会跳过
+
 # 简介
 
 使用 FastAPI 构建的 [Fooocus](https://github.com/lllyasviel/Fooocus) 的 API。
