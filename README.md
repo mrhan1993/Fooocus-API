@@ -25,6 +25,9 @@
 >
 > Additionally, `groundingdino-py` may encounter installation errors, especially in Chinese Windows environments. The solution can be found in the following [issue](https://github.com/IDEA-Research/GroundingDINO/issues/206).
 
+
+> GenerateMask is same as DescribeImage, It is not process as a task, result will directly return
+
 # Instructions for Using the ImageEnhance Interface
 Below are examples of parameters that include the main parameters required for ImageEnhance. The V1 interface adopts a form-like approach similar to ImagePrompt to break down the enhance controller.
 

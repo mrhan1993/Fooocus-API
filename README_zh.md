@@ -26,6 +26,8 @@
 >
 > 此外, `groundingdino-py` 可能会遇到安装错误, 特别是在中文 windows 环境中, 解决办法参考: [issues](https://github.com/IDEA-Research/GroundingDINO/issues/206)
 
+> 和 DescribeImage 一样，GenerateMask 不会作为 task 处理而是直接返回结果
+
 # ImageEnhance 接口的使用说明
 
 以下面的参数为例，它包含了 ImageEnhance 所需要的主要参数，V1 接口采用和 ImagePrompt 类似的方式将 enhance 控制器拆分成表单形式：
