@@ -22,6 +22,8 @@
 
 > 注意：
 >
+> 尽管我进行了测试，但我仍建议你在正式更新前再测一遍
+>
 > Fooocus 2.5 包含大量更新，其中多数依赖进行了升级，因此，更新后请不要使用 `--skip-pip`. 除非你已经进行过手动更新
 >
 > 此外, `groundingdino-py` 可能会遇到安装错误, 特别是在中文 windows 环境中, 解决办法参考: [issues](https://github.com/IDEA-Research/GroundingDINO/issues/206)

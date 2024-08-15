@@ -47,3 +47,4 @@ outputs
 
 #other
 *.http
+hash_cache.txt

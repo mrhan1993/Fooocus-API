@@ -21,6 +21,8 @@
 
 > Note:
 >
+> Although I tested it, I still suggest you test it again before the official update
+>
 > Fooocus 2.5 includes a significant update, with most dependencies upgraded. Therefore, after updating, do not use `--skip-pip` unless you have already performed a manual update.
 >
 > Additionally, `groundingdino-py` may encounter installation errors, especially in Chinese Windows environments. The solution can be found in the following [issue](https://github.com/IDEA-Research/GroundingDINO/issues/206).
