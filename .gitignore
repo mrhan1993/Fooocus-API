@@ -34,6 +34,7 @@ config.txt
 config_modification_tutorial.txt
 user_path_config.txt
 user_path_config-deprecated.txt
+hash_cache.txt
 
 sorted_styles.json
 /presets

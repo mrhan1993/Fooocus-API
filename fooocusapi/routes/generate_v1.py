@@ -12,7 +12,7 @@ from fooocusapi.utils.api_utils import api_key_auth
 
 from fooocusapi.models.common.requests import CommonRequest as Text2ImgRequest
 from fooocusapi.models.requests_v1 import (
-    ImgUpscaleOrVaryRequest,
+    ImageEnhanceRequest, ImgUpscaleOrVaryRequest,
     ImgPromptRequest,
     ImgInpaintOrOutpaintRequest
 )
@@ -136,6 +136,35 @@ def img_prompt(
     Arguments:
         cn_img1 {UploadFile} -- Input image file
         req {ImgPromptRequest} -- Request body
+        accept {str} -- Accept header
+        accept_query {str} -- Parameter to override 'Accept' header, 'image/png' for output bytes
+    Returns:
+        Response -- img_generate_responses
+    """
+    if accept_query is not None and len(accept_query) > 0:
+        accept = accept_query
+
+    return call_worker(req, accept)
+
+
+@secure_router.post(
+        path="/v1/generation/image-enhance",
+        response_model=List[GeneratedImageResult] | AsyncJobResponse,
+        responses=img_generate_responses,
+        tags=["GenerateV1"])
+def img_prompt(
+    enhance_input_image: Optional[UploadFile] = File(None),
+    req: ImageEnhanceRequest = Depends(ImageEnhanceRequest.as_form),
+    accept: str = Header(None),
+    accept_query: str | None = Query(
+        None, alias='accept',
+        description="Parameter to override 'Accept' header, 'image/png' for output bytes")):
+    """\nImage Prompt\n
+    Image Prompt
+    A prompt-based image generation.
+    Arguments:
+        enhance_input_image {UploadFile} -- Input image file
+        req {ImageEnhanceRequest} -- Request body
         accept {str} -- Accept header
         accept_query {str} -- Parameter to override 'Accept' header, 'image/png' for output bytes
     Returns:

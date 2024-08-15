@@ -1,9 +1,13 @@
 # ChangeLog for Fooocus-API
 
-## [UNRELEASE]
+## [v0.5.0.1]
 ### Changed
+- Fooocus to v2.5.3
+- Add enhance image endpoint
+- Add generate mask endpoint
+- Influenced by Fooocus, the worker.py was reconstructed
 - Update docs
-- Returnd base64 str now include identifier like this `data:image/jpeg;base64,`
+- Returned base64 str now include identifier like this `data:image/jpeg;base64,`
 
 ### Fixed
 - Issue #375

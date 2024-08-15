@@ -230,3 +230,59 @@ t2i_ip_params = {
 
 t2i_ip_result = text2image_image_prompt(params=t2i_ip_params)
 print(json.dumps(t2i_ip_result))
+
+# ################################################################
+# Image Enhance
+# ################################################################
+
+# Image Enhance
+
+import requests
+import json
+
+url = "http://localhost:8888/v2/generation/image-enhance"
+
+headers = {
+    "Content-Type": "application/json"
+}
+
+data = {
+    "enhance_input_image": "https://raw.githubusercontent.com/mrhan1993/Fooocus-API/main/examples/imgs/source_face_man.png",
+    "enhance_checkbox": True,
+    "enhance_uov_method": "Vary (Strong)",
+    "enhance_uov_processing_order": "Before First Enhancement",
+    "enhance_uov_prompt_type": "Original Prompts",
+    "enhance_ctrlnets": [
+        {
+            "enhance_enabled": True,
+            "enhance_mask_dino_prompt": "face",
+            "enhance_prompt": "",
+            "enhance_negative_prompt": "",
+            "enhance_mask_model": "sam",
+            "enhance_mask_cloth_category": "full",
+            "enhance_mask_sam_model": "vit_b",
+            "enhance_mask_text_threshold": 0.25,
+            "enhance_mask_box_threshold": 0.3,
+            "enhance_mask_sam_max_detections": 0,
+            "enhance_inpaint_disable_initial_latent": False,
+            "enhance_inpaint_engine": "v2.6",
+            "enhance_inpaint_strength": 1.0,
+            "enhance_inpaint_respective_field": 0.618,
+            "enhance_inpaint_erode_or_dilate": 0.0,
+            "enhance_mask_invert": False
+        }
+    ]
+}
+
+response = requests.post(
+    url,
+    headers=headers,
+    data=json.dumps(data),
+    timeout=180)
+
+if response.status_code == 200:
+    print("Request successful!")
+    print("Response:", response.json())
+else:
+    print("Request failed with status code:", response.status_code)
+    print("Response:", response.text)

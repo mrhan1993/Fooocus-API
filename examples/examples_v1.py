@@ -228,3 +228,39 @@ ip_result = image_prompt(
     cn_img2=ImageList.image_prompt_1,
 )
 print(json.dumps(ip_result))
+
+# ###############################################################
+# Image Enhance
+# ################################################################
+
+# Image Enhance
+
+import requests
+
+url = "http://localhost:8888/v1/generation/image-enhance"
+
+# Define the file path and other form data
+file_path = "./examples/imgs/source_face_man.png"
+form_data = {
+    "enhance_checkbox": True,
+    "enhance_uov_method": "Disabled",
+    "enhance_enabled_1": True,
+    "enhance_mask_dino_prompt_1": "face",
+    "enhance_enabled_2": True,
+    "enhance_mask_dino_prompt_2": "eyes",
+}
+
+# Open the file and prepare it for the request
+with open(file_path, "rb") as f:
+    image = f.read()
+    f.close()
+
+# Send the request
+response = requests.post(
+    url,
+    files={"enhance_input_image": image},
+    data=form_data,
+    timeout=180)
+
+# Print the response content
+print(response.text)

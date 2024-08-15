@@ -17,7 +17,7 @@ args_parser.parser.add_argument("--disable-offload-from-vram", action="store_tru
 
 args_parser.parser.add_argument("--theme", type=str, help="launches the UI with light or dark theme", default=None)
 args_parser.parser.add_argument("--disable-image-log", action='store_true',
-                                help="Prevent writing images and logs to hard drive.")
+                                help="Prevent writing images and logs to the outputs folder.")
 
 args_parser.parser.add_argument("--disable-analytics", action='store_true',
                                 help="Disables analytics for Gradio.")
@@ -28,11 +28,17 @@ args_parser.parser.add_argument("--disable-metadata", action='store_true',
 args_parser.parser.add_argument("--disable-preset-download", action='store_true',
                                 help="Disables downloading models for presets", default=False)
 
-args_parser.parser.add_argument("--enable-describe-uov-image", action='store_true',
-                                help="Disables automatic description of uov images when prompt is empty", default=False)
+args_parser.parser.add_argument("--disable-enhance-output-sorting", action='store_true',
+                                help="Disables enhance output sorting for final image gallery.")
+
+args_parser.parser.add_argument("--enable-auto-describe-image", action='store_true',
+                                help="Enables automatic description of uov and enhance image when prompt is empty", default=False)
 
 args_parser.parser.add_argument("--always-download-new-model", action='store_true',
-                                help="Always download newer models ", default=False)
+                                help="Always download newer models", default=False)
+
+args_parser.parser.add_argument("--rebuild-hash-cache", help="Generates missing model and LoRA hashes.",
+                                type=int, nargs="?", metavar="CPU_NUM_THREADS", const=-1)
 
 args_parser.parser.set_defaults(
     disable_cuda_malloc=True,

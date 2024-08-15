@@ -16,7 +16,12 @@ from fooocusapi.models.common.task import AsyncJobStage
 
 from fooocusapi.utils.api_utils import generate_async_output, api_key_auth
 from fooocusapi.task_queue import TaskType
+from fooocusapi.utils.file_utils import delete_output_file
 from fooocusapi.worker import worker_queue
+
+if args.persistent:
+    from fooocusapi.sql_client import query_history, delete_item
+
 
 secure_router = APIRouter(dependencies=[Depends(api_key_auth)])
 
@@ -84,8 +89,30 @@ def job_queue():
         response_model=JobHistoryResponse | dict,
         description="Query historical job data",
         tags=["Query"])
-def get_history(job_id: str = None, page: int = 0, page_size: int = 20):
+def get_history(job_id: str = None, page: int = 0, page_size: int = 20, delete: bool = False):
     """Fetch and return the historical tasks"""
+
+    if delete and job_id is not None:
+        for item in worker_queue.history:
+            if item.job_id == job_id:
+                files = [img.im for img in item.task_result]
+                if len(files) == 0:
+                    break
+                for file in files:
+                    delete_output_file(file)
+                worker_queue.history.remove(item)
+
+        query = query_history(task_id=job_id)
+        if len(query) == 0:
+            return {"message": "Not found"}
+        delete_item(job_id)
+        urls = query[0]['task_info']['result_url'].split(',')
+        for url in urls:
+            r = delete_output_file('/'.join(url.split('/')[4:]))
+        if r:
+            return {"message": "Deleted"}
+        return {"message": "Not found"}
+
     queue = [
         JobHistoryInfo(
             job_id=item.job_id,
@@ -107,7 +134,6 @@ def get_history(job_id: str = None, page: int = 0, page_size: int = 20):
         ]
         return JobHistoryResponse(history=history, queue=queue)
 
-    from fooocusapi.sql_client import query_history
     history = query_history(task_id=job_id, page=page, page_size=page_size)
     return {
         "history": history,

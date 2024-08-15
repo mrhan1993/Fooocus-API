@@ -196,7 +196,7 @@ class MySQLAlchemy:
 
     def get_history(
         self,
-        task_id: str = None,
+        task_id: str | None = None,
         page: int = 0,
         page_size: int = 20,
         order_by: str = "date_time",
@@ -229,6 +229,15 @@ class MySQLAlchemy:
         if len(res) == 0:
             return []
         return convert_to_dict_list(res)
+
+    def delete(self, task_id: str) -> None:
+        """
+        Delete item from database
+        :param task_id:
+        :return:
+        """
+        self.session.query(GenerateRecord).filter(GenerateRecord.task_id == task_id).delete()
+        self.session.commit()
 
 
 db = MySQLAlchemy(uri=connection_uri)
@@ -276,12 +285,21 @@ def add_history(
     params["result_url"] = result_url
     params["finish_reason"] = finish_reason
 
+    del params["enhance_input_image"]
+    del params["enhance_checkbox"]
+    del params["enhance_uov_method"]
+    del params["enhance_uov_processing_order"]
+    del params["enhance_uov_prompt_type"]
+    del params["save_final_enhanced_image_only"]
+    del params["enhance_ctrlnets"]
     del params["inpaint_input_image"]
     del params["uov_input_image"]
     del params["save_extension"]
     del params["save_meta"]
     del params["save_name"]
     del params["meta_scheme"]
+    del params["read_wildcards_in_order"]
+    del params["current_tab"]
 
     db.store_history(params)
 
@@ -306,3 +324,13 @@ def query_history(
     return db.get_history(
         task_id=task_id, page=page, page_size=page_size, order_by=order_by
     )
+
+
+def delete_item(item_id: str) -> None:
+    """
+    Delete item from database
+    Args:
+        item_id:
+    Returns:
+    """
+    db.delete(item_id)

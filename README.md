@@ -19,16 +19,65 @@
 - [License](#license)
 - [Thanks :purple\_heart:](#thanks-purple_heart)
 
-If this is the first time to use it, it is recommended to use a rewritten new project [FooocusAPI](https://github.com/mrhan1993/FooocusAPI)
+> Note:
+>
+> Fooocus 2.5 includes a significant update, with most dependencies upgraded. Therefore, after updating, do not use `--skip-pip` unless you have already performed a manual update.
+>
+> Additionally, `groundingdino-py` may encounter installation errors, especially in Chinese Windows environments. The solution can be found in the following [issue](https://github.com/IDEA-Research/GroundingDINO/issues/206).
 
-A migration guide is provided [here](./docs/migrate.md).
 
-# :warning: Compatibility warning :warning:
+> GenerateMask is same as DescribeImage, It is not process as a task, result will directly return
 
-When upgrading from version 3.x to version 4.0, please read the following incompatibility notes:
+# Instructions for Using the ImageEnhance Interface
+Below are examples of parameters that include the main parameters required for ImageEnhance. The V1 interface adopts a form-like approach similar to ImagePrompt to break down the enhance controller.
 
-1. If you are using an external Fooocus model (that is, the model is not located in the `repositories` directory), delete the `repositories` directory directly, and then update the `git pull`.
-2. If not, move the `repositories` directory to any directory, delete the `repositories` directory, then update the `git pull`, and move the `models` directory back to its original location when it is finished.
+
+```python
+{
+  "enhance_input_image": "",
+  "enhance_checkbox": true,
+  "enhance_uov_method": "Vary (Strong)",
+  "enhance_uov_processing_order": "Before First Enhancement",
+  "enhance_uov_prompt_type": "Original Prompts",
+  "save_final_enhanced_image_only": true,
+  "enhance_ctrlnets": [
+    {
+      "enhance_enabled": false,
+      "enhance_mask_dino_prompt": "face",
+      "enhance_prompt": "",
+      "enhance_negative_prompt": "",
+      "enhance_mask_model": "sam",
+      "enhance_mask_cloth_category": "full",
+      "enhance_mask_sam_model": "vit_b",
+      "enhance_mask_text_threshold": 0.25,
+      "enhance_mask_box_threshold": 0.3,
+      "enhance_mask_sam_max_detections": 0,
+      "enhance_inpaint_disable_initial_latent": false,
+      "enhance_inpaint_engine": "v2.6",
+      "enhance_inpaint_strength": 1,
+      "enhance_inpaint_respective_field": 0.618,
+      "enhance_inpaint_erode_or_dilate": 0,
+      "enhance_mask_invert": false
+    }
+  ]
+}
+```
+
+- enhance_input_image: The image to be enhanced, which is required and can be provided as an image URL for the V2 interface.
+- enhance_checkbox: A toggle switch that must be set to true if you want to use the enhance image feature.
+- save_final_enhanced_image_only: Since image enhancement is a pipeline operation, it can produce multiple result images. This parameter allows you to only return the final enhanced image.
+
+There are three parameters related to UpscaleVary, which are used to perform Upscale or Vary before or after enhancement.
+
+- enhance_uov_method: Similar to the UpscaleOrVary interface, Disabled turns it off.
+- enhance_uov_processing_order: Determines whether to process the image before or after enhancement.
+- enhance_uov_prompt_type: I'm not sure about the specific function; you might want to research it based on the WebUI.
+
+The `enhance_ctrlnets` element is a list of ImageEnhance controller objects, with a maximum of three elements in the list, any additional elements will be discarded. The parameters correspond roughly to the WebUI, and the notable parameters are:
+
+- enhance_enabled: This parameter controls whether the enhance controller is active. If there are no enabled enhance controllers, the task will be skipped.
+- enhance_mask_dino_prompt: This parameter is required and indicates the area to be enhanced. If it is empty, even if the enhance controller is enabled, the task will be skipped.
+
 
 # Introduction
 

@@ -2,6 +2,7 @@
 from typing import List
 from fastapi import Response
 
+from fooocusapi.models.common.base import GenerateMaskRequest
 from fooocusapi.models.common.requests import (
     CommonRequest as Text2ImgRequest
 )
@@ -22,16 +23,19 @@ from fooocusapi.utils.api_utils import (
     generate_image_result_output
 )
 from fooocusapi.models.requests_v1 import (
-    ImgUpscaleOrVaryRequest,
+    ImageEnhanceRequest, ImgUpscaleOrVaryRequest,
     ImgPromptRequest,
     ImgInpaintOrOutpaintRequest
 )
 from fooocusapi.models.requests_v2 import (
-    ImgInpaintOrOutpaintRequestJson,
+    ImageEnhanceRequestJson, ImgInpaintOrOutpaintRequestJson,
     ImgPromptRequestJson,
     ImgUpscaleOrVaryRequestJson
 )
+from fooocusapi.utils.img_utils import narray_to_base64img, read_input_image
 from fooocusapi.worker import worker_queue, blocking_get_task_result
+
+from extras.inpaint_mask import generate_mask_from_image, SAMOptions
 
 
 def get_task_type(req: Text2ImgRequest) -> TaskType:
@@ -42,6 +46,8 @@ def get_task_type(req: Text2ImgRequest) -> TaskType:
         return TaskType.img_prompt
     if isinstance(req, (ImgInpaintOrOutpaintRequest, ImgInpaintOrOutpaintRequestJson)):
         return TaskType.img_inpaint_outpaint
+    if isinstance(req, (ImageEnhanceRequestJson, ImageEnhanceRequest)):
+        return TaskType.img_enhance
     return TaskType.text_2_img
 
 
@@ -95,3 +101,29 @@ def call_worker(req: Text2ImgRequest, accept: str) -> Response | AsyncJobRespons
     if streaming_output:
         return generate_streaming_output(results)
     return generate_image_result_output(results, req.require_base64)
+
+
+async def generate_mask(request: GenerateMaskRequest):
+    """
+    Calls the worker with the given params.
+    :param request: The request object containing the params.
+    :return: The result of the task.
+    """
+    extras = {}
+    sam_options = None
+    image = read_input_image(request.image)
+    if request.mask_model == 'u2net_cloth_seg':
+        extras['cloth_category'] = request.cloth_category
+    elif request.mask_model == 'sam':
+        sam_options = SAMOptions(
+            dino_prompt=request.dino_prompt_text,
+            dino_box_threshold=request.box_threshold,
+            dino_text_threshold=request.text_threshold,
+            dino_erode_or_dilate=request.dino_erode_or_dilate,
+            dino_debug=request.dino_debug,
+            max_detections=request.sam_max_detections,
+            model_type=request.sam_model
+        )
+
+    mask, _, _, _ = generate_mask_from_image(image, request.mask_model, extras, sam_options)
+    return narray_to_base64img(mask)
