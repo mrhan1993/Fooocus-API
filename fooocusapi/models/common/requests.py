@@ -86,7 +86,6 @@ class AdvancedParams(BaseModel):
     inpaint_erode_or_dilate: int = Field(0, description="Mask Erode or Dilate", ge=-64, le=64)
     black_out_nsfw: bool = Field(False, description="Block out NSFW")
     vae_name: str = Field(default_vae, description="VAE name")
-    save_final_enhanced_image_only: bool = Field(True, description="Save Final Enhanced Image Only")
     debugging_dino: bool = Field(False, description="Debug DINO")
     dino_erode_or_dilate: int = Field(0, description="Mask Erode or Dilate", ge=-64, le=64)
     debugging_enhance_masks_checkbox: bool = Field(False, description="Debug Enhance Masks")

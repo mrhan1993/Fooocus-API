@@ -79,6 +79,7 @@ class AsyncTask:
         self.current_tab = args.current_tab
         self.uov_method = args.uov_method
         self.uov_input_image = args.uov_input_image
+        self.upscale_value = args.upscale_value
         self.outpaint_selections = args.outpaint_selections
         self.inpaint_input_image = args.inpaint_input_image
         self.inpaint_additional_prompt = args.inpaint_additional_prompt
@@ -685,18 +686,10 @@ def process_generate(async_job: QueueTask):
             f = 1.5
         elif '2x' in uov_method:
             f = 2.0
+        elif uov_method == 'Upscale (Custom)'.lower() and async_task.upscale_value > 0 and async_task.upscale_value < 5:
+            f = async_task.upscale_value
         else:
-            # @freek99
-            pattern = r"([0-9]+(?:\.[0-9]+)?)x"
-            matches = re.findall(pattern, uov_method)
-            try:
-                f = float(matches[0])
-                if f < 1.0:
-                    f = 1.0
-                if f > 5.0:
-                    f = 5.0
-            except Exception:
-                f = 1.0
+            f = 2.0
         shape_ceil = get_shape_ceil(H * f, W * f)
         if shape_ceil < 1024:
             print(f'[Upscale] Image is resized because it is too small.')
@@ -1299,7 +1292,7 @@ def process_generate(async_job: QueueTask):
                 uov_input_image_path = log(async_task.uov_input_image, d, output_format=async_task.output_format)
                 yield_result(async_task, uov_input_image_path, 100, async_task.black_out_nsfw, False,
                              do_not_show_finished_images=True)
-                return
+                # return_result(async_task, [])
 
         if 'inpaint' in goals:
             try:
@@ -1578,7 +1571,7 @@ def process_generate(async_job: QueueTask):
             return async_job.task_result
         return
     except Exception as e:
-        raise e
+        # raise e
         if not async_job.is_finished:
             async_job.set_result([], True, str(e))
             worker_queue.finish_task(async_job.job_id)

@@ -59,4 +59,5 @@ class ImageEnhanceRequestJson(CommonRequest):
     enhance_uov_method: UpscaleOrVaryMethod = Field(default=UpscaleOrVaryMethod.strong_variation, description="Upscale or vary method")
     enhance_uov_processing_order: str = Field(default="Before First Enhancement", description="Upscale or vary processing order")
     enhance_uov_prompt_type: str = Field(default="Original Prompts", description="Upscale or vary prompt type")
+    save_final_enhanced_image_only: bool = Field(True, description="Save Final Enhanced Image Only")
     enhance_ctrlnets: List[EnhanceCtrlNets]
