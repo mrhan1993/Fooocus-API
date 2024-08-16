@@ -15,6 +15,7 @@ __pycache__
 *.patch
 *.backup
 *.corrupted
+*.onnx
 
 # environment
 venv
@@ -44,6 +45,7 @@ sorted_styles.json
 
 # cache
 outputs
+cache
 
 #other
 *.http

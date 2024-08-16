@@ -1,284 +1,325 @@
-[![Docker Image CI](https://github.com/konieshadow/Fooocus-API/actions/workflows/docker-image.yml/badge.svg?branch=main)](https://github.com/konieshadow/Fooocus-API/actions/workflows/docker-image.yml)
+[中文](./docs/readme.md)
 
-[ English | [中文](/README_zh.md) ]
+## Introduction
 
-- [Introduction](#introduction)
-  - [Fooocus](#fooocus)
-  - [Fooocus-API](#fooocus-api)
-- [Get-Start](#get-start)
-  - [Run with Replicate](#run-with-replicate)
-  - [Self-hosted](#self-hosted)
-    - [conda](#conda)
-    - [venv](#venv)
-    - [predownload and install](#predownload-and-install)
-    - [already exist Fooocus](#already-exist-fooocus)
-  - [Start with docker](#start-with-docker)
-- [cmd flags](#cmd-flags)
-- [Change log](#change-log)
-- [Apis](#apis)
-- [License](#license)
-- [Thanks :purple\_heart:](#thanks-purple_heart)
+FastAPI is a modern, fast (high-performance) web framework for building APIs. This project builds the Rest interface of [Fooocus](https://github.com/lllyasviel/Fooocus) based on Fastapi.
 
-> Note:
->
-> Fooocus 2.5 includes a significant update, with most dependencies upgraded. Therefore, after updating, do not use `--skip-pip` unless you have already performed a manual update.
->
-> Additionally, `groundingdino-py` may encounter installation errors, especially in Chinese Windows environments. The solution can be found in the following [issue](https://github.com/IDEA-Research/GroundingDINO/issues/206).
+For a partial description of Fooocus, please refer to the [Fooocus](https://github.com/lllyasviel/Fooocus) documentation, which mainly introduces the interface section.
 
+Compared to the previous API project [Fooocus-API](https://github.com/mrhan1993/Fooocus-API), there are major changes:
 
-> GenerateMask is same as DescribeImage, It is not process as a task, result will directly return
+You can get a guide [here](./docs/migration.md) if you use the previous API project.
 
-# Instructions for Using the ImageEnhance Interface
-Below are examples of parameters that include the main parameters required for ImageEnhance. The V1 interface adopts a form-like approach similar to ImagePrompt to break down the enhance controller.
+- Remove the task queue and no longer maintain a separate queue
+- Full use of Fooocus' generated code
+- Can start at the same time as WebUI
+- Removed the form submission interface, leaving only the JSON submission interface
+- Main functions merged into one interface
+- Simplified parameter structure, consistent with Fooocus' WebUI
+- Added streaming output function
+- preset support
+- More complete task history function
 
+advantage：
+- Reduce development load
+- More complete Fooocus support
+- Easier and faster tracking Fooocus version
 
-```python
-{
-  "enhance_input_image": "",
-  "enhance_checkbox": true,
-  "enhance_uov_method": "Vary (Strong)",
-  "enhance_uov_processing_order": "Before First Enhancement",
-  "enhance_uov_prompt_type": "Original Prompts",
-  "save_final_enhanced_image_only": true,
-  "enhance_ctrlnets": [
-    {
-      "enhance_enabled": false,
-      "enhance_mask_dino_prompt": "face",
-      "enhance_prompt": "",
-      "enhance_negative_prompt": "",
-      "enhance_mask_model": "sam",
-      "enhance_mask_cloth_category": "full",
-      "enhance_mask_sam_model": "vit_b",
-      "enhance_mask_text_threshold": 0.25,
-      "enhance_mask_box_threshold": 0.3,
-      "enhance_mask_sam_max_detections": 0,
-      "enhance_inpaint_disable_initial_latent": false,
-      "enhance_inpaint_engine": "v2.6",
-      "enhance_inpaint_strength": 1,
-      "enhance_inpaint_respective_field": 0.618,
-      "enhance_inpaint_erode_or_dilate": 0,
-      "enhance_mask_invert": false
-    }
-  ]
-}
-```
+## Functional features
 
-- enhance_input_image: The image to be enhanced, which is required and can be provided as an image URL for the V2 interface.
-- enhance_checkbox: A toggle switch that must be set to true if you want to use the enhance image feature.
-- save_final_enhanced_image_only: Since image enhancement is a pipeline operation, it can produce multiple result images. This parameter allows you to only return the final enhanced image.
+- Full Fooocus support
+- You can start both the API and WebUI at the same time, or choose not to start WebUI
+- Use X-API-KEY for authentication
+- all-in-one interface
+- use URL provide INPUT image
+- streaming output, binary image, asynchronous task and synchronous task support
+- persistent task history
+- enhanced task history management
+- task query function
+- Custom upscale rate, Limit by Fooocus, max is 2800px
+- preset support
+- WebHook support
 
-There are three parameters related to UpscaleVary, which are used to perform Upscale or Vary before or after enhancement.
+## Install
 
-- enhance_uov_method: Similar to the UpscaleOrVary interface, Disabled turns it off.
-- enhance_uov_processing_order: Determines whether to process the image before or after enhancement.
-- enhance_uov_prompt_type: I'm not sure about the specific function; you might want to research it based on the WebUI.
+Based on Fooocus, there are several dependencies, so you can install it in the same way as Fooocus.
 
-The `enhance_ctrlnets` element is a list of ImageEnhance controller objects, with a maximum of three elements in the list, any additional elements will be discarded. The parameters correspond roughly to the WebUI, and the notable parameters are:
+## Startup
 
-- enhance_enabled: This parameter controls whether the enhance controller is active. If there are no enabled enhance controllers, the task will be skipped.
-- enhance_mask_dino_prompt: This parameter is required and indicates the area to be enhanced. If it is empty, even if the enhance controller is enabled, the task will be skipped.
+Same as Fooocus, use `--apikey` to specify the API authentication key.
 
+Default API port is WebUI port plus 1, that is 7866, use `--port` to modify WebUI port
 
-# Introduction
+Environment variable API_PORT is used to specify the API port. It takes precedence over the default setting.
 
-FastAPI powered API for [Fooocus](https://github.com/lllyasviel/Fooocus).
-
-Currently loaded Fooocus version: [2.3.0](https://github.com/lllyasviel/Fooocus/blob/main/update_log.md).
-
-## Fooocus
-
-This part from [Fooocus](https://github.com/lllyasviel/Fooocus) project.
-
-Fooocus is an image generating software (based on [Gradio](https://www.gradio.app/)).
-
-Fooocus is a rethinking of Stable Diffusion and Midjourney’s designs:
-
-- Learned from Stable Diffusion, the software is offline, open source, and free.
-
-- Learned from Midjourney, the manual tweaking is not needed, and users only need to focus on the prompts and images.
-
-Fooocus has included and automated lots of inner optimizations and quality improvements. Users can forget all those difficult technical parameters, and just enjoy the interaction between human and computer to "explore new mediums of thought and expanding the imaginative powers of the human species"
-
-## Fooocus-API
-
-I think you must have tried to use [Gradio client](https://www.gradio.app/docs/client) to call Fooocus, which was a terrible experience for me. 
-
-Fooocus API uses [FastAPI](https://fastapi.tiangolo.com/)  provides the `REST` API for using Fooocus. Now, you can use Fooocus's powerful ability in any language you like. 
-
-In addition, we also provide detailed [documentation](/docs/api_doc_en.md) and [sample code](/examples)
-
-# Get-Start
-
-## Run with Replicate
-
-Now you can use Fooocus-API by Replicate, the model is on [konieshadow/fooocus-api](https://replicate.com/konieshadow/fooocus-api).
-
-With preset:
-
-- [konieshadow/fooocus-api-anime](https://replicate.com/konieshadow/fooocus-api-anime)
-- [konieshadow/fooocus-api-realistic](https://replicate.com/konieshadow/fooocus-api-realistic)
-
-I believe this is the easiest way to generate image with Fooocus's power.
-
-## Self-hosted
-
-You need python version >= 3.10, or use conda to create a new env.
-
-The hardware requirements are what Fooocus needs. You can find detail [here](https://github.com/lllyasviel/Fooocus#minimal-requirement)
-
-### conda
-
-You can easily start app follow this step use conda:
+example for WebUI and API:
 
 ```shell
-conda env create -f environment.yaml
-conda activate fooocus-api
+python launch.py --listen 0.0.0.0 --port 7865
 ```
 
-and then, run `python main.py` to start app, default, server is listening on `http://127.0.0.1:8888`
-
-> If you are running the project for the first time, you may have to wait for a while, during which time the program will complete the rest of the installation and download the necessary models. You can also do these steps manually, which I'll mention later.
-
-### venv
-
-Similar to using conda, create a virtual environment, and then start and wait for a while
-
-```powershell
-# windows
-python -m venv venv
-.\venv\Scripts\Activate
-```
+Only API example:
 
 ```shell
-# linux
-python -m venv venv
-source venv/bin/activate
-```
-and then, run `python main.py`
-
-### predownload and install
-
-If you want to deal with environmental problems manually and download the model in advance, you can refer to the following steps
-
-After creating a complete environment using conda or venv, you can manually complete the installation of the subsequent environment, just follow
-
-first, install requirements: `pip install -r requirements.txt`
-
-then, pytorch with cuda: `pip install torch==2.1.0 torchvision==0.16.0 torchaudio==2.1.0 --index-url https://download.pytorch.org/whl/cu121` , you can find more info about this [here](https://pytorch.org/get-started/previous-versions/),
-
-> It is important to note that for pytorch and cuda versions, the recommended version of Fooocus is used, which is currently pytorch2.1.0+cuda12.1. If you insist, you can also use other versions, but you need to add `--skip-pip` when you start app, otherwise the recommended version will be installed automatically
-
-Go to the `repositories` directories, download models and put it into `repositories\Fooocus\models`
-
-If you have Fooocus installed, see [already-exist-fooocus](#already-exist-fooocus)
-
-here is a list need to download for startup (for different [startup params](#cmd-flags) maybe difference):
-
-- checkpoint:  path to `repositories\Fooocus\models\checkpoints`
-    + [juggernautXL_version6Rundiffusion.safetensors](https://huggingface.co/lllyasviel/fav_models/resolve/main/fav/juggernautXL_version6Rundiffusion.safetensors)
-
-- vae_approx: path to `repositories\Fooocus\models\vae_approx`
-    + [xlvaeapp.pth](https://huggingface.co/lllyasviel/misc/resolve/main/xlvaeapp.pth)
-    + [vaeapp_sd15.pth](https://huggingface.co/lllyasviel/misc/resolve/main/vaeapp_sd15.pt)
-    + [xl-to-v1_interposer-v3.1.safetensors](https://huggingface.co/lllyasviel/misc/resolve/main/xl-to-v1_interposer-v3.1.safetensors)
-
-- lora: path to `repositories\Fooocus\models\loras`
-    + [sd_xl_offset_example-lora_1.0.safetensors](https://huggingface.co/stabilityai/stable-diffusion-xl-base-1.0/resolve/main/sd_xl_offset_example-lora_1.0.safetensors?download=true)
-
-> I've uploaded the model I'm using, which contains almost all the base models that Fooocus will use! I put it [here](https://www.123pan.com/s/dF5A-SIQsh.html) 提取码: `D4Mk`
-
-### already exist Fooocus
-
-If you already have Fooocus installed, and it is work well, The recommended way is to reuse models, you just simple copy `config.txt` file from your local Fooocus folder to Fooocus-API root folder. See [Customization](https://github.com/lllyasviel/Fooocus#customization) for details.
-
-Use this method you will have both Fooocus and Fooocus-API running at the same time. And they operate independently and do not interfere with each other.
-
-> Do not copy Fooocus to repositories directory
-
-## Start with docker
-
-Before use docker with GPU, you should [install NVIDIA Container Toolkit](https://docs.nvidia.com/datacenter/cloud-native/container-toolkit/latest/install-guide.html) first.
-
-Run
-
-```shell
-docker run -d --gpus=all \
-    -e NVIDIA_DRIVER_CAPABILITIES=compute,utility \
-    -e NVIDIA_VISIBLE_DEVICES=all \
-    -p 8888:8888 konieshadow/fooocus-api
+python launch.py --listen 0.0.0.0 --port 7865 --nowebui
 ```
 
-For a more complex usage:
+## Security
 
-```shell
-mkdir ~/repositories
-mkdir -p ~/.cache/pip
+- Use API key for authentication, the key is passed in the request header `X-API-KEY`.
 
-docker run -d --gpus=all \
-    -e NVIDIA_DRIVER_CAPABILITIES=compute,utility \
-    -e NVIDIA_VISIBLE_DEVICES=all \
-    -v ~/repositories:/app/repositories \
-    -v ~/.cache/pip:/root/.cache/pip \
-    -p 8888:8888 konieshadow/fooocus-api
-```
+Use `--apikey` to specify the API authentication key on startup.
 
-It will be persistent the dependent repositories and pip cache.
+## EndPoints
 
-You can add `-e PIP_INDEX_URL={pypi-mirror-url}` to docker run command to change pip index url.
+### Generate
 
-> From version 0.4.0.0, Full environment include in docker image, mapping `models` or project root if you needed
-> For example:
-> ```
-> docker run -d --gpus all \
->     -v /Fooocus-API:/app \
->     -p 8888:8888 konieshadow/fooocus-api
->```
+`POST /v1/engine/generate/`
+- **Abstract**: Generate API route
+- **RequestBody**: Required, JSON format, based on `CommonRequest` model.
+- **Response**:
+  - 200: Success response, return the generation result.
 
-# cmd flags
+Explain：
 
-- `-h, --help` show this help message and exit
-- `--port PORT` Set the listen port, default: 8888
-- `--host HOST` Set the listen host, default: 127.0.0.1
-- `--base-url BASE_URL` Set base url for outside visit, default is http://host:port
-- `--log-level LOG_LEVEL` Log info for Uvicorn, default: info
-- `--skip-pip` Skip automatic pip install when setup
-- `--preload-pipeline` Preload pipeline before start http server
-- `--queue-size QUEUE_SIZE` Working queue size, default: 100, generation requests exceeding working queue size will return failure
-- `--queue-history QUEUE_HISTORY` Finished jobs reserve size, tasks exceeding the limit will be deleted, including output image files, default: 0, means no limit
-- `--webhook-url WEBHOOK_URL` Webhook url for notify generation result, default: None
-- `--persistent` Store history to db
-- `--apikey APIKEY` Set apikey to enable secure api, default: None
+Request parameter model `CommonRequest` contains all parameters of WebUI, but some parameters you need to pay attention to when using them, including the following categories:
 
-Since v0.3.25, added CMD flags support of Fooocus. You can pass any argument which Fooocus supported.
+Invalid parameters in the API, this part of the parameter contains:
 
-For example, to startup image generation (need more vRAM):
+- `input_image_checkbox`, This parameter always set to True
+- `inpaint_mask_upload_checkbox`, This parameter always set to True
+- `invert_mask_checkbox`, This parameter always set to False
+- `current_tab`, This parameter checks the image information in the parameter and is automatically set. The check order is 'ip' -> 'uov' -> 'inpaint'
 
-```
-python main.py --all-in-fp16 --always-gpu
-```
+Parameters that are not recommended:
 
-For Fooocus CMD flags, see [here](https://github.com/lllyasviel/Fooocus?tab=readme-ov-file#all-cmd-flags).
+- `generate_image_grid`, It is not clear what this parameter does. It is recommended to leave it false.
+
+The following parameters need to be set according to the usage scenario:
+
+- `mixing_image_prompt_and_vary_upscale`
+- `mixing_image_prompt_and_inpaint`
+
+In addition, some API-specific parameters are also included:
+
+- `preset`, You can use this parameter to specify a preset that takes precedence over the global default and below the passed parameter, but if the passed parameter is equal to the default value, the preset parameter is used
+- `stream_output`, true for streaming output, default false
+- `require_base64`, not used
+- `async_process`, async task, default false, a synchronous task will be returned when `stream_output` is false at the same time
+- `webhook_url`, Webhook addr, if set, the task will be sent to the address after the task is completed.
+
+> `stream_output` has a higher priority than `async_process`, that is, when both are `true`, return streaming output. When all are false, task will be synchronously returned. when you set `Accept: image/xxx` in the request header, the response will be a binary image
+
+### Stop or Skip
+
+`POST /v1/engine/control/`
+- **Label**: GenerateV1
+- **Abstract**: Stop or Skip task
+- **Describe**: stop or skip task, only valid for the current task, stop will stop the current task and continue to the next task. Skip will skip the current generation and continue the task.
+- **Params**:
+  - `action` (string): action type, can be "stop" or "skip".
+- **Response**:
+  - `{"message": "{message}"}`
+
+### Get tasks
+`GET /tasks`
+- **Label**: Query
+- **Abstract**: get all tasks
+- **Describe**: filter tasks and support paging and time filtering.
+- **Params**:
+  - `query` (string, default: "all"): task type, one of "all", "history", "current".
+  - `page` (integer, default: 0): page number, used for history and pending tasks.
+  - `page_size` (integer, default: 10): page size of each page
+  - `start_at` (string): filter tasks start time, only valid for history. format by ISO8601 example: "2024-06-30T17:57:07.045812"
+  - `end_at` (string): default to current time format by ISO8601, example: "2024-06-30T17:57:07.045812", filter tasks end time, only valid for history.
+  - `action` (string): used for delete operation, only valid for history, will delete database record and generated images.
+- **Response**:
+  - 200: {"history": List[[RecordResponse](#recordresponse)], "current": List[[RecordResponse](#recordresponse)], "pending": List[[RecordResponse](#recordresponse)]}
+
+> Although all models are based on `RecordResponse`, the `current` one will have a preview field
+
+### Get task by id
+`GET /tasks/{task_id}`
+- **Label**: Query
+- **Abstract**: get task by id
+- **Params**:
+  - `task_id` (string): task id
+- **Response**:
+  - 200: [RecordResponse](#recordresponse)
+
+### Get all models
+`GET /v1/engines/all-models`
+- **Label**: Query
+- **Abstract**: get all models
+- **Response**:
+  - 200: return all local checkpoint and lora models.
+
+### Get all styles
+`GET /v1/engines/styles`
+- **Label**: Query
+- **Abstract**: get all styles
+- **Response**:
+  - 200: return a list of styles.
+
+### Get output file
+`GET /outputs/{date}/{file_name}`
+- **Label**: Query
+- **Abstract**: used for get output image
+- **params**:
+  - `date` (string): date, the generated image is created in the day folder for classification, the part is the generation date. 
+  - `file_name` (string): file name
+- **Response**:
+  - 200: success response, return output content.
+  - 422: validation error.
+
+> if you set `Accept: image/xxx` in the request header, server will convert the output to the specified format and return it. `image/png` `image/jpeg` `image/webp` `image/jpg` are supported.
+
+### Describe image
+`POST /v1/tools/describe-image`
+- **Label**: GenerateV1
+- **Abstract**: get tags from image
+- **Describe**: get tags from image, Photo or Anime
+- **params**:
+  - `image_type` (string): default: "Photo", image type
+- **RequestBody**: required `multipart/form-data` format, include image file.
+- **Response**:
+  - 200: success response, return `DescribeImageResponse` model.
+  - 422: validation error.
+
+### Root
+`GET /`
+- **Label**: Query
+- **Abstract**: root endpoint
+- **Response**: Redirect to `/docs`
+
+## Components
+
+### Model
+
+#### CommonRequest
+- Attributes:
+  - `prompt` (string): prompt for generation image.
+  - `negative_prompt` (string): negative prompt for filtering unwanted content.
+  - `style_selections` (array): style selections.
+  - `performance_selection` (Performance): performance, default `Speed`, one of `Quality` `Speed` `Extreme Speed` `Lightning` `Hyper-SD`
+  - `aspect_ratios_selection` (string): aspect radios selection, default 1152*896
+  - `image_number` (int): number of images to generate, default 1, range 1-32
+  - `output_format` (string): out image format, default `png`, one of `jpg` `webp` `png`
+  - `image_seed` (int): seed, -1 for random
+  - `read_wildcards_in_order` (bool): read wildcards in order, default false
+  - `sharpness` (float): sharpness, default 2.0, range 0.0-30.0
+  - `guidance_scale` (float): guidance scale, default 4, range 1.0-30.0
+  - `base_model_name` (string): base model name, default `juggernautXL_v8Rundiffusion.safetensors` for now
+  - `refiner_model_name` (string): refiner model name, default None
+  - `refiner_switch` (float): refiner switch, default 0.5, range 0.1-1.0
+  - `loras` (Lora): lora list to use, default `sd_xl_offset_example-lora_1.0.safetensors`, format: [Lora](#lora)
+  - `input_image_checkbox` (bool): this will always to be true
+  - `current_tab` (string): current tab, default `uov` one of `uov` `inpaint` `outpaint`, you don't need to pass this parameter.
+  - `uov_method` (string): uov method, default `disable`, all choice [UpscaleOrVaryMethod](#upscaleorvarymethod)
+  - `uov_input_image` (string): URL or Base64 image for Upscale or vary, default "None"
+  - `outpaint_selections` (array): Outpaint selection, example ["Left", "Right", "Top", "Bottom"]
+  - `inpaint_input_image` (string): URL or Base64 image for inpaint
+  - `inpaint_additional_prompt` (string): Inpaint additional prompt, default "None"
+  - `inpaint_mask_image_upload` (string): URL or Base64 image for inpaint mask
+  - `inpaint_mask_upload_checkbox` (bool): this will always true
+  - `disable_preview` (bool): disable preview, default false
+  - `disable_intermediate_results` (bool): disable intermediate, default false
+  - `disable_seed_increment` (bool): disable seed increment, default false
+  - `black_out_nsfw` (bool): black out nsfw result, default false
+  - `adm_scaler_positive` (float): The scaler multiplied to positive ADM (use 1.0 to disable). default 1.5, range 0.0-3.0
+  - `adm_scaler_negative` (float): The scaler multiplied to negative ADM (use 1.0 to disable). default 1.5, range 0.0-3.0
+  - `adm_scaler_end` (float): ADM Guidance End At Step, default 0.8, range 0.0-1.0
+  - `adaptive_cfg` (float): Adaptive cfg, default 7, range 1.0-30.0
+  - `clip_skip` (float): clip skip, default 2, range 1-12
+  - `sampler_name` (string): sampler name, default dpmpp_2m_sde_gpu
+  - `scheduler_name` (string): scheduler name, default karras
+  - `vae_name` (string): VAE name, default Default (model)
+  - `overwrite_step` (int): overwrite steps in Performance, default -1
+  - `overwrite_switch` (float): overwrite refiner_switch, default -1
+  - `overwrite_width` (int): overwrite width in aspect_ratios_selection, default -1, range -1-2048
+  - `overwrite_height` (int): overwrite height in aspect_ratios_selection, default -1, range -1-2048
+  - `overwrite_vary_strength` (float): overwrite vary_strength, default -1, range 0.0-1.0
+  - `overwrite_upscale_strength` (float): overwrite upscale_strength, default -1, range 0.0-1.0
+  - `mixing_image_prompt_and_vary_upscale` (bool): mixing image prompt and vary_upscale, default false
+  - `mixing_image_prompt_and_inpaint` (bool): mixing image prompt and inpaint, default false
+  - `debugging_cn_preprocessor` (bool): debugging cn preprocessor, default false
+  - `skipping_cn_preprocessor` (bool): skipping cn preprocessor, default false
+  - `canny_low_threshold` (int): default 64, range 1-255
+  - `canny_high_threshold` (int): default 128, range 1-255
+  - `refiner_swap_method` (string): default joint
+  - `controlnet_softness` (float): default 0.25, range 0.0-1.0
+  - `freeu_enabled` (bool): enable freeu, default false
+  - `freeu_b1` (float): default 1.01
+  - `freeu_b2` (float): default 1.02
+  - `freeu_s1` (float): default 0.99
+  - `freeu_s2` (float): default 0.95
+  - `debugging_inpaint_preprocessor` (bool): debugging inpaint preprocessor, default false
+  - `inpaint_disable_initial_latent` (bool): default false
+  - `inpaint_engine` (string): default v2.6
+  - `inpaint_strength` (float): default 1.0, range 0.0-1.0
+  - `inpaint_respective_field` (float): default0.618, range 0.0-1.0
+  - `invert_mask_checkbox` (bool): default false, this always false
+  - `inpaint_erode_or_dilate` (int): default 0, range -64-64
+  - `save_metadata_to_images` (bool): save metadata to images, default true
+  - `metadata_scheme` (string): default foocus, one of fooocus, a111
+  - `controlnet_image` (ImagePrompt): ImagePrompt
+  - `generate_image_grid` (bool): default false, suggested to false
+  - `outpaint_distance` (List[int]): outpaint distance, default [0, 0, 0, 0], left, top, right, bottom, this params must with outpaint_selections at the same time
+  - `upscale_multiple` (float): default 1.0, range 1.0-5.0, work only upscale method is `Upscale (Custom)`
+  - `preset` (string): preset, default initial
+  - `stream_output` (bool): stream output, default false
+  - `require_base64` (bool): not used
+  - `async_process` (bool): async process, default false
+  - `webhook_url` (string): Webhook URL, default ""
 
 
-# Change log
+#### Lora
 
-[CHANGELOG](./docs/change_logs.md)
+- Attributes:
+  - `enabled` (bool): enable Lora, default false
+  - `model_name` (string): Lora file name, default None
+  - `weight` (float): Lora weight, default 0.5, range -2-2
 
-older change history you can find in [release page](https://github.com/konieshadow/Fooocus-API/releases)
+#### UpscaleOrVaryMethod
 
+- Attributes:
+  - "Disabled"
+  - "Vary (Subtle)"
+  - "Vary (Strong)"
+  - "Upscale (1.5x)"
+  - "Upscale (2x)"
+  - "Upscale (Fast 2x)"
+  - "Upscale (Custom)"
 
-# Apis
+#### ImagePrompt
 
-you can find all api detail [here](/docs/api_doc_en.md)
+- Attributes:
+  - `cn_img` (str): ImageUrl or base64 image
+  - `cn_stop` (float): default 0.6, range 0-1
+  - `cn_weight` (float): default 0.5, range 0-2
+  - `cn_type` (string): default ImagePrompt, one of ImagePrompt FaceSwap, PyraCanny, CPDS
 
-# License
+#### DescribeImageResponse
 
-This repository is licensed under the [GUN General Public License v3.0](https://github.com/mrhan1993/Fooocus-API/blob/main/LICENSE)
+- Attributes:
+  - `describe` (string): Image prompt.
 
-The default checkpoint is published by [RunDiffusion](https://huggingface.co/RunDiffusion), is licensed under the [CreativeML Open RAIL-M](https://github.com/mrhan1993/Fooocus-API/blob/main/CreativeMLOpenRAIL-M).
+#### RecordResponse
+- Attributes:：
+  - `id` (int): id in sqlite, no use for user.
+  - `task_id` (str): task ID, generate by `uuid.uuid4().hex`.
+  - `req_params` (CommonRequest): required parameters, convert to url for input image
+  - `in_queue_mills` (int): in queue time in millis.
+  - `start_mills` (int): start task time in millis.
+  - `finish_mills` (int): finish task time in millis.
+  - `task_status` (str): task status.
+  - `progress` (float): task progress.
+  - `preview` (str): preview
+  - `webhook_url` (str): Webhook URL.
+  - `result` (List): result for generate
 
-or, you can find it [here](https://huggingface.co/spaces/CompVis/stable-diffusion-license)
+## Thanks
 
-# Thanks :purple_heart:
+This project is based on [Fooocus-API](https://github.com/mrhan1993/Fooocus-API), thanks all the developers who participated in this project.
 
-Thanks for all your contributions and efforts towards improving the Fooocus API. We thank you for being part of our :sparkles: community :sparkles:!
+[Contribute](https://github.com/mrhan1993/Fooocus-API/graphs/contributors)
