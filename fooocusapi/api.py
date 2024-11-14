@@ -1,8 +1,10 @@
 """
 Entry for startup fastapi server
 """
-from fastapi import FastAPI, Header, Response
-from fastapi.responses import FileResponse
+import logging
+from fastapi import FastAPI, Header, Response, Request, status
+from fastapi.responses import FileResponse, JSONResponse
+from fastapi.exceptions import RequestValidationError
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.middleware.gzip import GZipMiddleware
 
@@ -16,6 +18,20 @@ from fooocusapi.utils.img_utils import convert_image
 
 
 app = FastAPI()
+
+logging.basicConfig(level=logging.DEBUG)
+
+
+@app.exception_handler(RequestValidationError)
+async def validation_exception_handler(request: Request, exc: RequestValidationError):
+    # 记录错误信息到日志
+    logging.error(f"Validation error: {exc.errors()}, body: {exc.body}")
+    
+    # 返回更详细的错误信息给客户端
+    return JSONResponse(
+        status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+        content={"detail": exc.errors(), "body": exc.body},
+    )
 
 app.add_middleware(GZipMiddleware, minimum_size=1000)
 app.add_middleware(
