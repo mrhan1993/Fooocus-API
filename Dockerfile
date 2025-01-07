@@ -21,6 +21,6 @@ RUN pip install --no-cache-dir -r requirements.txt
 
 RUN pip install --no-cache-dir opencv-python-headless -i https://pypi.org/simple
 
-EXPOSE 8888
+EXPOSE 3002
 
-CMD ["python", "main.py", "--host", "0.0.0.0", "--port", "8888", "--skip-pip"]
+CMD ["python", "main.py", "--host", "0.0.0.0", "--port", "3002", "--skip-pip"]
