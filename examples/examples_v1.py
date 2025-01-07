@@ -15,7 +15,7 @@ class Config:
         inpaint_outpaint (str): Inpaint or Outpaint
         img_prompt (str): Image Prompt
     """
-    fooocus_host = 'http://127.0.0.1:8888'
+    fooocus_host = 'http://127.0.0.1:3002'
 
     text2image = '/v1/generation/text-to-image'
     img_upscale = '/v1/generation/image-upscale-vary'
@@ -237,7 +237,7 @@ print(json.dumps(ip_result))
 
 import requests
 
-url = "http://localhost:8888/v1/generation/image-enhance"
+url = "http://localhost:3002/v1/generation/image-enhance"
 
 # Define the file path and other form data
 file_path = "./examples/imgs/source_face_man.png"

@@ -138,7 +138,7 @@ conda env create -f environment.yaml
 conda activate fooocus-api
 ```
 
-然后，执行 `python main.py` 启动 app ，默认情况下会监听在 `http://127.0.0.1:8888`
+然后，执行 `python main.py` 启动 app ，默认情况下会监听在 `http://127.0.0.1:3002`
 
 > 如果是第一次运行，程序会自动处理完成剩余的环境配置、模型下载等工作，因此会等待一段时间。也可以预先配置好环境、下载模型，后面会提到。
 
@@ -208,7 +208,7 @@ source venv/bin/activate
 docker run -d --gpus=all \
     -e NVIDIA_DRIVER_CAPABILITIES=compute,utility \
     -e NVIDIA_VISIBLE_DEVICES=all \
-    -p 8888:8888 konieshadow/fooocus-api
+    -p 3002:3002 konieshadow/fooocus-api
 ```
 
 一个更实用的例子:
@@ -222,7 +222,7 @@ docker run -d --gpus=all \
     -e NVIDIA_VISIBLE_DEVICES=all \
     -v ~/repositories:/app/repositories \
     -v ~/.cache/pip:/root/.cache/pip \
-    -p 8888:8888 konieshadow/fooocus-api
+    -p 3002:3002 konieshadow/fooocus-api
 ```
 
 这里把 `repositories` 和 `pip cache` 映射到了本地
@@ -234,13 +234,13 @@ docker run -d --gpus=all \
 > ```
 > docker run -d --gpus all \
 >     -v /Fooocus-API:/app \
->     -p 8888:8888 konieshadow/fooocus-api
+>     -p 3002:3002 konieshadow/fooocus-api
 >```
 
 # 命令行参数
 
 - `-h, --help` 显示本帮助并退出
-- `--port PORT` 设置监听端口，默认：8888
+- `--port PORT` 设置监听端口，默认：3002
 - `--host HOST` 设置监听地址，默认：127.0.0.1
 - `--base-url BASE_URL` 设置返回结果中的地址，默认是： http://host:port
 - `--log-level LOG_LEVEL` Uvicorn 中的日志等级，默认：info

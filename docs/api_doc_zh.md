@@ -78,7 +78,7 @@ DataType: json
 **请求示例：**
 
 ```python
-host = "http://127.0.0.1:8888"
+host = "http://127.0.0.1:3002"
 
 def text2img(params: dict) -> dict:
     """
@@ -134,7 +134,7 @@ DataType: form|json
 ```python
 # 不要加 {"Content-Type": "application/json"} 这个 header
 
-host = "http://127.0.0.1:8888"
+host = "http://127.0.0.1:3002"
 image = open("./examples/imgs/bear.jpg", "rb").read()
 
 def upscale_vary(image, params: dict) -> dict:
@@ -171,7 +171,7 @@ print(json.dumps(result, indent=4, ensure_ascii=False))
 **请求示例：**
 
 ```python
-host = "http://127.0.0.1:8888"
+host = "http://127.0.0.1:3002"
 image = open("./examples/imgs/bear.jpg", "rb").read()
 
 def upscale_vary(image, params: dict) -> dict:
@@ -230,7 +230,7 @@ DataType: form|json
 
 ```python
 # 局部重绘 v1 接口示例
-host = "http://127.0.0.1:8888"
+host = "http://127.0.0.1:3002"
 image = open("./examples/imgs/bear.jpg", "rb").read()
 
 def inpaint_outpaint(params: dict, input_image: bytes, input_mask: bytes = None) -> dict:
@@ -285,7 +285,7 @@ print(json.dumps(result, indent=4, ensure_ascii=False))
 
 ```python
 # 局部重绘 v2 接口示例
-host = "http://127.0.0.1:8888"
+host = "http://127.0.0.1:3002"
 image = open("./examples/imgs/bear.jpg", "rb").read()
 
 def inpaint_outpaint(params: dict) -> dict:
@@ -377,7 +377,7 @@ DataType: form|json
 
 ```python
 # image_prompt v1 接口示例
-host = "http://127.0.0.1:8888"
+host = "http://127.0.0.1:3002"
 image = open("./examples/imgs/bear.jpg", "rb").read()
 source = open("./examples/imgs/s.jpg", "rb").read()
 mask = open("./examples/imgs/m.png", "rb").read()
@@ -474,7 +474,7 @@ print(json.dumps(result, indent=4, ensure_ascii=False))
 
 ```python
 # image_prompt v2 接口示例
-host = "http://127.0.0.1:8888"
+host = "http://127.0.0.1:3002"
 image = open("./examples/imgs/bear.jpg", "rb").read()
 source = open("./examples/imgs/s.jpg", "rb").read()
 mask = open("./examples/imgs/m.png", "rb").read()
@@ -552,7 +552,7 @@ DataType: json
 
 ```python
 # text to image with image prompt 示例
-host = "http://127.0.0.1:8888"
+host = "http://127.0.0.1:3002"
 image = open("./examples/imgs/bear.jpg", "rb").read()
 source = open("./examples/imgs/s.jpg", "rb").read()
 def image_prompt(params: dict) -> dict:
@@ -608,7 +608,7 @@ def describe_image(image: bytes,
     """
     describe-image
     """
-    response = requests.post(url="http://127.0.0.1:8888/v1/tools/describe-image",
+    response = requests.post(url="http://127.0.0.1:3002/v1/tools/describe-image",
                         params=params,
                         files={
                             "image": image
@@ -643,7 +643,7 @@ def all_models() -> dict:
     """
     all-models
     """
-    response = requests.get(url="http://127.0.0.1:8888/v1/engines/all-models",
+    response = requests.get(url="http://127.0.0.1:3002/v1/engines/all-models",
                         timeout=30)
     return response.json()
 ```
@@ -680,7 +680,7 @@ def refresh() -> dict:
     """
     refresh-models
     """
-    response = requests.post(url="http://127.0.0.1:8888/v1/engines/refresh-models",
+    response = requests.post(url="http://127.0.0.1:3002/v1/engines/refresh-models",
                         timeout=30)
     return response.json()
 ```
@@ -715,7 +715,7 @@ def styles() -> dict:
     """
     styles
     """
-    response = requests.get(url="http://127.0.0.1:8888/v1/engines/styles",
+    response = requests.get(url="http://127.0.0.1:3002/v1/engines/styles",
                         timeout=30)
     return response.json()
 ```
@@ -750,7 +750,7 @@ def job_queue() -> dict:
     """
     job-queue
     """
-    response = requests.get(url="http://127.0.0.1:8888/v1/generation/job-queue",
+    response = requests.get(url="http://127.0.0.1:3002/v1/generation/job-queue",
                         timeout=30)
     return response.json()
 ```
@@ -778,7 +778,7 @@ Method: Get
 ```python
 def taskResult(task_id: str) -> dict:
     # 获取任务状态
-    task_status = requests.get(url="http://127.0.0.1:8888/v1/generation/query-job",
+    task_status = requests.get(url="http://127.0.0.1:3002/v1/generation/query-job",
                                params={"job_id": task_id,
                                        "require_step_preview": False},
                                timeout=30)
@@ -798,7 +798,7 @@ def taskResult(task_id: str) -> dict:
   "job_result": [
     {
       "base64": null,
-      "url": "http://127.0.0.1:8888/files/2023-11-27/b928e50e-3c09-4187-a3f9-1c12280bfd95.png",
+      "url": "http://127.0.0.1:3002/files/2023-11-27/b928e50e-3c09-4187-a3f9-1c12280bfd95.png",
       "seed": 8228839561385006000,
       "finish_reason": "SUCCESS"
     }
@@ -822,7 +822,7 @@ def job-history() -> dict:
     """
     job-history
     """
-    response = requests.get(url="http://127.0.0.1:8888/v1/generation/job-history",
+    response = requests.get(url="http://127.0.0.1:3002/v1/generation/job-history",
                         timeout=30)
     return response.json()
 ```
@@ -855,7 +855,7 @@ def stop() -> dict:
     """
     stop
     """
-    response = requests.post(url="http://127.0.0.1:8888/v1/generation/stop",
+    response = requests.post(url="http://127.0.0.1:3002/v1/generation/stop",
                         timeout=30)
     return response.json()
 ```
@@ -905,7 +905,7 @@ uvicorn.run(app, host="0.0.0.0", port=8000)
 通过任意方式提交一个任务, 等完成后你会在这个简易服务器的后台看到任务结束信息：
 
 ```python
-{'job_id': '717ec0b5-85df-4174-80d6-bddf93cd8248', 'job_result': [{'url': 'http://127.0.0.1:8888/files/2023-12-29/f1eca704-718e-4781-9d5f-82d41aa799d7.png', 'seed': '3283449865282320931'}]}
+{'job_id': '717ec0b5-85df-4174-80d6-bddf93cd8248', 'job_result': [{'url': 'http://127.0.0.1:3002/files/2023-12-29/f1eca704-718e-4781-9d5f-82d41aa799d7.png', 'seed': '3283449865282320931'}]}
 ```
 
 # 公共请求体

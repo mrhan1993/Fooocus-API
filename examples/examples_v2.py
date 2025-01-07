@@ -17,7 +17,7 @@ class Config:
         inpaint_outpaint (str): Inpaint or Outpaint
         img_prompt (str): Image Prompt
     """
-    fooocus_host = 'http://127.0.0.1:8888'
+    fooocus_host = 'http://127.0.0.1:3002'
 
     text2img_ip = '/v2/generation/text-to-image-with-ip'
     img_upscale = '/v2/generation/image-upscale-vary'
@@ -240,7 +240,7 @@ print(json.dumps(t2i_ip_result))
 import requests
 import json
 
-url = "http://localhost:8888/v2/generation/image-enhance"
+url = "http://localhost:3002/v2/generation/image-enhance"
 
 headers = {
     "Content-Type": "application/json"

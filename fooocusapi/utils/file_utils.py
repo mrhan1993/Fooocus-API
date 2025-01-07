@@ -24,7 +24,7 @@ output_dir = os.path.abspath(os.path.join(
     os.path.dirname(__file__), '../..', 'outputs', 'files'))
 os.makedirs(output_dir, exist_ok=True)
 
-STATIC_SERVER_BASE = 'http://127.0.0.1:8888/files/'
+STATIC_SERVER_BASE = 'http://127.0.0.1:3002/files/'
 
 
 def save_output_file(

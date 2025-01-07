@@ -78,7 +78,7 @@ This interface returns a universal response structure, refer to [response](#resp
 **request example：**
 
 ```python
-host = "http://127.0.0.1:8888"
+host = "http://127.0.0.1:3002"
 
 def text2img(params: dict) -> dict:
     """
@@ -134,7 +134,7 @@ This interface returns a universal response structure, refer to [response](#resp
 ```python
 # headers should not contain {"Content-Type": "application/json"}
 
-host = "http://127.0.0.1:8888"
+host = "http://127.0.0.1:3002"
 image = open("./examples/imgs/bear.jpg", "rb").read()
 
 def upscale_vary(image, params: dict) -> dict:
@@ -171,7 +171,7 @@ This interface returns a universal response structure, refer to [response](#resp
 **requests params：**
 
 ```python
-host = "http://127.0.0.1:8888"
+host = "http://127.0.0.1:3002"
 image = open("./examples/imgs/bear.jpg", "rb").read()
 
 def upscale_vary(image, params: dict) -> dict:
@@ -230,7 +230,7 @@ This interface returns a universal response structure, refer to [response](#resp
 
 ```python
 # example for inpaint outpaint v1
-host = "http://127.0.0.1:8888"
+host = "http://127.0.0.1:3002"
 image = open("./examples/imgs/bear.jpg", "rb").read()
 
 def inpaint_outpaint(params: dict, input_image: bytes, input_mask: bytes = None) -> dict:
@@ -285,7 +285,7 @@ This interface returns a universal response structure, refer to [response](#resp
 
 ```python
 # example for inpaint outpaint v2
-host = "http://127.0.0.1:8888"
+host = "http://127.0.0.1:3002"
 image = open("./examples/imgs/bear.jpg", "rb").read()
 
 def inpaint_outpaint(params: dict) -> dict:
@@ -375,7 +375,7 @@ This interface returns a universal response structure, refer to [response](#resp
 
 ```python
 # image_prompt v1 example
-host = "http://127.0.0.1:8888"
+host = "http://127.0.0.1:3002"
 image = open("./examples/imgs/bear.jpg", "rb").read()
 source = open("./examples/imgs/s.jpg", "rb").read()
 mask = open("./examples/imgs/m.png", "rb").read()
@@ -472,7 +472,7 @@ This interface returns a universal response structure, refer to [response](#resp
 
 ```python
 # image_prompt v2 example
-host = "http://127.0.0.1:8888"
+host = "http://127.0.0.1:3002"
 image = open("./examples/imgs/bear.jpg", "rb").read()
 source = open("./examples/imgs/s.jpg", "rb").read()
 mask = open("./examples/imgs/m.png", "rb").read()
@@ -550,7 +550,7 @@ DataType: json
 
 ```python
 # text to image with image prompt example
-host = "http://127.0.0.1:8888"
+host = "http://127.0.0.1:3002"
 image = open("./examples/imgs/bear.jpg", "rb").read()
 source = open("./examples/imgs/s.jpg", "rb").read()
 def image_prompt(params: dict) -> dict:
@@ -606,7 +606,7 @@ def describe_image(image: bytes,
     """
     describe-image
     """
-    response = requests.post(url="http://127.0.0.1:8888/v1/tools/describe-image",
+    response = requests.post(url="http://127.0.0.1:3002/v1/tools/describe-image",
                         params=params,
                         files={
                             "image": image
@@ -641,7 +641,7 @@ def all_models() -> dict:
     """
     all-models
     """
-    response = requests.get(url="http://127.0.0.1:8888/v1/engines/all-models",
+    response = requests.get(url="http://127.0.0.1:3002/v1/engines/all-models",
                         timeout=30)
     return response.json()
 ```
@@ -678,7 +678,7 @@ def refresh() -> dict:
     """
     refresh-models
     """
-    response = requests.post(url="http://127.0.0.1:8888/v1/engines/refresh-models",
+    response = requests.post(url="http://127.0.0.1:3002/v1/engines/refresh-models",
                         timeout=30)
     return response.json()
 ```
@@ -713,7 +713,7 @@ def styles() -> dict:
     """
     styles
     """
-    response = requests.get(url="http://127.0.0.1:8888/v1/engines/styles",
+    response = requests.get(url="http://127.0.0.1:3002/v1/engines/styles",
                         timeout=30)
     return response.json()
 ```
@@ -748,7 +748,7 @@ def job_queue() -> dict:
     """
     job-queue
     """
-    response = requests.get(url="http://127.0.0.1:8888/v1/generation/job-queue",
+    response = requests.get(url="http://127.0.0.1:3002/v1/generation/job-queue",
                         timeout=30)
     return response.json()
 ```
@@ -776,7 +776,7 @@ Method: Get
 ```python
 def taskResult(task_id: str) -> dict:
     # get task status
-    task_status = requests.get(url="http://127.0.0.1:8888/v1/generation/query-job",
+    task_status = requests.get(url="http://127.0.0.1:3002/v1/generation/query-job",
                                params={"job_id": task_id,
                                        "require_step_preview": False},
                                timeout=30)
@@ -796,7 +796,7 @@ def taskResult(task_id: str) -> dict:
   "job_result": [
     {
       "base64": null,
-      "url": "http://127.0.0.1:8888/files/2023-11-27/b928e50e-3c09-4187-a3f9-1c12280bfd95.png",
+      "url": "http://127.0.0.1:3002/files/2023-11-27/b928e50e-3c09-4187-a3f9-1c12280bfd95.png",
       "seed": 8228839561385006000,
       "finish_reason": "SUCCESS"
     }
@@ -820,7 +820,7 @@ def job-history() -> dict:
     """
     job-history
     """
-    response = requests.get(url="http://127.0.0.1:8888/v1/generation/job-history",
+    response = requests.get(url="http://127.0.0.1:3002/v1/generation/job-history",
                         timeout=30)
     return response.json()
 ```
@@ -853,7 +853,7 @@ def stop() -> dict:
     """
     stop
     """
-    response = requests.post(url="http://127.0.0.1:8888/v1/generation/stop",
+    response = requests.post(url="http://127.0.0.1:3002/v1/generation/stop",
                         timeout=30)
     return response.json()
 ```
@@ -903,7 +903,7 @@ Then, start Fooocus API with `--webhook-url http://host:8000/status`
 Submit a task in any way, and after completion, you will see the task completion information in the background of this simple server：
 
 ```python
-{'job_id': '717ec0b5-85df-4174-80d6-bddf93cd8248', 'job_result': [{'url': 'http://127.0.0.1:8888/files/2023-12-29/f1eca704-718e-4781-9d5f-82d41aa799d7.png', 'seed': '3283449865282320931'}]}
+{'job_id': '717ec0b5-85df-4174-80d6-bddf93cd8248', 'job_result': [{'url': 'http://127.0.0.1:3002/files/2023-12-29/f1eca704-718e-4781-9d5f-82d41aa799d7.png', 'seed': '3283449865282320931'}]}
 ```
 
 # public requests params

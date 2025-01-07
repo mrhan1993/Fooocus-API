@@ -137,7 +137,7 @@ conda env create -f environment.yaml
 conda activate fooocus-api
 ```
 
-and then, run `python main.py` to start app, default, server is listening on `http://127.0.0.1:8888`
+and then, run `python main.py` to start app, default, server is listening on `http://127.0.0.1:3002`
 
 > If you are running the project for the first time, you may have to wait for a while, during which time the program will complete the rest of the installation and download the necessary models. You can also do these steps manually, which I'll mention later.
 
@@ -207,7 +207,7 @@ Run
 docker run -d --gpus=all \
     -e NVIDIA_DRIVER_CAPABILITIES=compute,utility \
     -e NVIDIA_VISIBLE_DEVICES=all \
-    -p 8888:8888 konieshadow/fooocus-api
+    -p 3002:3002 konieshadow/fooocus-api
 ```
 
 For a more complex usage:
@@ -221,7 +221,7 @@ docker run -d --gpus=all \
     -e NVIDIA_VISIBLE_DEVICES=all \
     -v ~/repositories:/app/repositories \
     -v ~/.cache/pip:/root/.cache/pip \
-    -p 8888:8888 konieshadow/fooocus-api
+    -p 3002:3002 konieshadow/fooocus-api
 ```
 
 It will be persistent the dependent repositories and pip cache.
@@ -233,13 +233,13 @@ You can add `-e PIP_INDEX_URL={pypi-mirror-url}` to docker run command to change
 > ```
 > docker run -d --gpus all \
 >     -v /Fooocus-API:/app \
->     -p 8888:8888 konieshadow/fooocus-api
+>     -p 3002:3002 konieshadow/fooocus-api
 >```
 
 # cmd flags
 
 - `-h, --help` show this help message and exit
-- `--port PORT` Set the listen port, default: 8888
+- `--port PORT` Set the listen port, default: 3002
 - `--host HOST` Set the listen host, default: 127.0.0.1
 - `--base-url BASE_URL` Set base url for outside visit, default is http://host:port
 - `--log-level LOG_LEVEL` Log info for Uvicorn, default: info
