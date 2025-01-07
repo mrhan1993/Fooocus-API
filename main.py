@@ -146,7 +146,7 @@ def pre_setup():
         Arguments object
         """
         host = "127.0.0.1"
-        port = 8888
+        port = 3002
         base_url = None
         sync_repo = "skip"
         disable_image_log = True
