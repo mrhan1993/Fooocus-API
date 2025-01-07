@@ -1,5 +1,8 @@
 FROM pytorch/pytorch:2.1.0-cuda12.1-cudnn8-runtime
 
+ENV DEBIAN_FRONTEND=noninteractive
+ENV TZ=Asia/Shanghai
+
 RUN apt-get update -y && \
 	apt-get install -y curl libgl1 libglib2.0-0 python3-pip python-is-python3 git wget && \
 	apt-get clean && \
@@ -10,8 +13,6 @@ RUN wget -O illustrious-xl.safetensors https://huggingface.co/OnomaAIResearch/Il
 
 WORKDIR /app/repositories/Fooocus/models/loras
 RUN wget -O otti.safetensors https://huggingface.co/AdiCakepLabs/otti_v1/resolve/main/otti.safetensors
-
-ENV TZ=Asia/Shanghai
 
 WORKDIR /app
 
