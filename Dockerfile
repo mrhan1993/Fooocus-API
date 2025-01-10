@@ -10,9 +10,11 @@ RUN apt-get update -y && \
 
 WORKDIR /app/repositories/Fooocus/models/checkpoints
 RUN wget -O illustrious-xl.safetensors https://huggingface.co/OnomaAIResearch/Illustrious-xl-early-release-v0/resolve/main/Illustrious-XL-v0.1.safetensors
+RUN wget -O animaPencilXL_v500.safetensors https://huggingface.co/misri/animaPencilXL_v500/resolve/refs%2Fpr%2F1/animaPencilXL_v500.safetensors
 
 WORKDIR /app/repositories/Fooocus/models/loras
 RUN wget -O otti.safetensors https://huggingface.co/AdiCakepLabs/otti_v1/resolve/main/otti.safetensors
+RUN wget -O otti_v2_000002.safetensors https://huggingface.co/AdiCakepLabs/otti_v2/blob/main/otti_v2-000002.safetensors
 
 WORKDIR /app
 
