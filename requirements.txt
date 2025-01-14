@@ -34,3 +34,4 @@ numpy
 sqlalchemy
 packaging
 rich
+minio
