@@ -165,3 +165,15 @@ def all_styles():
     """Return all available styles"""
     from modules.sdxl_styles import legal_style_names
     return legal_style_names
+
+
+@secure_router.get(
+        path="/v1/engines/clean_vram",
+        description="Clean all vram",
+        tags=['Query'])
+def all_engines():
+    """unload all models and clean vram"""
+    from ldm_patched.modules.model_management import cleanup_models, unload_all_models
+    cleanup_models()
+    unload_all_models()
+    return {"message": "ok"}
