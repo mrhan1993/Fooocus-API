@@ -11,11 +11,11 @@ import uuid
 import time
 from typing import List, Tuple
 import numpy as np
-import requests
 
 from fooocusapi.utils.file_utils import delete_output_file, get_file_serve_url
 from fooocusapi.utils.img_utils import narray_to_base64img
 from fooocusapi.utils.logger import logger
+from fooocusapi.utils.security import safe_requests_post
 
 from fooocusapi.models.common.task import ImageGenerationResult, GenerationFinishReason
 from fooocusapi.parameters import ImageGenerationParams
@@ -256,7 +256,7 @@ class TaskQueue:
             # Send webhook
             if task.is_finished and webhook_url:
                 try:
-                    res = requests.post(webhook_url, json=data, timeout=15)
+                    res = safe_requests_post(webhook_url, json=data, timeout=15)
                     print(f"Call webhook response status: {res.status_code}")
                 except Exception as e:
                     print("Call webhook error:", e)

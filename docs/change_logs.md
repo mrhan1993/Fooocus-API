@@ -1,5 +1,10 @@
 # ChangeLog for Fooocus-API
 
+## [Unreleased]
+### Security
+- SSRF protection for all remote URL fetches: `loras_custom_urls` downloads, image URL inputs (`input_image` / `input_mask` / `cn_img*` / `enhance_input_image`) and `webhook_url` now reject private, link-local (incl. cloud metadata `169.254.169.254`), loopback and other non-public addresses, including on every redirect hop.
+- Fix archive path traversal ("Zip-Slip") when extracting LoRA tar files: tar members that would escape the `models/loras` cache dir (absolute paths, `..` traversal, unsafe symlink/hardlink targets) are now rejected.
+
 ## [v0.5.0.1]
 ### Changed
 - Fooocus to v2.5.3

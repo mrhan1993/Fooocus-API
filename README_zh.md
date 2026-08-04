@@ -250,7 +250,9 @@ docker run -d --gpus=all \
 - `--queue-history QUEUE_HISTORY` 保留的作业历史，默认 0 即无限制，超过会被删除，包括生成的图像
 - `--webhook-url WEBHOOK_URL` 通知生成结果的 webhook 地址，默认为 None
 - `--persistent` 持久化历史记录到SQLite数据库，默认关闭
-- `--apikey APIKEY` 设置 apikey 以启用安全api，默认值：无
+- `--apikey APIKEY` 设置 apikey 以启用安全api，默认值：无（当服务暴露在非本机时强烈建议设置）
+
+> **安全说明：** 远程 URL 输入（`input_image`/`input_mask`/`cn_img*`/`enhance_input_image`/`loras_custom_urls`/`webhook_url`）只会访问公网地址——私网、链路本地（含云元数据）、回环等非公网地址均会被拦截。API key 认证**默认关闭**；当服务可被 `127.0.0.1` 之外的地址访问时，请务必设置 `--apikey`。
 
 从 v0.3.25 开始, Fooocus 的命令行选项也被支持，你可以在启动时加上 Fooocus 支持的选项
 

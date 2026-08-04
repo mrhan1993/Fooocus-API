@@ -1,7 +1,9 @@
 import hashlib
 import os
-import requests
+import re
 import tarfile
+
+from fooocusapi.utils.security import safe_requests_get
 
 def _hash_url(url):
     """Generates a hash value for a given URL."""
@@ -22,14 +24,14 @@ class LoraManager:
         Downloads a LoRa from a URL, saves it in the cache, and if it's a .tar file, extracts it and returns the .safetensors file.
         """
         url_hash = _hash_url(url)
-        file_ext = url.split('.')[-1]
+        file_ext = re.sub(r'[^A-Za-z0-9]', '', url.split('.')[-1])
         filepath = os.path.join(self.cache_dir, f"{url_hash}.{file_ext}")
 
         if not os.path.exists(filepath):
             print(f"Start download for: {url}")
 
             try:
-                response = requests.get(url, timeout=10, stream=True)
+                response = safe_requests_get(url, timeout=10, stream=True)
                 response.raise_for_status()
                 with open(filepath, 'wb') as f:
                     for chunk in response.iter_content(chunk_size=8192):
@@ -38,7 +40,7 @@ class LoraManager:
                 if file_ext == "tar":
                     print("Extracting the tar file...")
                     with tarfile.open(filepath, 'r:*') as tar:
-                        tar.extractall(path=self.cache_dir)
+                        self._safe_extract(tar)
                     print("Extraction completed.")
                     return self._find_safetensors_file(self.cache_dir)
 
@@ -50,6 +52,23 @@ class LoraManager:
             print(f"LoRa already downloaded {url}")
 
         return filepath
+
+    def _safe_extract(self, tar: tarfile.TarFile) -> None:
+        """Extract tar members, rejecting any path that escapes the cache dir."""
+        cache_dir = os.path.realpath(self.cache_dir)
+        prefix = cache_dir + os.sep
+        for member in tar.getmembers():
+            member_target = os.path.realpath(os.path.join(cache_dir, member.name))
+            if member_target != cache_dir and not member_target.startswith(prefix):
+                raise Exception(f"Unsafe tar member path: {member.name}")
+            if member.issym() or member.islnk():
+                link_target = os.path.realpath(os.path.join(cache_dir, member.linkname))
+                if not link_target.startswith(prefix):
+                    raise Exception(f"Unsafe tar link target: {member.linkname}")
+        try:
+            tar.extractall(path=cache_dir, filter='data')
+        except TypeError:
+            tar.extractall(path=cache_dir)
 
     def _find_safetensors_file(self, directory):
         """

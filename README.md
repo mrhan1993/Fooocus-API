@@ -249,7 +249,9 @@ You can add `-e PIP_INDEX_URL={pypi-mirror-url}` to docker run command to change
 - `--queue-history QUEUE_HISTORY` Finished jobs reserve size, tasks exceeding the limit will be deleted, including output image files, default: 0, means no limit
 - `--webhook-url WEBHOOK_URL` Webhook url for notify generation result, default: None
 - `--persistent` Store history to db
-- `--apikey APIKEY` Set apikey to enable secure api, default: None
+- `--apikey APIKEY` Set apikey to enable secure api, default: None (strongly recommended when exposing the service beyond localhost)
+
+> **Security note:** remote URL inputs (`input_image`/`input_mask`/`cn_img*`/`enhance_input_image`/`loras_custom_urls`/`webhook_url`) only fetch public addresses — private, link-local (incl. cloud metadata), loopback and other non-public hosts are blocked. API key auth is **disabled by default**; always set `--apikey` when the service is reachable beyond `127.0.0.1`.
 
 Since v0.3.25, added CMD flags support of Fooocus. You can pass any argument which Fooocus supported.
 
