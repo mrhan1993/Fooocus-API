@@ -69,6 +69,8 @@ DataType: json
 | async_process           | bool           | 是否异步处理, 默认 False                                                        |
 | webhook_url             | str            | 异步处理完成后, 触发的 webhook 地址, 参考[webhook](#webhook)                          |
 
+> **安全说明：** 所有作为输入接受的 URL（`input_image` / `input_mask` / `cn_img*` / `enhance_input_image` / `webhook_url`）只允许访问**公网**地址。私网、链路本地（含云元数据 `169.254.169.254`）、回环等非公网主机都会被拦截，并在每次重定向跳转时进行校验。访问被拦截地址的请求会被忽略，按无效值处理。
+
 **响应参数：**
 
 多数响应结构式相同的, 不同的部分会进行特别说明.
@@ -882,6 +884,8 @@ pong
 # webhook
 
 你可以在命令行通过 `--webhook-url` 指定一个地址，以便异步任务完成之后可以收到通知
+
+> 注意：webhook 地址必须为公网地址；为防护 SSRF，私网/内网地址会被拦截。
 
 下面是一个简单的示例来展示 `webhook` 是如何工作的
 

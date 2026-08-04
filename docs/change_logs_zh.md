@@ -1,5 +1,10 @@
 # ChangeLog for Fooocus-API
 
+## [Unreleased]
+### Security
+- 为所有远程 URL 抓取增加 SSRF 防护：`loras_custom_urls` 下载、图像 URL 输入（`input_image` / `input_mask` / `cn_img*` / `enhance_input_image`）以及 `webhook_url` 现在会拒绝私网、链路本地（含云元数据 `169.254.169.254`）、回环地址等非公网地址，并在每次重定向跳转时都进行校验。
+- 修复解压 LoRA tar 包时的路径穿越漏洞（"Zip-Slip"）：任何会逃逸 `models/loras` 缓存目录的 tar 成员（绝对路径、`..` 穿越、不安全的符号链接/硬链接目标）都会被拒绝。
+
 ## [v0.5.0.1]
 ### Changed
 - 合并到 Fooocus 2.5.3

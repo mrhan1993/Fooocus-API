@@ -69,6 +69,8 @@ DataType: json
 | async_process           | bool           | is async, default to False                                                                      |
 | webhook_url             | str            | after async task completed, address for callback, default to None, refer to [webhook](#webhook) |
 
+> **Security note:** any URL accepted as input (`input_image` / `input_mask` / `cn_img*` / `enhance_input_image` / `webhook_url`) is only fetched from **public** addresses. Private, link-local (incl. cloud metadata `169.254.169.254`), loopback and other non-public hosts are blocked, on every redirect hop. Requests to blocked addresses are ignored and treated as if the value was invalid.
+
 **response params：**
 
 Most response have the same structure, but different parts will be specifically explained 
@@ -880,6 +882,8 @@ pong
 # webhook
 
 You can specify an address through '--webhook_url' on the command line so that you can receive notifications after asynchronous tasks are completed
+
+> Note: the webhook address must be public; private/internal addresses are blocked for SSRF protection.
 
 Here is a simple example to demonstrate how 'webhook' works
 
