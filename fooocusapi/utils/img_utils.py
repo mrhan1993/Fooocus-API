@@ -10,8 +10,9 @@ from io import BytesIO
 from fastapi import UploadFile
 from PIL import Image
 import starlette
-import requests
 import numpy as np
+
+from fooocusapi.utils.security import safe_requests_get
 
 
 async def convert_image(image_path: str, image_format: str = 'png') -> BytesIO:
@@ -102,7 +103,7 @@ def read_input_image(input_image: UploadFile | str | None) -> np.ndarray | None:
             return None
         if input_image.startswith("http"):
             try:
-                response = requests.get(input_image, headers=headers, timeout=20)
+                response = safe_requests_get(input_image, headers=headers, timeout=20)
                 input_image_bytes = response.content
             except Exception:
                 return None
@@ -156,7 +157,7 @@ def get_check_image(url: str) -> UploadFile | None:
         'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.3'
     }
     try:
-        response = requests.get(url, headers=headers, timeout=10)
+        response = safe_requests_get(url, headers=headers, timeout=10)
         binary_image = response.content
     except Exception:
         return None
